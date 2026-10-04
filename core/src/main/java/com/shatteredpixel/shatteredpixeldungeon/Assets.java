@@ -269,7 +269,6 @@ public class Assets {
 		
 		public static final String PET      = "sprites/pet.png";
 		public static final String AMULET   = "sprites/amulet.png";
-		public static final String FETID_RAT  = "sprites/fetid_rat.png";
 		public static final String DM300      = "sprites/dm300.png";
 		public static final String WRAITH     = "sprites/wraith.png";
 		public static final String KING       = "sprites/king.png";
@@ -294,7 +293,7 @@ public class Assets {
 		public static final String NINJA_LOG  = "sprites/ninja_log.png";
 
 		// ===== sprites/boss/ =====              		-地牢boss-
-		public static final String PYLON      = "sprites/boss/pylon.png";
+		public static final String PYLON        = "sprites/boss/pylon.png";
 		public static final String TYPHOOTIN	= "sprites/boss/typhootin.png";
 		public static final String INTRUDER 	= "sprites/boss/intruder.png";
 		public static final String ELPHELT 		= "sprites/boss/elphelt.png";
@@ -324,32 +323,31 @@ public class Assets {
 		public static final String EMOTION 		= "sprites/char/emotion.png";
 
 		// ===== sprites/girlpd/ =====              		-少前地牢的中立生物-
-		public static final String SPINNER    = "sprites/girlpd/spinner.png";
-		public static final String SPINNERCAT = "sprites/girlpd/spinner_cat.png";
-		public static final String PIRANHA    = "sprites/girlpd/piranha.png";
-		public static final String EYE        = "sprites/girlpd/eye.png";
-		public static final String THIEF      = "sprites/girlpd/thief.png";
-		public static final String ELEMENTAL  = "sprites/girlpd/elemental.png";
-		public static final String LARVA      = "sprites/girlpd/larva.png";
-		public static final String BEE        = "sprites/girlpd/bee.png";
-		public static final String MIMIC      = "sprites/girlpd/mimic.png";
-		public static final String ROT_LASH   = "sprites/girlpd/rot_lasher.png";
-		public static final String ROT_HEART  = "sprites/girlpd/rot_heart.png";
-		public static final String SNAKE      = "sprites/girlpd/snake.png";
-		public static final String GHOUL      = "sprites/girlpd/undead.png";
-		public static final String SKS  = "sprites/girlpd/sks.png";
-        public static final String SKS_ARM  = "sprites/girlpd/sks_arm.png";
-		public static final String PYRO			= "sprites/girlpd/pyro.png";
-		public static final String MG5	    	= "sprites/girlpd/mg5.png";
+		public static final String SPINNER   	 = "sprites/girlpd/spinner.png";
+		public static final String SPINNERCAT	 = "sprites/girlpd/spinner_cat.png";
+		public static final String PIRANHA   	 = "sprites/girlpd/piranha.png";
+		public static final String THIEF     	 = "sprites/girlpd/thief.png";
+		public static final String ELEMENTAL 	 = "sprites/girlpd/elemental.png";
+		public static final String LARVA       	 = "sprites/girlpd/larva.png";
+		public static final String BEE	     	 = "sprites/girlpd/bee.png";
+		public static final String MIMIC      	= "sprites/girlpd/mimic.png";
+		public static final String ROT_LASH  	= "sprites/girlpd/rot_lasher.png";
+		public static final String ROT_HEART  	= "sprites/girlpd/rot_heart.png";
+		public static final String SNAKE       	= "sprites/girlpd/snake.png";
+		public static final String SKS       	= "sprites/girlpd/sks.png";
+        public static final String SKS_ARM   	= "sprites/girlpd/sks_arm.png";
+		public static final String PYRO		    = "sprites/girlpd/pyro.png";
+		public static final String MG5	   		= "sprites/girlpd/mg5.png";
+		public static final String FETID_RAT  	= "sprites/girlpd/fetid_rat.png";
 
 		// ===== sprites/PARA_DEUS/ =====              		-帕拉蒂斯-
 		public static final String RED_SENTRY = "sprites/PARA_DEUS/red_pointer.png";
 
 		// ===== sprites/REGULAR_ARMY/ =====              		-正规军-
-		public static final String SUCCUBUS   = "sprites/REGULAR_ARMY/succubus.png";
-		public static final String RIPPER     = "sprites/REGULAR_ARMY/ripper.png";
-		public static final String SPAWNER    = "sprites/REGULAR_ARMY/spawner.png";
-		public static final String KENTAUROS		= "sprites/REGULAR_ARMY/archer.png";
+		public static final String SUCCUBUS     = "sprites/REGULAR_ARMY/succubus.png";
+		public static final String RIPPER    	= "sprites/REGULAR_ARMY/ripper.png";
+		public static final String SPAWNER    	= "sprites/REGULAR_ARMY/spawner.png";
+		public static final String KENTAUROS	= "sprites/REGULAR_ARMY/archer.png";
 		public static final String TYPHOON		= "sprites/REGULAR_ARMY/typhoon.png";
 		public static final String ACYCLOPS		= "sprites/REGULAR_ARMY/acyclops.png";
 		public static final String HYDRA		= "sprites/REGULAR_ARMY/hydra.png";
@@ -369,15 +367,17 @@ public class Assets {
 		public static final String MANTI  			= "sprites/SANGVIS_FERRI/manti.png";
 		public static final String STRIKER			= "sprites/SANGVIS_FERRI/striker.png";
 		public static final String ESTRIKER			= "sprites/SANGVIS_FERRI/elitestriker.png";
-		public static final String SVESPID		= "sprites/SANGVIS_FERRI/shieldvespid.png";
-		public static final String JUPITER		= "sprites/SANGVIS_FERRI/jupiter.png";
-		public static final String NEMEUM 		= "sprites/SANGVIS_FERRI/nemeum.png";
-		public static final String JAGUAR       = "sprites/SANGVIS_FERRI/Jaguar.png";
-		public static final String DRAGUN		= "sprites/SANGVIS_FERRI/dragun.png";
-		public static final String PROWLER		= "sprites/SANGVIS_FERRI/prowler.png";
-		public static final String GOLYAT		= "sprites/SANGVIS_FERRI/golyat.png";
-		public static final String VESPID		= "sprites/SANGVIS_FERRI/vespid.png";
-		public static final String GOLYATPLUS	= "sprites/SANGVIS_FERRI/golyatplus.png";
+		public static final String SVESPID			= "sprites/SANGVIS_FERRI/shieldvespid.png";
+		public static final String JUPITER			= "sprites/SANGVIS_FERRI/jupiter.png";
+		public static final String NEMEUM 			= "sprites/SANGVIS_FERRI/nemeum.png";
+		public static final String JAGUAR      		= "sprites/SANGVIS_FERRI/Jaguar.png";
+		public static final String DRAGUN      		= "sprites/SANGVIS_FERRI/dragun.png";
+		public static final String PROWLER      	= "sprites/SANGVIS_FERRI/prowler.png";
+		public static final String GOLYAT			= "sprites/SANGVIS_FERRI/golyat.png";
+		public static final String VESPID			= "sprites/SANGVIS_FERRI/vespid.png";
+		public static final String GOLYATPLUS      	= "sprites/SANGVIS_FERRI/golyatplus.png";
+		public static final String EYE        		= "sprites/SANGVIS_FERRI/eye.png";
+		public static final String GHOUL        	= "sprites/SANGVIS_FERRI/undead.png";
 
 		// ===== sprites/zeroNPC/ =====              		-NPC角色-
 		public static final String NOEL       = "sprites/zeroNPC/noel.png";

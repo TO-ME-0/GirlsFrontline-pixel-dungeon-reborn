@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -366,7 +367,17 @@ public class MobPlacer extends TestItem{
                         updateMobText();
                     }
                 };
-                btn.icon(Reflection.newInstance(getMobClass(i)).sprite());
+                CharSprite sprite;
+                try {
+                    sprite = Reflection.newInstance(getMobClass(i)).sprite();
+                } catch (Exception e) {
+                    GLog.w("MobPlacer: failed to create sprite for " + getMobClass(i).getSimpleName() + " - " + e.getMessage());
+                    sprite = null;
+                }
+                btn.icon(sprite);
+                if (btn.icon() == null) {
+                    continue; //skip mobs whose sprite isn't initialized yet
+                }
                 float max = Math.max(btn.icon().width(), btn.icon().height());
                 btn.icon().scale = new PointF(BTN_SIZE / max, BTN_SIZE / max);
                 btn.setRect(left, top, BTN_SIZE, BTN_SIZE);
