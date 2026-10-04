@@ -58,6 +58,9 @@ public class Terrain {
 	public static final int FURROWED_GRASS	= 30;
 	public static final int CRYSTAL_DOOR	= 31;
     public static final int TRAP_GRASS      = 32;
+    //矿洞装饰地形（3.3.8 移植：晶洞水晶 / 豺狼矿洞巨石，实心阻挡）
+    public static final int MINE_CRYSTAL    = 35;
+    public static final int MINE_BOULDER    = 36;
 	
 	public static final int PASSABLE		= 0x001;
 	public static final int LOS_BLOCKING	= 0x002;
@@ -108,6 +111,8 @@ public class Terrain {
 		flags[BOOKSHELF]	= flags[BARRICADE] | BREAKABLE ;
 		flags[ALCHEMY]		= SOLID | BREAKABLE ;
         flags[TRAP_GRASS]	= AVOID | SPECIAL | BREAKABLE ;
+        flags[MINE_CRYSTAL]	= SOLID;
+        flags[MINE_BOULDER]	= SOLID;
 	}
 
 	public static int discover( int terr ) {

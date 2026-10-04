@@ -80,8 +80,8 @@ public abstract class RegularPainter extends Painter {
 		
 		//painter can be used without rooms
 		if (rooms != null) {
-			
-			int padding = level.feeling == Level.Feeling.CHASM ? 2 : 1;
+
+			int padding = padding(level);
 			
 			int leftMost = Integer.MAX_VALUE, topMost = Integer.MAX_VALUE;
 			
@@ -145,6 +145,11 @@ public abstract class RegularPainter extends Painter {
 	}
 	
 	protected abstract void decorate(Level level, ArrayList<Room> rooms);
+
+	//关卡边缘留白宽度，矿洞需要更大的留白（对齐 3.3.8）
+	protected int padding(Level level){
+		return level.feeling == Level.Feeling.CHASM ? 2 : 1;
+	}
 	
 	private void placeDoors( Room r ) {
 		for (Room n : r.connected.keySet()) {
@@ -258,6 +263,10 @@ public abstract class RegularPainter extends Painter {
 				switch (d.type) {
 					case EMPTY:
 						l.map[door] = Terrain.EMPTY;
+						break;
+					//矿洞房间会把部分连接门封成实墙（见 MiningLevelPainter）
+					case WALL:
+						l.map[door] = Terrain.WALL;
 						break;
 					case TUNNEL:
 						l.map[door] = l.tunnelTile();

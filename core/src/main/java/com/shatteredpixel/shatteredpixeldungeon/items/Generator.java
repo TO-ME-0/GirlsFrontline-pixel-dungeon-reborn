@@ -288,12 +288,46 @@ public class Generator {
 		public float[] probs;
 		public float[] defaultProbs = null;
 
+		//some item types have two decks and swap between them
+		// this enforces more consistency while still allowing for better precision
+		public float[] defaultProbs2 = null;
+		//but in such cases we still need a reference to the full deck in case of non-deck generation
+		public float[] defaultProbsTotal = null;
+
 		public float[] probs(){
 			return Dungeons.cur().genCatProbs[ordinal()];
 		}
 
 		public void setProbs(float[] p){
 			Dungeons.cur().genCatProbs[ordinal()] = p;
+		}
+
+		//双牌堆类别本局是否使用第 2 套概率，同样按每局上下文路由
+		public boolean using2ndProbs(){
+			return Dungeons.cur().genCatUsing2ndProbs[ordinal()];
+		}
+
+		public void setUsing2ndProbs(boolean b){
+			Dungeons.cur().genCatUsing2ndProbs[ordinal()] = b;
+		}
+
+		//牌堆系统（deck system）：每个使用牌堆的类别持有一个固定种子与已掉落次数，
+		//使掉落结果与发生时机无关（无论是关卡生成还是随机掉落）。
+		//与 probs 一样按每局上下文路由，避免查种线程污染主世界状态
+		public Long seed(){
+			return Dungeons.cur().genCatSeeds[ordinal()];
+		}
+
+		public void setSeed(Long s){
+			Dungeons.cur().genCatSeeds[ordinal()] = s;
+		}
+
+		public int dropped(){
+			return Dungeons.cur().genCatDropped[ordinal()];
+		}
+
+		public void setDropped(int d){
+			Dungeons.cur().genCatDropped[ordinal()] = d;
 		}
 
 		//game has two decks of 35 items for overall category probs
@@ -337,7 +371,8 @@ public class Generator {
 					PotionOfParalyticGas.class,
 					PotionOfPurity.class,
 					PotionOfExperience.class};
-			POTION.defaultProbs = new float[]{ 0, 6, 4, 3, 3, 3, 2, 2, 2, 2, 2, 1 };
+			POTION.defaultProbs  = new float[]{ 0, 3, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1 };
+			POTION.defaultProbs2 = new float[]{ 0, 3, 2, 2, 1, 2, 1, 1, 1, 1, 1, 0 };
 			POTION.probs = POTION.defaultProbs.clone();
 			
 			SEED.classes = new Class<?>[]{
@@ -370,7 +405,8 @@ public class Generator {
 					ScrollOfTerror.class,
 					ScrollOfTransmutation.class
 			};
-			SCROLL.defaultProbs = new float[]{ 0, 6, 4, 3, 3, 3, 2, 2, 2, 2, 2, 1 };
+			SCROLL.defaultProbs  = new float[]{ 0, 3, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1 };
+			SCROLL.defaultProbs2 = new float[]{ 0, 3, 2, 2, 1, 2, 1, 1, 1, 1, 1, 0 };
 			SCROLL.probs = SCROLL.defaultProbs.clone();
 			
 			STONE.classes = new Class<?>[]{
@@ -616,6 +652,16 @@ public class Generator {
 			TRINKET.defaultProbs[TRINKET.defaultProbs.length - 1] = 0;
 			TRINKET.probs = TRINKET.defaultProbs.clone();
 
+			//双牌堆类别的完整牌堆 = 两套之和，供非牌堆生成路径（randomUsingDefaults）使用
+			for (Category category : Category.values()){
+				if (category.defaultProbs2 != null){
+					category.defaultProbsTotal = new float[category.defaultProbs.length];
+					for (int i = 0; i < category.defaultProbs.length; i++){
+						category.defaultProbsTotal[i] = category.defaultProbs[i] + category.defaultProbs2[i];
+					}
+				}
+			}
+
 			for (Category category : Category.values())
 				if (category.classes.length != category.probs.length)
 					GirlsFrontlinePixelDungeon.reportException(new Exception(category.name() + "长度不匹配"));
@@ -648,7 +694,14 @@ public class Generator {
 		Dungeons.cur().genUsingFirstDeck = Random.Int(2) == 0;
 		generalReset();
 		for (Category cat : Category.values()) {
+			//双牌堆类别随机选择本局起始牌堆（随后的 reset 会切换到另一套）
+			cat.setUsing2ndProbs(cat.defaultProbs2 != null && Random.Int(2) == 0);
 			reset(cat);
+			//牌堆系统：为每个使用牌堆的类别生成固定种子并清零已掉落次数
+			if (cat.defaultProbs != null) {
+				cat.setSeed(Random.Long());
+				cat.setDropped(0);
+			}
 		}
 		//同步机密商店永久解锁状态（如 P90 生成池）
 		refreshUnlockables();
@@ -662,7 +715,34 @@ public class Generator {
 	}
 
 	public static void reset(Category cat){
-		if (cat.defaultProbs != null) cat.setProbs(cat.defaultProbs.clone());
+		if (cat.defaultProbs != null) {
+			//双牌堆类别在补充牌堆时切换到另一套概率
+			if (cat.defaultProbs2 != null){
+				cat.setUsing2ndProbs(!cat.using2ndProbs());
+				cat.setProbs(cat.using2ndProbs() ? cat.defaultProbs2.clone() : cat.defaultProbs.clone());
+			} else {
+				cat.setProbs(cat.defaultProbs.clone());
+			}
+		}
+	}
+
+	//撤销此物品造成的掉落概率变更
+	//相当于把这张牌洗回牌堆，但不保留顺序！
+	public static void undoDrop(Item item){
+		undoDrop(item.getClass());
+	}
+
+	public static void undoDrop(Class cls){
+		for (Category cat : Category.values()){
+			if (cls.isAssignableFrom(cat.superClass)){
+				if (cat.defaultProbs == null) continue;
+				for (int i = 0; i < cat.classes.length; i++){
+					if (cls == cat.classes[i]){
+						cat.probs()[i]++;
+					}
+				}
+			}
+		}
 	}
 
 	
@@ -675,6 +755,12 @@ public class Generator {
 			cat = Random.chances( d.genCategoryProbs );
 		}
 		d.genCategoryProbs.put( cat, d.genCategoryProbs.get( cat ) - 1);
+
+		//种子主要来源于草丛而非关卡生成，故统一使用默认概率，
+		//让少数由关卡生成产出的种子与其他来源保持一致
+		if (cat == Category.SEED) {
+			return randomUsingDefaults(cat);
+		}
 		return random( cat );
 	}
 	
@@ -691,11 +777,22 @@ public class Generator {
 				//if we're out of artifacts, return a ring instead.
 				return item != null ? item : random(Category.RING);
 			default:
+				//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
+				if (cat.defaultProbs != null && cat.seed() != null){
+					Random.pushGenerator(cat.seed());
+					for (int i = 0; i < cat.dropped(); i++) Random.Long();
+				}
+
 				int i = Random.chances(cat.probs());
 				if (i == -1) {
 					reset(cat);
 					i = Random.chances(cat.probs());
 				}
+				if (cat.defaultProbs != null && cat.seed() != null){
+					Random.popGenerator();
+					cat.setDropped(cat.dropped() + 1);
+				}
+
 				if (cat.defaultProbs != null) cat.probs()[i]--;
 				return ((Item) Reflection.newInstance(cat.classes[i])).random();
 		}
@@ -718,6 +815,9 @@ public class Generator {
             return randomMissile();
         } else if (cat.defaultProbs == null || cat == Category.ARTIFACT) {
 			return random(cat); //currently covers weapons/armor/missiles
+		} else if (cat.defaultProbsTotal != null) {
+			//双牌堆类别使用完整牌堆（两套之和），不受当前使用哪套的影响
+			return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbsTotal)])).random();
 		} else {
             return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbs)])).random();
         }
@@ -803,10 +903,17 @@ public class Generator {
 	public static Artifact randomArtifact() {
 
 		Category cat = Category.ARTIFACT;
-        Random.pushGenerator(Dungeon.cur().seed);
+		//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
+		if (cat.defaultProbs != null && cat.seed() != null){
+			Random.pushGenerator(cat.seed());
+			for (int i = 0; i < cat.dropped(); i++) Random.Long();
+		}
 		int i = Random.chances( cat.probs() );
         int j = Random.chances( cat.probs() );
-        Random.popGenerator();
+		if (cat.defaultProbs != null && cat.seed() != null){
+			Random.popGenerator();
+			cat.setDropped(cat.dropped() + 1);
+		}
 
 		//if no artifacts are left, return null
 		if (i == -1){
@@ -840,6 +947,9 @@ public class Generator {
 	private static final String FIRST_DECK = "first_deck";
 	private static final String GENERAL_PROBS = "general_probs";
 	private static final String CATEGORY_PROBS = "_probs";
+	private static final String CATEGORY_USING_PROBS2 = "_using_probs2";
+	private static final String CATEGORY_SEED = "_seed";
+	private static final String CATEGORY_DROPPED = "_dropped";
 	
 	public static void storeInBundle(Bundle bundle) {
 		Dungeons d = Dungeons.main();
@@ -855,7 +965,8 @@ public class Generator {
 		for (Category cat : Category.values()){
 			if (cat.defaultProbs == null) continue;
 			float[] curProbs = cat.probs();
-			boolean needsStore = false;
+			//双牌堆类别总是入档概率数组，确保与 _using_probs2 成对还原
+			boolean needsStore = cat.defaultProbs2 != null;
 			for (int i = 0; i < curProbs.length; i++){
 				if (curProbs[i] != cat.defaultProbs[i]){
 					needsStore = true;
@@ -865,6 +976,17 @@ public class Generator {
 
 			if (needsStore){
 				bundle.put(cat.name().toLowerCase() + CATEGORY_PROBS, curProbs);
+			}
+
+			//双牌堆类别本局使用的牌堆选择
+			if (cat.defaultProbs2 != null){
+				bundle.put(cat.name().toLowerCase() + CATEGORY_USING_PROBS2, cat.using2ndProbs());
+			}
+
+			//牌堆系统的固定种子与已掉落次数
+			if (cat.seed() != null){
+				bundle.put(cat.name().toLowerCase() + CATEGORY_SEED, cat.seed());
+				bundle.put(cat.name().toLowerCase() + CATEGORY_DROPPED, cat.dropped());
 			}
 		}
 	}
@@ -883,11 +1005,23 @@ public class Generator {
 		}
 
 		for (Category cat : Category.values()){
-			if (bundle.contains(cat.name().toLowerCase() + CATEGORY_PROBS)){
-				float[] probs = bundle.getFloatArray(cat.name().toLowerCase() + CATEGORY_PROBS);
+			String catName = cat.name().toLowerCase();
+			if (bundle.contains(catName + CATEGORY_PROBS)){
+				float[] probs = bundle.getFloatArray(catName + CATEGORY_PROBS);
 				if (cat.defaultProbs != null && probs.length == cat.defaultProbs.length){
 					d.genCatProbs[cat.ordinal()] = probs;
 				}
+			}
+			//双牌堆类别的牌堆选择（旧存档无此字段时回退到第 1 套）
+			if (cat.defaultProbs2 != null){
+				boolean using2nd = bundle.contains(catName + CATEGORY_USING_PROBS2)
+						&& bundle.getBoolean(catName + CATEGORY_USING_PROBS2);
+				d.genCatUsing2ndProbs[cat.ordinal()] = using2nd;
+			}
+			//牌堆系统的固定种子与已掉落次数（独立判断，概率数组不一定与其同时入档）
+			if (bundle.contains(catName + CATEGORY_SEED)){
+				d.genCatSeeds[cat.ordinal()] = bundle.getLong(catName + CATEGORY_SEED);
+				d.genCatDropped[cat.ordinal()] = bundle.getInt(catName + CATEGORY_DROPPED);
 			}
 		}
 		

@@ -98,9 +98,9 @@ public abstract class RegularBuilder extends Builder {
 		singleConnections.clear();
 		multiConnections.clear();
 		for (Room r : rooms){
-			if (r instanceof EntranceRoom){
+			if (r.isEntrance()){
 				entrance = r;
-			} else if (r instanceof ExitRoom) {
+			} else if (r.isExit()) {
 				exit = r;
 			} else if (r instanceof ShopRoom && r.maxConnections(Room.ALL) == 1){
 				shop = r;

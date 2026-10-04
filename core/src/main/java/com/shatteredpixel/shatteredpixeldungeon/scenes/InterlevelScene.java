@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
+import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.MineEntranceTrigger;
+import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.Trigger;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
@@ -526,7 +528,19 @@ public class InterlevelScene extends PixelScene {
         Dungeon.saveAll();
         Dungeon.cur().depth = returnLevel%1000;
         Level level = Dungeon.loadLevel(GamesInProgress.curSlot,returnLevel,false);
-        Dungeon.switchLevel( level, returnPos );
+        int targetPos = returnPos;
+        if (targetPos == -3){
+            //从矿洞返回：落点为主层铁匠房里的矿洞入口格（找不到则回退到楼层入口）
+            targetPos = level.entrance;
+            //mod SparseArray 基于 gdx IntMap，无 size/valueAt，用 valueList() 迭代
+            for (Trigger trigger : level.triggers.valueList()){
+                if (trigger instanceof MineEntranceTrigger){
+                    targetPos = trigger.pos;
+                    break;
+                }
+            }
+        }
+        Dungeon.switchLevel( level, targetPos );
 	}
 	
 	public static void restore() throws IOException {

@@ -183,6 +183,7 @@ public class ScrollOfUpgrade extends InventoryScroll {
 		if (item instanceof Weapon){
 			Weapon w = (Weapon) item;
 			boolean wasCursed = w.cursed;
+			boolean wasHardened = w.enchantHardened;
 			boolean hadCursedEnchant = w.hasCurseEnchant();
 			boolean hadGoodEnchant = w.hasGoodEnchant();
 
@@ -194,13 +195,16 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			} else if (w.cursedKnown && wasCursed && !w.cursed){
 				weakenCurse( Dungeon.hero() );
 			}
-			if (hadGoodEnchant && !w.hasGoodEnchant()){
+			if (wasHardened && !w.enchantHardened){
+				GLog.w( Messages.get(Weapon.class, "hardening_gone") );
+			} else if (hadGoodEnchant && !w.hasGoodEnchant()){
 				GLog.w( Messages.get(Weapon.class, "incompatible") );
 			}
 
 		} else if (item instanceof Armor){
 			Armor a = (Armor) item;
 			boolean wasCursed = a.cursed;
+			boolean wasHardened = a.glyphHardened;
 			boolean hadCursedGlyph = a.hasCurseGlyph();
 			boolean hadGoodGlyph = a.hasGoodGlyph();
 
@@ -212,7 +216,9 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			} else if (a.cursedKnown && wasCursed && !a.cursed){
 				weakenCurse( Dungeon.hero() );
 			}
-			if (hadGoodGlyph && !a.hasGoodGlyph()){
+			if (wasHardened && !a.glyphHardened){
+				GLog.w( Messages.get(Armor.class, "hardening_gone") );
+			} else if (hadGoodGlyph && !a.hasGoodGlyph()){
 				GLog.w( Messages.get(Armor.class, "incompatible") );
 			}
 

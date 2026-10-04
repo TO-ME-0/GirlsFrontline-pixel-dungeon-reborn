@@ -44,9 +44,7 @@ public class CaveRoom extends PatchRoom {
 		// normal   ~30% to ~40%
 		// large    ~40% to ~50%
 		// giant    ~50% to ~60%
-		float fill = 0.30f + (width()*height())/1024f;
-		
-		setupPatch(level, fill, 3, true);
+		setupPatch(level, fill(), 3, true);
 		cleanDiagonalEdges();
 		
 		for (int i = top + 1; i < bottom; i++) {
@@ -57,6 +55,11 @@ public class CaveRoom extends PatchRoom {
 				}
 			}
 		}
+	}
+
+	//3.3.8 钩子：矿洞系列房间通过重写此方法调整岩柱填充比例
+	protected float fill() {
+		return 0.30f + (width()*height())/1024f;
 	}
 	
 }

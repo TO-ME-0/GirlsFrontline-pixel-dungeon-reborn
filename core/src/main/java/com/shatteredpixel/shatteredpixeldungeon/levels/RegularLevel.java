@@ -617,9 +617,9 @@ public abstract class RegularLevel extends Level {
 		rooms = bundle.getArrayList(ROOMS, Room.class);
 		for (Room r : rooms) {
 			r.onLevelLoad( this );
-			if (r instanceof EntranceRoom ){
+			if (r.isEntrance()){
 				roomEntrance = r;
-			} else if (r instanceof ExitRoom ){
+			} else if (r.isExit()){
 				roomExit = r;
 			}
 		}

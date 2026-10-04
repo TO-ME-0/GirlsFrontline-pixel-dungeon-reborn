@@ -21,12 +21,18 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.MineEntranceTrigger;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.BurningTrap;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.watabou.noosa.Tilemap;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
@@ -46,8 +52,14 @@ public class BlacksmithRoom extends StandardRoom {
 
 		Painter.fill( level, this, Terrain.WALL );
 		Painter.fill( level, this, 1, Terrain.TRAP );
+
+		for (Door door : connected.values()) {
+			door.set( Door.Type.REGULAR );
+			Painter.drawInside( level, this, door, 2, Terrain.EMPTY );
+		}
+
 		Painter.fill( level, this, 2, Terrain.EMPTY_SP );
-		
+
 		for (int i=0; i < 2; i++) {
 			int pos;
 			do {
@@ -60,17 +72,26 @@ public class BlacksmithRoom extends StandardRoom {
 					Generator.Category.MISSILE
 				) ), pos );
 		}
-		
-		for (Door door : connected.values()) {
-			door.set( Door.Type.REGULAR );
-			Painter.drawInside( level, this, door, 1, Terrain.EMPTY );
-		}
-		
+
 		Blacksmith npc = new Blacksmith();
 		do {
 			npc.pos = level.pointToCell(random( 2 ));
 		} while (level.heaps.get( npc.pos ) != null);
 		level.mobs.add( npc );
+
+		//矿洞入口格：避开 NPC 与掉落物
+		int entrancePos;
+		do {
+			entrancePos = level.pointToCell(random( 2 ));
+		} while (level.heaps.get( entrancePos ) != null || entrancePos == npc.pos);
+
+		QuestEntrance vis = new QuestEntrance();
+		vis.pos(entrancePos % level.width(), entrancePos / level.width());
+		level.customTiles.add(vis);
+
+		//mod 以触发器替代 3.3.8 的 LevelTransition（BRANCH_EXIT）
+		Painter.set(level, entrancePos, Terrain.EXIT);
+		level.placeTrigger(new MineEntranceTrigger().create(entrancePos));
 
 		for(Point p : getPoints()) {
 			int cell = level.pointToCell(p);
@@ -78,5 +99,50 @@ public class BlacksmithRoom extends StandardRoom {
 				level.setTrap(new BurningTrap().reveal(), cell);
 			}
 		}
+	}
+
+	@Override
+	public boolean canConnect(Room r) {
+		if (r.isExit()){
+			//避免矿洞入口与楼层出口相距过近造成混淆
+			return false;
+		}
+		return super.canConnect(r);
+	}
+
+	@Override
+	public boolean canPlaceCharacter(Point p, Level l) {
+		if (l.map[l.pointToCell(p)] == Terrain.EXIT){
+			return false;
+		} else {
+			return super.canPlaceCharacter(p, l);
+		}
+	}
+
+	public static class QuestEntrance extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.CAVES_QUEST;
+
+			tileW = tileH = 1;
+		}
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( new int[]{0}, 1 );
+			return v;
+		}
+
+		@Override
+		public String name(int tileX, int tileY) {
+			return Messages.get(this, "name");
+		}
+
+		@Override
+		public String desc(int tileX, int tileY) {
+			return Messages.get(this, "desc");
+		}
+
 	}
 }

@@ -69,7 +69,11 @@ public final class WarriorTalent {
 			if (hero.belongings.weapon() != null) hero.belongings.weapon().identify();
 			if (hero.belongings.armor() != null) {
 				hero.belongings.armor.identify();
-				if (hero.belongings.armor.inside != null) hero.belongings.armor.inside.identify();
+				Armor armor = hero.belongings.armor.inside;
+				while (armor != null) {
+					armor.identify();
+					armor = armor.inside;
+				}
 			}
 		}
 		else if (talent == Talent.STRONGMAN){

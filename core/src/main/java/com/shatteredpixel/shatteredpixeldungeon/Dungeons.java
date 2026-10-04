@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastShopLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RabbitBossLevel;
@@ -85,6 +86,13 @@ public class Dungeons {
     public HashMap<Generator.Category, Float> genCategoryProbs;
     public float[][] genCatProbs;
 
+    //Generator 牌堆系统的每局状态：每类别的固定种子与已掉落次数（seed 为 null 表示该类未启用牌堆）
+    public Long[] genCatSeeds;
+    public int[] genCatDropped;
+
+    //双牌堆类别（如药水/卷轴）本局正使用第 2 套牌堆概率
+    public boolean[] genCatUsing2ndProbs;
+
     //四个任务 NPC 的每局状态
     public final Ghost.Quest ghostQuest = new Ghost.Quest();
     public final Wandmaker.Quest wandmakerQuest = new Wandmaker.Quest();
@@ -118,6 +126,9 @@ public class Dungeons {
         genCategoryProbs = new LinkedHashMap<>();
         Generator.Category[] cats = Generator.Category.values();
         genCatProbs = new float[cats.length][];
+        genCatSeeds = new Long[cats.length];
+        genCatDropped = new int[cats.length];
+        genCatUsing2ndProbs = new boolean[cats.length];
         for (Generator.Category cat : cats) {
             genCatProbs[cat.ordinal()] = (cat.probs != null) ? cat.probs.clone() : null;
         }
@@ -291,6 +302,9 @@ public class Dungeons {
                 level = new DeadEndLevel();break;
             case 1010:
                 level = new RabbitBossLevel();break;
+            //铁匠任务矿洞子层：对应洞窟主层 11~14
+            case 1011: case 1012: case 1013: case 1014:
+                level = new MiningLevel();break;
             case 1025:
                 level = new LastShopLevel();break;
         }

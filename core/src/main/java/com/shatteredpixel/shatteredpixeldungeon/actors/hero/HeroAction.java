@@ -96,4 +96,11 @@ public class HeroAction {
 			this.target = target;
 		}
 	}
+
+	//矿洞内持镐点击岩壁/水晶/巨石进行挖掘（对齐 3.3.8）
+	public static class Mine extends HeroAction {
+		public Mine( int dst ) {
+			this.dst = dst;
+		}
+	}
 }

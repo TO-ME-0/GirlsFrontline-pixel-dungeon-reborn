@@ -83,6 +83,7 @@ public class DungeonTileSheet {
 			Terrain.BARRICADE, Terrain.HIGH_GRASS, Terrain.FURROWED_GRASS, Terrain.SECRET_TRAP,
 			Terrain.TRAP, Terrain.INACTIVE_TRAP, Terrain.EMPTY_DECO, Terrain.TRAP_GRASS,
             Terrain.SIGN, Terrain.WELL, Terrain.STATUE, Terrain.ALCHEMY,
+			Terrain.MINE_CRYSTAL, Terrain.MINE_BOULDER,
 			Terrain.DOOR, Terrain.OPEN_DOOR, Terrain.LOCKED_DOOR, Terrain.CRYSTAL_DOOR
 	));
 
@@ -135,6 +136,9 @@ public class DungeonTileSheet {
 		chasmStitcheable.put( Terrain.BOOKSHELF,    CHASM_FLOOR );
 		chasmStitcheable.put( Terrain.BARRICADE,    CHASM_FLOOR );
 		chasmStitcheable.put( Terrain.PEDESTAL,     CHASM_FLOOR );
+		//矿洞装饰紧贴深渊时按地面处理（3.3.8 移植）
+		chasmStitcheable.put( Terrain.MINE_CRYSTAL, CHASM_FLOOR );
+		chasmStitcheable.put( Terrain.MINE_BOULDER, CHASM_FLOOR );
 
 		//special floor
 		chasmStitcheable.put( Terrain.EMPTY_SP,     CHASM_FLOOR_SP );
@@ -188,6 +192,14 @@ public class DungeonTileSheet {
 
 	public static final int FLAT_HIGH_GRASS_ALT = FLAT_OTHER+8;
 	public static final int FLAT_FURROWED_ALT   = FLAT_OTHER+9;
+
+	//矿洞水晶/巨石的平铺视觉（3.3.8 移植；水晶与巨石共用槽位，按关卡纹理区分）
+	public static final int FLAT_MINE_CRYSTAL         = FLAT_OTHER+12;
+	public static final int FLAT_MINE_CRYSTAL_ALT     = FLAT_OTHER+13;
+	public static final int FLAT_MINE_CRYSTAL_ALT_2   = FLAT_OTHER+14;
+	public static final int FLAT_MINE_BOULDER         = FLAT_OTHER+12;
+	public static final int FLAT_MINE_BOULDER_ALT     = FLAT_OTHER+13;
+	public static final int FLAT_MINE_BOULDER_ALT_2   = FLAT_OTHER+14;
 
 
 	/**********************************************************************
@@ -280,6 +292,14 @@ public class DungeonTileSheet {
 	public static final int RAISED_HIGH_GRASS_ALT   = RAISED_OTHER+9;
 	public static final int RAISED_FURROWED_ALT     = RAISED_OTHER+10;
 
+	//矿洞水晶/巨石的抬高视觉（3.3.8 移植）
+	public static final int RAISED_MINE_CRYSTAL       = RAISED_OTHER+12;
+	public static final int RAISED_MINE_CRYSTAL_ALT   = RAISED_OTHER+13;
+	public static final int RAISED_MINE_CRYSTAL_ALT_2 = RAISED_OTHER+14;
+	public static final int RAISED_MINE_BOULDER       = RAISED_OTHER+12;
+	public static final int RAISED_MINE_BOULDER_ALT   = RAISED_OTHER+13;
+	public static final int RAISED_MINE_BOULDER_ALT_2 = RAISED_OTHER+14;
+
 
 
 	/**********************************************************************
@@ -345,6 +365,14 @@ public class DungeonTileSheet {
 	public static final int HIGH_GRASS_OVERHANG_ALT     = WALL_OVERHANG+38;
 	public static final int FURROWED_OVERHANG_ALT       = WALL_OVERHANG+39;
 
+	//矿洞水晶/巨石的悬垂视觉（3.3.8 移植；本图集下方邻格为矿洞装饰时绘制）
+	public static final int MINE_CRYSTAL_OVERHANG        = WALL_OVERHANG+40;
+	public static final int MINE_CRYSTAL_OVERHANG_ALT    = WALL_OVERHANG+41;
+	public static final int MINE_CRYSTAL_OVERHANG_ALT_2  = WALL_OVERHANG+42;
+	public static final int MINE_BOULDER_OVERHANG        = WALL_OVERHANG+40;
+	public static final int MINE_BOULDER_OVERHANG_ALT    = WALL_OVERHANG+41;
+	public static final int MINE_BOULDER_OVERHANG_ALT_2  = WALL_OVERHANG+42;
+
 	/**********************************************************************
 	 * Logic for the selection of tile visuals
 	 **********************************************************************/
@@ -391,6 +419,9 @@ public class DungeonTileSheet {
 		directFlatVisuals.put(Terrain.HIGH_GRASS,       FLAT_HIGH_GRASS);
 		directFlatVisuals.put(Terrain.FURROWED_GRASS,   FLAT_FURROWED_GRASS);
 
+		directFlatVisuals.put(Terrain.MINE_CRYSTAL,     FLAT_MINE_CRYSTAL);
+		directFlatVisuals.put(Terrain.MINE_BOULDER,     FLAT_MINE_BOULDER);
+
 		directFlatVisuals.put(Terrain.SECRET_DOOR,      directFlatVisuals.get(Terrain.WALL));
 	}
 
@@ -426,6 +457,8 @@ public class DungeonTileSheet {
 		commonAltVisuals.put(FLAT_BOOKSHELF,        FLAT_BOOKSHELF_ALT);
 		commonAltVisuals.put(FLAT_HIGH_GRASS,       FLAT_HIGH_GRASS_ALT);
 		commonAltVisuals.put(FLAT_FURROWED_GRASS,   FLAT_FURROWED_ALT);
+		commonAltVisuals.put(FLAT_MINE_CRYSTAL,     FLAT_MINE_CRYSTAL_ALT);
+		commonAltVisuals.put(FLAT_MINE_BOULDER,     FLAT_MINE_BOULDER_ALT);
 
 		commonAltVisuals.put(RAISED_WALL,           RAISED_WALL_ALT);
 		commonAltVisuals.put(RAISED_WALL_DECO,      RAISED_WALL_DECO_ALT);
@@ -435,12 +468,22 @@ public class DungeonTileSheet {
 		commonAltVisuals.put(RAISED_FURROWED_GRASS, RAISED_FURROWED_ALT);
 		commonAltVisuals.put(HIGH_GRASS_OVERHANG,   HIGH_GRASS_OVERHANG_ALT);
 		commonAltVisuals.put(FURROWED_OVERHANG,     FURROWED_OVERHANG_ALT);
+		commonAltVisuals.put(RAISED_MINE_CRYSTAL,   RAISED_MINE_CRYSTAL_ALT);
+		commonAltVisuals.put(RAISED_MINE_BOULDER,   RAISED_MINE_BOULDER_ALT);
+		commonAltVisuals.put(MINE_CRYSTAL_OVERHANG, MINE_CRYSTAL_OVERHANG_ALT);
+		commonAltVisuals.put(MINE_BOULDER_OVERHANG, MINE_BOULDER_OVERHANG_ALT);
 	}
 
 	//These alt visuals trigger 5% of the time (and also override common alts when they show up)
 	public static SparseArray<Integer> rareAltVisuals = new SparseArray<>();
 	static {
 		rareAltVisuals.put(FLOOR,               FLOOR_ALT_2);
+		rareAltVisuals.put(FLAT_MINE_CRYSTAL,       FLAT_MINE_CRYSTAL_ALT_2);
+		rareAltVisuals.put(FLAT_MINE_BOULDER,       FLAT_MINE_BOULDER_ALT_2);
+		rareAltVisuals.put(RAISED_MINE_CRYSTAL,     RAISED_MINE_CRYSTAL_ALT_2);
+		rareAltVisuals.put(RAISED_MINE_BOULDER,     RAISED_MINE_BOULDER_ALT_2);
+		rareAltVisuals.put(MINE_CRYSTAL_OVERHANG,   MINE_CRYSTAL_OVERHANG_ALT_2);
+		rareAltVisuals.put(MINE_BOULDER_OVERHANG,   MINE_BOULDER_OVERHANG_ALT_2);
 	}
 
 	public static int getVisualWithAlts(int visual, int pos){

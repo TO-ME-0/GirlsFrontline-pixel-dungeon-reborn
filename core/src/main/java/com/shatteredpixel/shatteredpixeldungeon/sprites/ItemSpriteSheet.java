@@ -90,7 +90,10 @@ public class ItemSpriteSheet {
 	
 	public static final int GUIDE_PAGE      = UNCOLLECTIBLE+8;
 	public static final int ALCH_PAGE       = UNCOLLECTIBLE+9;
-	
+
+	//3.3.8 鼹鼠怪矿洞：地卜师掷石
+	public static final int GEO_BOULDER     = UNCOLLECTIBLE+10;
+
 	public static final int TENGU_BOMB      = UNCOLLECTIBLE+11;
 	public static final int TENGU_SHOCKER   = UNCOLLECTIBLE+12;
 	public static final int M79             = UNCOLLECTIBLE+14;
@@ -108,6 +111,7 @@ public class ItemSpriteSheet {
 		
 		assignItemRect(TENGU_BOMB,      10, 10);
 		assignItemRect(TENGU_SHOCKER,   10, 10);
+		assignItemRect(GEO_BOULDER,     16, 14);
 		assignItemRect(M79,             15, 15);
 	}
 	//骨头行

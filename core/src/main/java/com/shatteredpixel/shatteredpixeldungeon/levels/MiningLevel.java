@@ -1,0 +1,303 @@
+/*
+ * Pixel Dungeon
+ * Copyright (C) 2012-2015 Oleg Dolya
+ *
+ * Shattered Pixel Dungeon
+ * Copyright (C) 2014-2026 Evan Debenham
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+package com.shatteredpixel.shatteredpixeldungeon.levels;
+
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Bones;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalWisp;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSpinner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
+import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
+import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
+import com.shatteredpixel.shatteredpixeldungeon.levels.builders.FigureEightBuilder;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.MiningLevelPainter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MineEntrance;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MineGiantRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MineLargeRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MineSecretRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MineSmallRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.watabou.noosa.Group;
+import com.watabou.noosa.Image;
+import com.watabou.noosa.Tilemap;
+import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Random;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class MiningLevel extends CavesLevel {
+
+	@Override
+	public String tilesTex() {
+		switch (Blacksmith.Quest.type()){
+			default:
+				return Assets.Environment.TILES_CAVES;
+			case Blacksmith.Quest.CRYSTAL:
+				return Assets.Environment.TILES_CAVES_CRYSTAL;
+			case Blacksmith.Quest.GNOLL:
+				return Assets.Environment.TILES_CAVES_GNOLL;
+		}
+
+	}
+
+	@Override
+	public void playLevelMusic() {
+		Music.INSTANCE.play(Assets.Music.CAVES_TENSE, true);
+	}
+
+	@Override
+	protected ArrayList<Room> initRooms() {
+		ArrayList<Room> initRooms = new ArrayList<>();
+		initRooms.add ( roomEntrance = new MineEntrance());
+
+		//固定 1 个巨型、3 个大型、6~8 个小型洞窟房和 2 个密室
+		StandardRoom s;
+		s = new MineGiantRoom();
+		s.setSizeCat();
+		initRooms.add(s);
+
+		int rooms = 3;
+		for (int i = 0; i < rooms; i++){
+			s = new MineLargeRoom();
+			s.setSizeCat();
+			initRooms.add(s);
+		}
+
+		rooms = Random.NormalIntRange(6, 8);
+		for (int i = 0; i < rooms; i++){
+			s = new MineSmallRoom();
+			s.setSizeCat();
+			initRooms.add(s);
+		}
+
+		rooms = 2;
+		for (int i = 0; i < rooms; i++){
+			initRooms.add(new MineSecretRoom());
+		}
+
+		return initRooms;
+	}
+
+	@Override
+	protected Builder builder() {
+		return new FigureEightBuilder().setPathLength(0.8f, new float[]{1}).setTunnelLength(new float[]{1}, new float[]{1});
+	}
+
+	@Override
+	protected boolean build() {
+		if (super.build()){
+			CustomTilemap vis = new BorderTopDarken();
+			vis.setRect(0, 0, width, 1);
+			customTiles.add(vis);
+
+			vis = new BorderWallsDarken();
+			vis.setRect(0, 0, width, height);
+			customWalls.add(vis);
+
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	protected Painter painter() {
+		return new MiningLevelPainter()
+				.setGold(Random.NormalIntRange(45, 47))
+				.setWater(Blacksmith.Quest.type() == Blacksmith.Quest.FUNGI ? 0.1f : 0.35f, 6)
+				.setGrass(Blacksmith.Quest.type() == Blacksmith.Quest.FUNGI ? 0.65f : 0.10f, 3);
+	}
+
+	@Override
+	public int mobLimit() {
+		//比普通层少 1 只
+		return super.mobLimit()-1;
+	}
+
+	@Override
+	public Mob createMob() {
+		switch (Blacksmith.Quest.type()){
+			default:
+				return new Bat();
+			case Blacksmith.Quest.CRYSTAL:
+				return new CrystalWisp();
+			case Blacksmith.Quest.GNOLL:
+				return new GnollGuard();
+			case Blacksmith.Quest.FUNGI:
+				return new FungalSpinner();
+		}
+	}
+
+	@Override
+	public float respawnCooldown() {
+		//普通怪在矿洞刷新慢得多
+		return 3*TIME_TO_RESPAWN;
+	}
+
+	//mod 的 Bones.get() 返回单个 Item（3.3.8 返回列表）
+	@Override
+	protected void createItems() {
+		Random.pushGenerator(Random.Long());
+			Item bonesItem = Bones.get();
+			if (bonesItem != null) {
+				int cell = randomDropCell();
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
+				}
+				drop(bonesItem, cell).setHauntedIfCursed().type = Heap.Type.REMAINS;
+			}
+		Random.popGenerator();
+
+		int cell = randomDropCell();
+		if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+			map[cell] = Terrain.GRASS;
+			losBlocking[cell] = false;
+		}
+		drop( Generator.randomUsingDefaults(Generator.Category.FOOD), cell );
+		if (Blacksmith.Quest.type() == Blacksmith.Quest.GNOLL){
+			//豺狼人类型需要挖更多矿，额外放一份口粮
+			cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
+			drop( Generator.randomUsingDefaults(Generator.Category.FOOD), cell );
+		}
+
+		if (Dungeon.isChallenged(Challenges.DARKNESS)){
+			cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
+			drop( new Torch(), cell );
+		}
+	}
+
+	@Override
+	protected int randomDropCell() {
+		//随机物品只放在小房间，避开危险物
+		return randomDropCell(MineSmallRoom.class);
+	}
+
+	@Override
+	public String tileName( int tile ) {
+		switch (tile) {
+			case Terrain.MINE_CRYSTAL:
+				return Messages.get(MiningLevel.class, "crystal_name");
+			case Terrain.MINE_BOULDER:
+				return Messages.get(MiningLevel.class, "boulder_name");
+			default:
+				return super.tileName( tile );
+		}
+	}
+
+	@Override
+	public String tileDesc( int tile ) {
+		switch (tile) {
+			case Terrain.WALL:
+				return Messages.get(MiningLevel.class, "wall_desc");
+			case Terrain.WALL_DECO:
+				return super.tileDesc(tile) + "\n\n" +  Messages.get(MiningLevel.class, "gold_extra_desc");
+			case Terrain.MINE_CRYSTAL:
+				return Messages.get(MiningLevel.class, "crystal_desc");
+			case Terrain.MINE_BOULDER:
+				return Messages.get(MiningLevel.class, "boulder_desc");
+			case Terrain.BARRICADE:
+				return Messages.get(MiningLevel.class, "barricade_desc");
+			default:
+				return super.tileDesc( tile );
+		}
+	}
+
+	//mod 没有墙专用视觉层，清空普通视觉后用带 overhang 的洞窟矿脉视觉替代（对齐 3.3.8 addWallVisuals 效果）
+	@Override
+	public Group addVisuals() {
+		super.addVisuals();
+		visuals.clear();
+		addCavesVisuals(this, visuals, true);
+		return visuals;
+	}
+
+	public static class BorderTopDarken extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.CAVES_QUEST;
+		}
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			int[] data = new int[tileW*tileH];
+			Arrays.fill(data, 1);
+			v.map( data, tileW );
+			return v;
+		}
+
+		@Override
+		public Image image(int tileX, int tileY) {
+			return null;
+		}
+	}
+
+	public static class BorderWallsDarken extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.CAVES_QUEST;
+		}
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			int[] data = new int[tileW*tileH];
+			for (int i = 0; i < data.length; i++){
+				if (i % tileW == 0 || i % tileW == tileW-1){
+					data[i] = 1;
+				} else if (i + 2*tileW > data.length) {
+					data[i] = 2;
+				} else {
+					data[i] = -1;
+				}
+			}
+			v.map( data, tileW );
+			return v;
+		}
+
+		@Override
+		public Image image(int tileX, int tileY) {
+			return null;
+		}
+	}
+}

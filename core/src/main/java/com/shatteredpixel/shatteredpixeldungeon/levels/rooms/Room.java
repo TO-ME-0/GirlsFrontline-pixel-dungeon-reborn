@@ -287,6 +287,15 @@ public abstract class Room extends Rect implements Graph.Node, Bundlable {
 		connected.clear();
 	}
 	
+	// 矿洞等特殊布局通过重写这两个钩子，让 RegularBuilder/RegularLevel 识别入口出口房间
+	public boolean isEntrance(){
+		return false;
+	}
+
+	public boolean isExit(){
+		return false;
+	}
+
 	// **** Painter Logic ****
 	
 	public abstract void paint(Level level);
@@ -419,8 +428,8 @@ public abstract class Room extends Rect implements Graph.Node, Bundlable {
 	public static class Door extends Point implements Bundlable {
 		
 		public enum Type {
-			EMPTY, TUNNEL, WATER, REGULAR, UNLOCKED, HIDDEN, BARRICADE, LOCKED, CRYSTAL
-		}
+		EMPTY, TUNNEL, WATER, REGULAR, UNLOCKED, HIDDEN, BARRICADE, LOCKED, CRYSTAL, WALL
+	}
 		public Type type = Type.EMPTY;
 		
 		public Door(){

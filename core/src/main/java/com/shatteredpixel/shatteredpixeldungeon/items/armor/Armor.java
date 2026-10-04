@@ -118,6 +118,8 @@ public class Armor extends EquipableItem {
 	public Augment augment = Augment.NONE;
 	
 	public Glyph glyph;
+	//铭文硬化：铁匠硬化服务，升级时按 +6 起的概率仅失去硬化而保留铭文（照搬 3.3.8）
+	public boolean glyphHardened = false;
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
 	
@@ -145,6 +147,7 @@ public class Armor extends EquipableItem {
         augment = armor.augment;
         masteryPotionBonus = armor.masteryPotionBonus;
         curseInfusionBonus = armor.curseInfusionBonus;
+        glyphHardened = armor.glyphHardened;
         return this;
     }
 
@@ -208,6 +211,7 @@ public class Armor extends EquipableItem {
 	private static final String USES_LEFT_TO_ID = "uses_left_to_id";
 	private static final String AVAILABLE_USES  = "available_uses";
 	private static final String GLYPH			= "glyph";
+	private static final String GLYPH_HARDENED	= "glyph_hardened";
 	private static final String CURSE_INFUSION_BONUS = "curse_infusion_bonus";
 	private static final String MASTERY_POTION_BONUS = "mastery_potion_bonus";
 	private static final String SEAL            = "seal";
@@ -224,6 +228,7 @@ public class Armor extends EquipableItem {
 		bundle.put( USES_LEFT_TO_ID, usesLeftToID );
 		bundle.put( AVAILABLE_USES, availableUsesToID );
 		bundle.put( GLYPH, glyph );
+		bundle.put( GLYPH_HARDENED, glyphHardened );
 		bundle.put( CURSE_INFUSION_BONUS, curseInfusionBonus );
 		bundle.put( MASTERY_POTION_BONUS, masteryPotionBonus );
 		bundle.put( SEAL, seal);
@@ -242,6 +247,7 @@ public class Armor extends EquipableItem {
 		usesLeftToID = bundle.getInt( USES_LEFT_TO_ID );
 		availableUsesToID = bundle.getInt( AVAILABLE_USES );
 		inscribe((Glyph) bundle.get(GLYPH));
+		glyphHardened = bundle.getBoolean(GLYPH_HARDENED);
 		curseInfusionBonus = bundle.getBoolean( CURSE_INFUSION_BONUS );
 		masteryPotionBonus = bundle.getBoolean( MASTERY_POTION_BONUS );
 		seal = (BrokenSeal)bundle.get(SEAL);
@@ -703,8 +709,13 @@ public class Armor extends EquipableItem {
 			if (glyph == null){
 				inscribe( Glyph.random() );
 			}
-		} else {
-			if (hasCurseGlyph()){
+		} else if (glyph != null) {
+			//硬化后：从 +6 起按 10/20/40/80/100% 概率失去硬化（铭文保留）
+			if (glyphHardened) {
+				if (level() >= 6 && Random.Float(10) < Math.pow(2, level()-6)){
+					glyphHardened = false;
+				}
+			} else if (hasCurseGlyph()){
 				if (Random.Int(3) == 0) inscribe(null);
 			} else{
 
@@ -800,7 +811,10 @@ public class Armor extends EquipableItem {
 		
 		if (glyph != null  && (cursedKnown || !glyph.curse())) {
 			info += "\n\n" +  Messages.get(Armor.class, "inscribed", glyph.name());
+			if (glyphHardened) info += " " + Messages.get(Armor.class, "glyph_hardened");
 			info += " " + glyph.desc();
+		} else if (glyphHardened){
+			info += "\n\n" + Messages.get(Armor.class, "hardened_no_glyph");
 		}
 		
 		if (cursed && isEquipped( Dungeon.hero() )) {

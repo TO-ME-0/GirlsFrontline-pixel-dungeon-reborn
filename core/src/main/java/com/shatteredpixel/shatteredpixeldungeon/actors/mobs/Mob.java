@@ -671,7 +671,12 @@ public abstract class Mob extends Char {
 			state = HUNTING;
 		}
 	}
-	
+
+	//英雄点击该怪时应当走交互（true）还是攻击（false）
+	public boolean heroShouldInteract(){
+		return alignment != Alignment.ENEMY && buff(Amok.class) == null;
+	}
+
 	public boolean isTargeting( Char ch){
 		return enemy == ch;
 	}

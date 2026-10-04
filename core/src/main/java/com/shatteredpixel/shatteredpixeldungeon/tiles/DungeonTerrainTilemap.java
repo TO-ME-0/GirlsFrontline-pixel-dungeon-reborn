@@ -72,6 +72,14 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 				return DungeonTileSheet.RAISED_STATUE;
 			} else if (tile == Terrain.STATUE_SP) {
 				return DungeonTileSheet.RAISED_STATUE_SP;
+			} else if (tile == Terrain.MINE_CRYSTAL) {
+				return DungeonTileSheet.getVisualWithAlts(
+						DungeonTileSheet.RAISED_MINE_CRYSTAL,
+						pos);
+			} else if (tile == Terrain.MINE_BOULDER) {
+				return DungeonTileSheet.getVisualWithAlts(
+						DungeonTileSheet.RAISED_MINE_BOULDER,
+						pos);
 			} else if (tile == Terrain.ALCHEMY) {
 				return DungeonTileSheet.RAISED_ALCHEMY_POT;
 			} else if (tile == Terrain.BARRICADE) {

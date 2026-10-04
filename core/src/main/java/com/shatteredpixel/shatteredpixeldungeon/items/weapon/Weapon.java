@@ -98,6 +98,7 @@ abstract public class Weapon extends KindOfWeapon {
 		augment = weapon.augment;
 		masteryPotionBonus = weapon.masteryPotionBonus;
 		curseInfusionBonus = weapon.curseInfusionBonus;
+		enchantHardened = weapon.enchantHardened;
 		return this;
 	}
 	@Override
@@ -169,6 +170,8 @@ abstract public class Weapon extends KindOfWeapon {
 	private float availableUsesToID = USES_TO_ID/2f;
 	
 	public Enchantment enchantment;
+	//附魔硬化：铁匠硬化服务，升级时按 +6 起的概率仅失去硬化而保留附魔（照搬 3.3.8）
+	public boolean enchantHardened = false;
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
 	public int enchantmentProc( Char attacker, Char defender, int damage ){
@@ -214,6 +217,7 @@ abstract public class Weapon extends KindOfWeapon {
 	private static final String USES_LEFT_TO_ID = "uses_left_to_id";
 	private static final String AVAILABLE_USES  = "available_uses";
 	private static final String ENCHANTMENT	    = "enchantment";
+	private static final String ENCHANT_HARDENED = "enchant_hardened";
 	private static final String CURSE_INFUSION_BONUS = "curse_infusion_bonus";
 	private static final String MASTERY_POTION_BONUS = "mastery_potion_bonus";
 	private static final String AUGMENT	        = "augment";
@@ -228,6 +232,7 @@ abstract public class Weapon extends KindOfWeapon {
 		bundle.put( USES_LEFT_TO_ID, usesLeftToID );
 		bundle.put( AVAILABLE_USES, availableUsesToID );
 		bundle.put( ENCHANTMENT, enchantment );
+		bundle.put( ENCHANT_HARDENED, enchantHardened );
 		bundle.put( CURSE_INFUSION_BONUS, curseInfusionBonus );
 		bundle.put( MASTERY_POTION_BONUS, masteryPotionBonus );
 		bundle.put( AUGMENT, augment );
@@ -243,6 +248,7 @@ abstract public class Weapon extends KindOfWeapon {
 		usesLeftToID = bundle.getFloat( USES_LEFT_TO_ID );
 		availableUsesToID = bundle.getFloat( AVAILABLE_USES );
 		enchantment = (Enchantment)bundle.get( ENCHANTMENT );
+		enchantHardened = bundle.getBoolean( ENCHANT_HARDENED );
 		curseInfusionBonus = bundle.getBoolean( CURSE_INFUSION_BONUS );
 		masteryPotionBonus = bundle.getBoolean( MASTERY_POTION_BONUS );
 
@@ -446,9 +452,16 @@ abstract public class Weapon extends KindOfWeapon {
 			if (enchantment == null){
 				enchant(Enchantment.random());
 			}
-		} else {
-			if (hasCurseEnchant()){
+		} else if (enchantment != null) {
+			//硬化后：从 +6 起按 10/20/40/80/100% 概率失去硬化（附魔保留）
+			if (enchantHardened){
+				if (level() >= 6 && Random.Float(10) < Math.pow(2, level()-6)){
+					enchantHardened = false;
+				}
+			//诅咒附魔仍为固定 1/3 概率移除
+			} else if (hasCurseEnchant()){
 				if (Random.Int(3) == 0) enchant(null);
+			//未硬化：从 +4 起按 10/20/40/80/100% 概率丢失附魔
 			} else if (level() >= 4 && Random.Float(10) < Math.pow(2, level()-4)){
 				enchant(null);
 			}

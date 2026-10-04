@@ -49,12 +49,15 @@ public class Assets {
 		public static final String TILES_RECAVES   	="environment/tiles_recaves.png";
 		public static final String TILES_HALLS     	="environment/tiles_halls.png";
         public static final String CHESS         	="environment/Chess.png";
-		
+
 		public static final String WATER_SEWERS 	= "environment/water0.png";
 		public static final String WATER_PRISON 	= "environment/water1.png";
 		public static final String WATER_CAVES  	= "environment/water2.png";
 		public static final String WATER_CITY   	= "environment/water3.png";
 		public static final String WATER_HALLS  	= "environment/water4.png";
+		//矿洞关卡专用图集（3.3.8 移植：晶洞 / 豺狼矿洞）
+		public static final String TILES_CAVES_CRYSTAL="environment/tiles_caves_crystal.png";
+		public static final String TILES_CAVES_GNOLL  ="environment/tiles_caves_gnoll.png";
 
 		//need Organize 需要整理
 		public static final String WEAK_FLOOR       = "environment/custom_tiles/weak_floor.png";
@@ -67,6 +70,8 @@ public class Assets {
 		public static final String PRISON_QUEST     = "environment/custom_tiles/prison_quests.png";
 		public static final String PRISON_EXIT      = "environment/custom_tiles/prison_exit.png";
 		public static final String CAVES_BOSS       = "environment/custom_tiles/caves_boss.png";
+		//矿洞关卡边界暗化叠加层（3.3.8 移植）
+		public static final String CAVES_QUEST      = "environment/custom_tiles/caves_quest.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 		public static final String FORWARD_CAMP     = "environment/custom_tiles/Forward_Camp.png";
@@ -158,6 +163,8 @@ public class Assets {
 
 		public static final String CAVES_1      = "music/Machines-AreTalking.ogg";
 		public static final String CAVES_BOSS   = "music/Cradle-of-Fear.ogg";
+		//矿洞关卡紧张音乐（3.3.8 移植）
+		public static final String CAVES_TENSE  = "music/caves_tense.ogg";
 
 		public static final String CITY_1       = "music/Event_summer_combat.ogg";
 		public static final String CITY_BOSS    = "music/Cury.ogg";
@@ -396,5 +403,15 @@ public class Assets {
 		public static final String M4A1				= "sprites/zeroNPC/m4a1.png";
 		public static final String FNC				= "sprites/zeroNPC/fnc.png";
 
+		//矿洞任务相关怪物贴图（3.3.8 移植）
+		public static final String CRYSTAL_WISP     = "sprites/crystal_wisp.png";
+		public static final String CRYSTAL_SPIRE    = "sprites/crystal_spire.png";
+		public static final String CRYSTAL_GUARDIAN = "sprites/crystal_guardian.png";
+		public static final String GNOLL_GUARD      = "sprites/gnoll_guard.png";
+		public static final String GNOLL_GEOMANCER  = "sprites/gnoll_geomancer.png";
+		public static final String GNOLL_SAPPER     = "sprites/gnoll_sapper.png";
+		public static final String FUNGAL_SPINNER   = "sprites/fungal_spinner.png";
+		public static final String FUNGAL_CORE      = "sprites/fungal_core.png";
+		public static final String FUNGAL_SENTRY    = "sprites/fungal_sentry.png";
 	}
 }

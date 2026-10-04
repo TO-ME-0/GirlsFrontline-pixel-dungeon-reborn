@@ -84,9 +84,12 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.utils.Constants;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CheckedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpeedLine;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.DarkGold;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Battery;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.BeamFocusAttack;
@@ -161,6 +164,7 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RabbitBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
@@ -1011,6 +1015,8 @@ public class Hero extends Char {
 				actResult = actAttack( (HeroAction.Attack)curAction );
 			} else if (curAction instanceof HeroAction.Alchemy) {
 				actResult = actAlchemy( (HeroAction.Alchemy)curAction );
+			} else if (curAction instanceof HeroAction.Mine) {
+				actResult = actMine( (HeroAction.Mine)curAction );
 			} else {
 				actResult = false;
 			}
@@ -1304,6 +1310,108 @@ public class Hero extends Char {
 		}else if(getCloser(trigger.pos)){
 			return true;
 		}else{
+			ready();
+			return false;
+		}
+	}
+
+	//矿洞挖矿（照搬 3.3.8 actMine；mod 无 Delayer/PixelScene.shake/MINE 音效，做了等价适配）
+	private boolean actMine(final HeroAction.Mine action){
+		if (Dungeon.level.adjacent(pos, action.dst)){
+			path = null;
+			if ((Dungeon.level.map[action.dst] == Terrain.WALL
+					|| Dungeon.level.map[action.dst] == Terrain.WALL_DECO
+					|| Dungeon.level.map[action.dst] == Terrain.MINE_CRYSTAL
+					|| Dungeon.level.map[action.dst] == Terrain.MINE_BOULDER)
+				&& Dungeon.level.insideMap(action.dst)){
+				sprite.attack(action.dst, new Callback() {
+					@Override
+					public void call() {
+
+						boolean crystalAdjacent = false;
+						for (int i : PathFinder.NEIGHBOURS8()) {
+							if (Dungeon.level.map[action.dst + i] == Terrain.MINE_CRYSTAL){
+								crystalAdjacent = true;
+								break;
+							}
+						}
+
+						if (Dungeon.level.map[action.dst] == Terrain.WALL_DECO){
+							DarkGold gold = new DarkGold();
+							if (gold.doPickUp( Hero.this )) {
+								DarkGold existing = Hero.this.belongings.getItem(DarkGold.class);
+								if (existing != null && existing.quantity()%5 == 0){
+									GLog.i(Messages.get(DarkGold.class, "you_now_have", existing.quantity()));
+								}
+								spend(-Actor.TICK); //拾取暗金不额外消耗回合
+							} else {
+								Dungeon.level.drop( gold, pos ).sprite.drop();
+							}
+							CellEmitter.center( action.dst ).burst( Speck.factory( Speck.STAR ), 7 );
+							Sample.INSTANCE.play( Assets.Sounds.EVOKE );
+							Level.set( action.dst, Terrain.EMPTY_DECO );
+
+							//挖暗金不会震碎旁边的水晶
+							crystalAdjacent = false;
+
+						} else if (Dungeon.level.map[action.dst] == Terrain.WALL){
+							buff(Hunger.class).affectHunger(-3);
+							CellEmitter.get( action.dst ).burst( Speck.factory( Speck.ROCK ), 2 );
+							//mod 没有专门的 MINE 音效，用 EVOKE 低音量代替
+							Sample.INSTANCE.play( Assets.Sounds.EVOKE, 0.6f );
+							Level.set( action.dst, Terrain.EMPTY_DECO );
+
+						} else if (Dungeon.level.map[action.dst] == Terrain.MINE_CRYSTAL){
+							Splash.at(action.dst, 0xFFFFFF, 5);
+							Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+							Level.set( action.dst, Terrain.EMPTY );
+
+						} else if (Dungeon.level.map[action.dst] == Terrain.MINE_BOULDER){
+							Splash.at(action.dst, 0x555555, 5);
+							Sample.INSTANCE.play( Assets.Sounds.EVOKE, 0.6f );
+							Level.set( action.dst, Terrain.EMPTY_DECO );
+						}
+
+						for (int i : PathFinder.NEIGHBOURS9()) {
+							Dungeon.level.discoverable[action.dst + i] = true;
+						}
+						for (int i : PathFinder.NEIGHBOURS9()) {
+							GameScene.updateMap( action.dst+i );
+						}
+
+						//相邻水晶连锁破裂（3.3.8 用 0.2 秒延迟动画，mod 直接同步结算）
+						if (crystalAdjacent){
+							boolean broke = false;
+							for (int i : PathFinder.NEIGHBOURS8()) {
+								if (Dungeon.level.map[action.dst+i] == Terrain.MINE_CRYSTAL){
+									Splash.at(action.dst+i, 0xFFFFFF, 5);
+									Level.set( action.dst+i, Terrain.EMPTY );
+									broke = true;
+								}
+							}
+							if (broke){
+								Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+							}
+
+							for (int i : PathFinder.NEIGHBOURS9()) {
+								GameScene.updateMap( action.dst+i );
+							}
+						}
+
+						Dungeon.observe();
+						spendAndNext(Actor.TICK);
+						ready();
+					}
+				});
+			} else {
+				ready();
+			}
+			return false;
+		} else if (getCloser( action.dst )) {
+
+			return true;
+
+		} else {
 			ready();
 			return false;
 		}
@@ -1919,11 +2027,19 @@ public class Hero extends Char {
 		if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
 			curAction = new HeroAction.Alchemy( cell );
 		} else if (fieldOfView[cell] && ch instanceof Mob) {
-			if (ch.alignment != Alignment.ENEMY && ch.buff(Amok.class) == null) {
+			if (((Mob) ch).heroShouldInteract()) {
 				curAction = new HeroAction.Interact( ch );
 			} else {
 				curAction = new HeroAction.Attack( ch );
 			}
+		} else if (Dungeon.level instanceof MiningLevel
+				&& belongings.getItem(Pickaxe.class) != null
+				&& (Dungeon.level.map[cell] == Terrain.WALL
+				|| Dungeon.level.map[cell] == Terrain.WALL_DECO
+				|| Dungeon.level.map[cell] == Terrain.MINE_CRYSTAL
+				|| Dungeon.level.map[cell] == Terrain.MINE_BOULDER)){
+			//矿洞内持镐点击岩壁/暗金矿/水晶/巨石即走过去挖
+			curAction = new HeroAction.Mine( cell );
 		} else if (heap != null
 				//moving to an item doesn't auto-pickup when enemies are near...
 				&& (visibleEnemies.size() == 0 || cell == pos ||

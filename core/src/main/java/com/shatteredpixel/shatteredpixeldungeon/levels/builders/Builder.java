@@ -48,7 +48,7 @@ public abstract class Builder {
 			}
 		}
 	}
-
+//
 	//returns a rectangle representing the maximum amount of free space from a specific start point
 	protected static Rect findFreeSpace(Point start, ArrayList<Room> collision, int maxSize){
 		Rect space = new Rect(start.x-maxSize, start.y-maxSize, start.x+maxSize, start.y+maxSize);
