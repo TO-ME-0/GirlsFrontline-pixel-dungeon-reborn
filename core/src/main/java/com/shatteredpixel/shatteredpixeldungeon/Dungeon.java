@@ -471,12 +471,6 @@ public class Dungeon {
 	public static Level newLevel(int depth, int sub) {
 		return newLevel(depth + sub*1000);
 	}
-	public static Level nextNewLevel() {
-		if (levelId == 25)
-			return newLevel(1025);
-		else
-			return newLevel(levelId % 1000 + 1);
-	}
 	public static void resetLevel() {
 		
 		Actor.clear();

@@ -3,8 +3,6 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -39,7 +37,6 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PathFinder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class LevelTeleporter extends TestItem {
@@ -160,6 +157,7 @@ public class LevelTeleporter extends TestItem {
                         setSelectedLevel(j);
                     }
                 };
+                db.enable(!(j > Statistics.deepestFloor));
                 db.setRect(xpos + column * each, ypos + row * each, BTN_SIZE, BTN_SIZE);
                 PixelScene.align(db);
                 content.add(db);
@@ -173,14 +171,10 @@ public class LevelTeleporter extends TestItem {
                 @Override
                 protected void onClick() {
                     super.onClick();
-                    while (Statistics.deepestFloor < selectedLevel) {
-                        Dungeon.level = Dungeon.nextNewLevel();
-                        try {
-                            Dungeon.saveLevel( GamesInProgress.curSlot );
-                        } catch (IOException e) {
-                            GirlsFrontlinePixelDungeon.reportException(e);
-                        }
-                    }
+                    Buff buff = Dungeon.hero().buff(TimekeepersHourglass.timeFreeze.class);
+                    if (buff != null) buff.detach();
+                    buff = Dungeon.hero().buff(Swiftthistle.TimeBubble.class);
+                    if (buff != null) buff.detach();
                     InterlevelScene.mode = InterlevelScene.Mode.RETURN;
                     InterlevelScene.returnLevel = selectedLevel;
                     InterlevelScene.returnPos = -1;
