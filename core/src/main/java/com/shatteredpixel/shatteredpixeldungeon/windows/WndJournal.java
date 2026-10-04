@@ -24,10 +24,12 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -39,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
@@ -54,13 +57,16 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SA.SurpriseAttack;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.BuffScanner;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
+import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -82,9 +88,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.ui.Component;
+import com.watabou.utils.FileUtils;
 import com.watabou.utils.RectF;
 import com.watabou.utils.Reflection;
 
@@ -884,6 +892,7 @@ public class WndJournal extends WndTabbed {
 
 			int i = Statistics.deepestFloor;
 			int j = Statistics.deepestSub;
+			boolean tpReady = teleporterAvailable();
 			while (i > 0) {
 
 				ArrayList<Notes.Record> recs = Notes.getRecords(i + j * 1000);
@@ -896,8 +905,12 @@ public class WndJournal extends WndTabbed {
 				if (j > 0)
 					depth += "/" + j;
 
-				if (i + j * 1000 == Dungeon.levelId) {
+				final int levelId = i + j * 1000;
+				if (levelId == Dungeon.levelId) {
 					grid.addHeader("_" + Messages.get(this, "floor_header", depth) + "_");
+				} else if (tpReady && teleportable(levelId)) {
+					//携带升降器时可点击楼层文字直接前往
+					grid.addHeader(Messages.get(this, "floor_header", depth) + " »", () -> teleportToFloor(levelId));
 				} else {
 					grid.addHeader(Messages.get(this, "floor_header", depth));
 				}
@@ -939,6 +952,33 @@ public class WndJournal extends WndTabbed {
 
 			grid.setRect(x, y, width, height);
 
+		}
+
+		//是否携带升降器且当前未被锁层
+		private static boolean teleporterAvailable() {
+			return Dungeon.hero() != null
+					&& Dungeon.hero().belongings.getItem(LevelTeleporter.class) != null
+					&& Dungeon.hero().buff(LockedFloor.class) == null;
+		}
+
+		//目标楼层必须存在存档文件，否则无法前往
+		private static boolean teleportable(int levelId) {
+			return FileUtils.fileExists(GamesInProgress.depthFile(GamesInProgress.curSlot, levelId, false));
+		}
+
+		//通过升降器跳层，与升降器自带的跨层传送窗口走同一逻辑
+		private static void teleportToFloor(int levelId) {
+			if (Dungeon.hero().buff(LockedFloor.class) != null) {
+				return;
+			}
+			Buff buff = Dungeon.hero().buff(TimekeepersHourglass.timeFreeze.class);
+			if (buff != null) buff.detach();
+			buff = Dungeon.hero().buff(Swiftthistle.TimeBubble.class);
+			if (buff != null) buff.detach();
+			InterlevelScene.mode = InterlevelScene.Mode.RETURN;
+			InterlevelScene.returnLevel = levelId;
+			InterlevelScene.returnPos = -1;
+			Game.switchScene(InterlevelScene.class);
 		}
 
 	}

@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.watabou.input.PointerEvent;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
@@ -55,6 +56,13 @@ public class ScrollingGridPane extends ScrollPane {
 
     public void addHeader( String text, int size, boolean center ){
         GridHeader header = new GridHeader(text, size, center);
+        content.add(header);
+        items.add(header);
+    }
+
+    //带点击行为的标题，点击区仅覆盖文字本身，不吞掉整行的滚动拖动
+    public void addHeader( String text, Runnable onClick ){
+        GridHeader header = new GridHeader(text, 7, false, onClick);
         content.add(header);
         items.add(header);
     }
@@ -214,23 +222,36 @@ public class ScrollingGridPane extends ScrollPane {
 
         protected RenderedTextBlock text;
         boolean center;
+        private PointerArea clickArea; //非空时标题可点击，点击区只覆盖文字
+        private final Runnable onClickAction;
 
         public GridHeader( String text ){
             this(text, 7, false);
         }
 
         public GridHeader( String text, int size, boolean center ){
+            this(text, size, center, null);
+        }
+
+        public GridHeader( String text, int size, boolean center, Runnable onClickAction ){
             super();
 
             this.center = center;
+            this.onClickAction = onClickAction;
             this.text = PixelScene.renderTextBlock(text, size);
             add(this.text);
 
-        }
-
-        @Override
-        protected void createChildren() {
-            super.createChildren();
+            if (onClickAction != null){
+                clickArea = new PointerArea(0, 0, 0, 0){
+                    @Override
+                    protected void onClick( PointerEvent event ) {
+                        if (GridHeader.this.onClickAction != null) {
+                            GridHeader.this.onClickAction.run();
+                        }
+                    }
+                };
+                add(clickArea);
+            }
         }
 
         @Override
@@ -244,6 +265,13 @@ public class ScrollingGridPane extends ScrollPane {
             } else {
                 text.maxWidth((int)width());
                 text.setPos(x, y+1);
+            }
+
+            if (clickArea != null){
+                clickArea.x = text.x;
+                clickArea.y = text.y;
+                clickArea.width = text.width();
+                clickArea.height = text.height();
             }
         }
 
