@@ -73,6 +73,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastShopLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RabbitBossLevel;
@@ -409,6 +410,9 @@ public class Dungeon {
                 level = new DeadEndLevel();break;
             case 1010:
                 level = new RabbitBossLevel();break;
+            //铁匠任务矿洞子层：对应洞窟主层 11~14
+            case 1011: case 1012: case 1013: case 1014:
+                level = new MiningLevel();break;
             case 1025:
                 level = new LastShopLevel();break;
         }
