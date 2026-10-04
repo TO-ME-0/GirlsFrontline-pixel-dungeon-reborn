@@ -1284,7 +1284,8 @@ public class WndJournal extends WndTabbed {
 						}
 					}
 
-				} else if (Weapon.Enchantment.class.isAssignableFrom(itemClass)) {
+				}
+				else if (Weapon.Enchantment.class.isAssignableFrom(itemClass)) {
 
 					Weapon.Enchantment ench = (Weapon.Enchantment) Reflection.newInstance(itemClass);
 
@@ -1300,7 +1301,8 @@ public class WndJournal extends WndTabbed {
 						desc += "\n\n" + Messages.get(ench, "discover_hint");
 					}
 
-				} else if (Armor.Glyph.class.isAssignableFrom(itemClass)) {
+				}
+				else if (Armor.Glyph.class.isAssignableFrom(itemClass)) {
 
 					Armor.Glyph glyph = (Armor.Glyph) Reflection.newInstance(itemClass);
 
@@ -1321,7 +1323,7 @@ public class WndJournal extends WndTabbed {
 				String finalTitle = title;
 				String finalDesc = desc;
 				String finalProperty = property;
-				ScrollingGridPane.GridItem gridItem = new ScrollingGridPane.GridItem(sprite) {
+				ScrollingGridPane.GridItem gridItem = new ScrollingGridPane.GridItem(sprite, seen) {
 					@Override
 					public void onClick() {
 						Image sprite = new Image(icon);
@@ -1443,7 +1445,7 @@ public class WndJournal extends WndTabbed {
 				Mob finalMob = mob;
 				String finalTitle = title;
 				String finalDesc = desc;
-				ScrollingGridPane.GridItem gridItem = new ScrollingGridPane.GridItem(icon) {
+				ScrollingGridPane.GridItem gridItem = new ScrollingGridPane.GridItem(icon, seen) {
 					@Override
 					public void onClick() {
                         Window window;
@@ -1509,7 +1511,7 @@ public class WndJournal extends WndTabbed {
 		}
 
 		private static ScrollingGridPane.GridItem getGridItem(String title, String desc, Image icon) {
-			return new ScrollingGridPane.GridItem(icon) {
+			return new ScrollingGridPane.GridItem(icon, false) {
 				@Override
 				public void onClick() {
 					if (icon != null) {

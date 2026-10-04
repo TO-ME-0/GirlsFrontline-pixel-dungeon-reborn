@@ -181,22 +181,21 @@ public class ScrollingGridPane extends ScrollPane {
         protected Visual secondIcon;
 
         protected ColorBlock bg;
-
         public GridItem( Image icon ) {
-            super(icon);
-            hotArea.blockLevel = PointerArea.NEVER_BLOCK;
+            this(icon, true);
         }
-
+        public GridItem( Image icon, boolean hitColor ) {
+            super(icon);
+            hotArea.blockLevel = hitColor ? PointerArea.NEVER_BLOCK : PointerArea.ALWAYS_BLOCK;
+        }
         public void addSecondIcon( Visual icon ){
             secondIcon = icon;
             add(secondIcon);
             layout();
         }
-
         public void hardLightBG( float r, float g, float b ){
             bg.hardlight(r, g, b);
         }
-
         @Override
         protected void createChildren() {
             super.createChildren();
