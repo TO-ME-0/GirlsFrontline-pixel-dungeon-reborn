@@ -119,6 +119,7 @@ public class LevelTeleporter extends TestItem {
         private int selectedLevel = 0;
         private ArrayList<DepthButton> btns = new ArrayList<>();
         private StyledButton icb;
+        private ScrollPane sp;
 
         public WndSelectLevel(){
             super();
@@ -128,7 +129,7 @@ public class LevelTeleporter extends TestItem {
             add(ttl);
             ttl.setPos(WIDTH/2f-ttl.width()/2f, GAP);
             PixelScene.align(ttl);
-            ScrollPane sp = new ScrollPane(new Component()){
+            sp = new ScrollPane(new Component()){
                 @Override
                 public void onClick(float x, float y) {
                     super.onClick(x, y);
@@ -191,6 +192,16 @@ public class LevelTeleporter extends TestItem {
             resize(WIDTH, (int) (icb.bottom()));
 
             sp.setPos(0, ttl.bottom() + GAP * 2);
+        }
+
+        @Override
+        public void offset(int xOffset, int yOffset) {
+            super.offset(xOffset, yOffset);
+            //窗口相机被offset移动后需刷新滚动面板的内容相机，否则全尺寸模式下楼层按钮显示与点击位置都会偏移
+            //（setPos会强制触发layout重算内容相机位置，参考WndJournal.offset的做法）
+            if (sp != null) {
+                sp.setPos(sp.left(), sp.top());
+            }
         }
 
         private void setSelectedLevel(int lvl){
