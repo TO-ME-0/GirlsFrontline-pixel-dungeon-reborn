@@ -150,7 +150,7 @@ public abstract class SecretRoom extends SpecialRoom {
     private static final String RANDOM  = "region_random";
 
 	public static void restoreRoomsFromBundle( Bundle bundle ) {
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 		d.secRunSecrets.clear();
 		if (bundle.contains( ROOMS )) {
 			for (Class<? extends SecretRoom> type : bundle.getClassArray(ROOMS)) {
@@ -168,7 +168,7 @@ public abstract class SecretRoom extends SpecialRoom {
 	}
 
 	public static void storeRoomsInBundle( Bundle bundle ) {
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 		bundle.put( ROOMS, d.secRunSecrets.toArray(new Class[0]) );
 		bundle.put( REGIONS, d.secRegionSecretsThisRun );
         bundle.put( RANDOM, d.secRegionSecretsThisRandom );

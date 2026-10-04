@@ -60,7 +60,7 @@ public class Dungeons {
 
     //主游戏上下文。仅用于存档读写等永远发生在主线程的路径，
     //避免误把查种 worker 的 ThreadLocal 状态序列化进存档。
-    public static Dungeons main() {
+    public static Dungeons MAIN() {
         return MAIN;
     }
 
@@ -111,7 +111,7 @@ public class Dungeons {
     // === 新增：生成链专用上下文标记 ===
     // 当本实例作为当前线程的生成上下文时，为 true
     // 用于区分"游戏主上下文"与"查种子线程上下文"
-    public boolean isSearch = false;
+    public boolean isSearch;
     public Dungeons(boolean isSearch) {
         this.isSearch = isSearch;
         reset();
@@ -183,7 +183,7 @@ public class Dungeons {
     // === 复制自 Dungeon.newLevel(Level, int, int) ===
     // 注意：内部仍调用 level.create(levelDepth, id)，而 create 内部会读写 Dungeon 的静态字段
     // 这是本阶段的预期行为：Dungeons 只是容器，真正的生成链引用迁移在后续阶段
-    public Level newLevel(Level level, int levelDepth, int id){
+    private Level createLevel(Level level, int levelDepth, int id){
         this.level = level;
         Actor.clear();
 
@@ -264,8 +264,14 @@ public class Dungeons {
             }
         }
 
-        return newLevel(level, id%1000, id);
+        return createLevel(level, id%1000, id);
     }
+//    public Level nextNewLevel() {
+//        if (CreateId == 25)
+//            return newLevel(1025);
+//        else
+//            return newLevel(depth + 1);
+//    }
 
     // === 复制自 Dungeon.newLevel(int, int) ===
     public Level newLevel(int depth, int sub) {

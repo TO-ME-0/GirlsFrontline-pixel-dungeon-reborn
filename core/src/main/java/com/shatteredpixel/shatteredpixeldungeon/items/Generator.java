@@ -233,11 +233,7 @@ import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 public class Generator {
 
@@ -952,7 +948,7 @@ public class Generator {
 	private static final String CATEGORY_DROPPED = "_dropped";
 	
 	public static void storeInBundle(Bundle bundle) {
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 		bundle.put(FIRST_DECK, d.genUsingFirstDeck);
 
 		Float[] genProbs = d.genCategoryProbs.values().toArray(new Float[0]);
@@ -993,7 +989,7 @@ public class Generator {
 
 	public static void restoreFromBundle(Bundle bundle) {
 		fullReset();
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 
 		d.genUsingFirstDeck = bundle.getBoolean(FIRST_DECK);
 

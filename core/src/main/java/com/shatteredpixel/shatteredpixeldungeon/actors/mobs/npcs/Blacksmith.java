@@ -322,7 +322,7 @@ public class Blacksmith extends NPC {
 		}
 		//仅用于存档读写（始终发生在主线程），避免误序列化 worker 状态
 		public static Quest main() {
-			return Dungeons.main().blacksmithQuest;
+			return Dungeons.MAIN().blacksmithQuest;
 		}
 
 		//矿洞生成相关房间/关卡使用的任务类型便捷访问（对齐 3.3.8 Quest.Type()）

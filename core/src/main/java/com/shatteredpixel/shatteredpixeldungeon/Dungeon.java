@@ -207,14 +207,14 @@ public class Dungeon {
 		}
 
 		public static void store( Bundle bundle ){
-			int[] arr = Dungeons.main().limitedDrops;
+			int[] arr = Dungeons.MAIN().limitedDrops;
 			for (LimitedDrops lim : values()){
 				bundle.put(lim.name(), arr[lim.ordinal()]);
 			}
 		}
 
 		public static void restore( Bundle bundle ){
-			int[] arr = Dungeons.main().limitedDrops;
+			int[] arr = Dungeons.MAIN().limitedDrops;
 			for (LimitedDrops lim : values()){
 				if (bundle.contains(lim.name())){
 					arr[lim.ordinal()] = bundle.getInt(lim.name());
@@ -355,7 +355,7 @@ public class Dungeon {
 		return (challenges & mask) != 0;
 	}
 	
-	public static Level newLevel(Level level,int levelDepth,int id){
+	private static Level createLevel(Level level,int levelDepth,int id){
 		Dungeon.level = null;
 		Actor.clear();
 
@@ -367,12 +367,8 @@ public class Dungeon {
         cur().CreateId    = id;
 		if (cur().depth > Statistics.deepestFloor) {
 			Statistics.deepestFloor = levelDepth;
-			
-			if (Statistics.qualifiedForNoKilling) {
-				Statistics.completedWithNoKilling = true;
-			} else {
-				Statistics.completedWithNoKilling = false;
-			}
+
+            Statistics.completedWithNoKilling = Statistics.qualifiedForNoKilling;
 		}
 		if (id / 1000 > Statistics.deepestSub)
 			Statistics.deepestSub = id / 1000;
@@ -420,9 +416,9 @@ public class Dungeon {
     }
 	public static Level newLevel(int id){
 		Level level;
-        if (id%1000==0)
+        if (id % 1000 == 0)
             level = newZeroLevel(id);
-        else if (id%1000!=id)
+        else if (id > 1000)
             level = newSubLevel(id);
         else {
             switch (id) {
@@ -470,7 +466,7 @@ public class Dungeon {
             }
         }
 
-        return newLevel(level,id%1000, id);
+        return createLevel(level,id%1000, id);
     }
 	public static Level newLevel(int depth, int sub) {
 		return newLevel(depth + sub*1000);

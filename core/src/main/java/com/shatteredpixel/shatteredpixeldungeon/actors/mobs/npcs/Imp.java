@@ -138,7 +138,7 @@ public class Imp extends NPC {
 		}
 		//仅用于存档读写（始终发生在主线程），避免误序列化 worker 状态
 		public static Quest main() {
-			return Dungeons.main().impQuest;
+			return Dungeons.MAIN().impQuest;
 		}
 		private boolean alternative;
 		

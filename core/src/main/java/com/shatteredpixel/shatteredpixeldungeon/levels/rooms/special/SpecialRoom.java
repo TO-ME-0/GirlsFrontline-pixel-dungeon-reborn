@@ -248,7 +248,7 @@ public abstract class SpecialRoom extends Room {
 	private static final String PIT	    = "pit_needed";
 	
 	public static void restoreRoomsFromBundle( Bundle bundle ) {
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 		d.spRunSpecials.clear();
 		if (bundle.contains( ROOMS )) {
 			for (Class<? extends Room> type : bundle.getClassArray(ROOMS)) {
@@ -262,7 +262,7 @@ public abstract class SpecialRoom extends Room {
 	}
 	
 	public static void storeRoomsInBundle( Bundle bundle ) {
-		Dungeons d = Dungeons.main();
+		Dungeons d = Dungeons.MAIN();
 		bundle.put( ROOMS, d.spRunSpecials.toArray(new Class[0]) );
 		bundle.put( PIT, d.spPitNeededDepth );
 	}
