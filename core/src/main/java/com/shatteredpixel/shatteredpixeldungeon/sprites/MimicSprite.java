@@ -123,4 +123,12 @@ public class MimicSprite extends MobSprite {
 		}
 	}
 
+	//拟态怪之牙饰品：乌木拟态怪使用 mimic.png 第四排贴图（实现见 MimicTooth）
+	public static class Ebony extends MimicSprite{
+		@Override
+		protected int texOffset() {
+			return 48;
+		}
+	}
+
 }

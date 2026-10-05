@@ -69,11 +69,15 @@ public class Mimic extends Mob {
 	
 	public ArrayList<Item> items;
 
-	private boolean stealthy = false;
+	protected boolean stealthy = false;
+
+	//拟态怪之牙饰品：乌木拟态怪（实现见 MimicTooth）
+	protected boolean ebony = false;
 
 	private static final String LEVEL	= "level";
 	private static final String ITEMS	= "items";
 	private static final String STEALTHY= "stealthy";
+	private static final String EBONY	= "ebony";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -81,6 +85,7 @@ public class Mimic extends Mob {
 		if (items != null) bundle.put( ITEMS, items );
 		bundle.put( LEVEL, level );
 		bundle.put( STEALTHY, stealthy );
+		bundle.put( EBONY, ebony );
 	}
 
 	@SuppressWarnings("unchecked")
@@ -92,6 +97,7 @@ public class Mimic extends Mob {
 		level = bundle.getInt( LEVEL );
 		adjustStats(level);
 		stealthy = bundle.getBoolean(STEALTHY);
+		ebony = bundle.getBoolean(EBONY);
 		super.restoreFromBundle(bundle);
 		if (state != PASSIVE && alignment == Alignment.NEUTRAL){
 			alignment = Alignment.ENEMY;
@@ -112,6 +118,8 @@ public class Mimic extends Mob {
 	public String name() {
 		if (alignment == Alignment.NEUTRAL){
 			return Messages.get(Heap.class, "chest");
+		} else if (ebony){
+			return Messages.get(this, "ebony_name");
 		} else {
 			return super.name();
 		}
@@ -126,6 +134,8 @@ public class Mimic extends Mob {
 			} else {
 				return Messages.get(Heap.class, "chest_desc") + "\n\n" + Messages.get(this, "hidden_hint");
 			}
+		} else if (ebony){
+			return Messages.get(this, "ebony_desc");
 		} else {
 			return super.description();
 		}
@@ -134,6 +144,11 @@ public class Mimic extends Mob {
 	//拟态怪之牙饰品：隐秘拟态怪的视觉行为使其更难被察觉（实现见 MimicTooth）
 	public boolean stealthy(){
 		return stealthy;
+	}
+
+	//拟态怪之牙饰品：乌木拟态怪使用 mimic.png 第四排贴图（实现见 MimicTooth）
+	public boolean ebony(){
+		return ebony;
 	}
 
 	@Override
@@ -149,7 +164,13 @@ public class Mimic extends Mob {
 
 	@Override
 	public CharSprite sprite() {
-		MimicSprite sprite = (MimicSprite) super.sprite();
+		//拟态怪之牙饰品：乌木拟态怪使用 mimic.png 第四排贴图（实现见 MimicTooth）
+		MimicSprite sprite;
+		if (ebony) {
+			sprite = new MimicSprite.Ebony();
+		} else {
+			sprite = (MimicSprite) super.sprite();
+		}
 		if (alignment == Alignment.NEUTRAL) sprite.hideMimic();
 		return sprite;
 	}
@@ -304,6 +325,12 @@ public class Mimic extends Mob {
 			m = new GoldenMimic();
 		} else if (mimicType == CrystalMimic.class) {
 			m = new CrystalMimic();
+		//拟态怪之牙饰品：普通拟态怪有概率生成为乌木拟态怪（实现见 MimicTooth）
+		} else if (mimicType == EbonyMimic.class
+				|| (mimicType == Mimic.class
+					&& MimicTooth.ebonyMimicChance() > 0
+					&& Random.Float() < MimicTooth.ebonyMimicChance())){
+			m = new EbonyMimic();
 		} else {
 			m = new Mimic();
 		}

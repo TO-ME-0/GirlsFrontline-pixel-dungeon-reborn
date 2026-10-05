@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CausticSlime;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Cyclops;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Dragun;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
@@ -229,7 +230,7 @@ public enum MobBestiary {
                 ArmoredBrute.class, GnollSWAP.class,
                 Elemental.ChaosElemental.class, Senior.class,
                 CrystalMimic.class, ArmoredStatue.class,
-                RatXMAS.class);
+                EbonyMimic.class, RatXMAS.class);
 
         QUEST.addEntities(
                 FetidRat.class, GnollTrickster.class, GreatCrab.class,
