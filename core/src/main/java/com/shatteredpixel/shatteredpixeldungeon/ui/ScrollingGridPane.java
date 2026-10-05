@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.input.PointerEvent;
@@ -28,6 +29,7 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.Visual;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
@@ -181,12 +183,14 @@ public class ScrollingGridPane extends ScrollPane {
         protected Visual secondIcon;
 
         protected ColorBlock bg;
+        boolean hitColor;
         public GridItem( Image icon ) {
             this(icon, true);
         }
         public GridItem( Image icon, boolean hitColor ) {
             super(icon);
-            hotArea.blockLevel = hitColor ? PointerArea.NEVER_BLOCK : PointerArea.ALWAYS_BLOCK;
+            hotArea.blockLevel = PointerArea.NEVER_BLOCK;
+            this.hitColor = hitColor;
         }
         public void addSecondIcon( Visual icon ){
             secondIcon = icon;
@@ -201,6 +205,18 @@ public class ScrollingGridPane extends ScrollPane {
             super.createChildren();
             bg = new ColorBlock( 1, 1, 0x9953564D);
             add(bg);
+        }
+
+        @Override
+        protected void onPointerDown() {
+            if (hitColor)
+                super.onPointerDown();
+        }
+
+        @Override
+        protected void onPointerUp() {
+            if (hitColor)
+                super.onPointerUp();
         }
 
         @Override
