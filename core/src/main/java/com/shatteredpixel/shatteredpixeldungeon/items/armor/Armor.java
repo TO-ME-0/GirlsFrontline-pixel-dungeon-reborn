@@ -89,6 +89,9 @@ import java.util.Arrays;
 
 public class Armor extends EquipableItem {
 
+	//用于计算护甲对飘字图标的闪避贡献
+	public static boolean testingNoArmDefSkill = false;
+
 	protected static final String AC_DETACH       = "DETACH";
 	protected static final String AC_INSIDE       = "INSIDE";
 	protected static final String AC_VIEW_INSIDE  = "VIEW_INSIDE";
@@ -603,7 +606,9 @@ public class Armor extends EquipableItem {
 		return dr;
 	}
     public float evasionFactor( Char owner, float evasion){
-		
+
+		if (testingNoArmDefSkill) return evasion;
+
 		if (glyph instanceof Stone && owner.buff(MagicImmune.class) == null && !((Stone)glyph).testingEvasion()){
 			return 0;
 		}

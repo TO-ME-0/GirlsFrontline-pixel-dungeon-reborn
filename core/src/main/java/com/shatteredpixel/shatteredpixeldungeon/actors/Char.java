@@ -109,6 +109,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GrimTrap;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -474,14 +475,19 @@ public abstract class Char extends Actor {
 		} else {
 
 			if (enemy.sprite != null){
-				if (tuftDodged){
-					//雪貂绒饰品：闪避成功时显示绒尾图标（实现见 FerretTuft）
-					enemy.sprite.showStatusWithIcon(CharSprite.NEUTRAL, enemy.defenseVerb(), FloatingText.TUFT);
+				if (hitMissIcon != -1){
+					//dooking是雪貂发出的俏皮叫声，类似低音的啁啾
+					// 这个梗没法翻译，仅保留英文原文
+					if (hitMissIcon == FloatingText.MISS_TUFT && Messages.lang() == Languages.ENGLISH && Random.Int(10) == 0) {
+						enemy.sprite.showStatusWithIcon(CharSprite.NEUTRAL, "dooked", hitMissIcon);
+					} else {
+						enemy.sprite.showStatusWithIcon(CharSprite.NEUTRAL, enemy.defenseVerb(), hitMissIcon);
+					}
+					hitMissIcon = -1;
 				} else {
 					enemy.sprite.showStatus( CharSprite.NEUTRAL, enemy.defenseVerb() );
 				}
 			}
-			tuftDodged = false;
 			if (visibleFight) {
 				//TODO enemy.defenseSound? currently miss plays for monks/crab even when they parry
 				Sample.INSTANCE.play(Assets.Sounds.MISS);
@@ -513,8 +519,10 @@ public abstract class Char extends Actor {
 		//if accuracy or evasion are large enough, treat them as infinite.
 		//note that infinite evasion beats infinite accuracy
 		if (defStat >= INFINITE_EVASION){
+			hitMissIcon = FloatingText.getMissReasonIcon(attacker, acuStat, defender, INFINITE_EVASION);
 			return false;
 		} else if (acuStat >= INFINITE_ACCURACY){
+			hitMissIcon = FloatingText.getHitReasonIcon(attacker, INFINITE_ACCURACY, defender, defStat);
 			return true;
 		}
 
@@ -540,17 +548,18 @@ public abstract class Char extends Actor {
 		StickyAdhesion.StickyDeter defenderDeter = defender.buff(StickyAdhesion.StickyDeter.class);
 		if (defenderDeter != null) defRoll *= defenderDeter.factor();
 
-		//雪貂绒饰品：若本次闪避由绒尾加成达成则记录，用于显示特殊图标（实现见 FerretTuft）
-		if (defRoll < acuRoll*accMulti && (defRoll*FerretTuft.evasionMultiplier()) >= acuRoll*accMulti){
-			tuftDodged = true;
-		}
 		defRoll *= FerretTuft.evasionMultiplier();
 
-		return (acuRoll * accMulti) >= defRoll;
+		if ((acuRoll * accMulti) >= defRoll){
+			hitMissIcon = FloatingText.getHitReasonIcon(attacker, acuRoll*accMulti, defender, defRoll);
+			return true;
+		} else {
+			hitMissIcon = FloatingText.getMissReasonIcon(attacker, acuRoll*accMulti, defender, defRoll);
+			return false;
+		}
 	}
 
-	//TODO this is messy and hacky atm, should consider standardizing this so we can have many 'dodge reasons'
-	private static boolean tuftDodged = false;
+	private static int hitMissIcon = -1;
 
 	public int attackSkill( Char target ) {
 		return 0;

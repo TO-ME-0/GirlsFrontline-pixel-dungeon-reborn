@@ -43,15 +43,15 @@ import java.util.ArrayList;
  * 解锁条件仍沿用原 Badges 系统。
  * 贴图文件 interfaces/badges1.png，每格 16*16 像素，每行 16 格，共 17 行。
  * 行语义（自上而下）：
- *   1  角色图标徽章行
+ *   1  角色解锁徽章行（解锁角色的角色图标盾徽）
  *   2  物品徽章行
- *   3  钻石徽章行
+ *   3  钻石获取徽章行
  *   4  击杀徽章行
  *   5  食物徽章行
  *   6  等级徽章行
  *   7  炼药徽章行
  *   8  力量徽章行
- *   9  职业徽章行
+ *   9  职业精通徽章行
  *   10 探索徽章行
  *   11 鉴定徽章行
  *   12 死因徽章行
@@ -88,34 +88,38 @@ public class BadgeV2 {
 		film.add( item, x, y, x+width, y+height);
 	}
 
-	//第一行 角色图标徽章行
-	private static final int HERO_ICONS             =                               xy(1, 1);   //16 slots
-	public static final int MASTERY_WARRIOR         = HERO_ICONS+0;
-	public static final int MASTERY_MAGE            = HERO_ICONS+1;
-	public static final int MASTERY_ROGUE           = HERO_ICONS+2;
-	public static final int MASTERY_HUNTRESS        = HERO_ICONS+3;
-	public static final int MASTERY_TYPE561         = HERO_ICONS+4;
-	public static final int MASTERY_GSH18           = HERO_ICONS+5;
-	public static final int MASTERY_HK416           = HERO_ICONS+6;
-	public static final int MASTERY_DANDELION       = HERO_ICONS+7;
-	//8 free slots
+	//第一行 角色解锁徽章行（解锁角色的角色图标盾徽）
+	private static final int HERO_ICONS             =                               xy(1, 1);   //共16格
+	public static final int UNLOCK_WARRIOR          = HERO_ICONS+0;   //解锁UMP45
+	public static final int UNLOCK_MAGE             = HERO_ICONS+1;   //解锁G11
+	public static final int UNLOCK_ROGUE            = HERO_ICONS+2;   //解锁UMP9
+	public static final int UNLOCK_HK416            = HERO_ICONS+3;   //解锁HK416
+	public static final int UNLOCK_TYPE561          = HERO_ICONS+4;   //解锁56-1式
+	public static final int UNLOCK_GSH18            = HERO_ICONS+5;   //解锁GSH-18
+	public static final int UNLOCK_HUNTRESS         = HERO_ICONS+6;   //解锁隼（图标背景占位，贴图后续补充）
+	public static final int UNLOCK_DANDELION        = HERO_ICONS+7;   //解锁丹德莱（图标背景占位，贴图后续补充）
+	//空闲8格
 
 	//第二行 物品徽章行（物品升级等级）
-	private static final int ITEM_BADGES            =                               xy(1, 2);   //16 slots
+	private static final int ITEM_BADGES            =                               xy(1, 2);   //共16格
 	public static final int ITEM_LEVEL_1            = ITEM_BADGES+0;
 	public static final int ITEM_LEVEL_2            = ITEM_BADGES+1;
 	public static final int ITEM_LEVEL_3            = ITEM_BADGES+2;
 	public static final int ITEM_LEVEL_4            = ITEM_BADGES+3;
 	public static final int ITEM_LEVEL_5            = ITEM_BADGES+4;
-	//11 free slots
+	//空闲11格
 
-	//第三行 钻石徽章行（稀有/终极成就）
-	private static final int DIAMOND_BADGES         =                               xy(1, 3);   //16 slots
-	public static final int CRYSTAL_TROPHY          = DIAMOND_BADGES+0;
-	//15 free slots
+	//第三行 钻石获取徽章行（单局收集钻石）
+	private static final int DIAMOND_BADGES         =                               xy(1, 3);   //共16格
+	public static final int GOLD_COLLECTED_1        = DIAMOND_BADGES+0;   //250钻石
+	public static final int GOLD_COLLECTED_2        = DIAMOND_BADGES+1;   //1000钻石
+	public static final int GOLD_COLLECTED_3        = DIAMOND_BADGES+2;   //2500钻石
+	public static final int GOLD_COLLECTED_4        = DIAMOND_BADGES+3;   //5000钻石
+	public static final int GOLD_COLLECTED_5        = DIAMOND_BADGES+4;   //10000钻石
+	//空闲11格
 
 	//第四行 击杀徽章行
-	private static final int KILL_BADGES            =                               xy(1, 4);   //16 slots
+	private static final int KILL_BADGES            =                               xy(1, 4);   //共16格
 	public static final int MONSTERS_SLAIN_1        = KILL_BADGES+0;
 	public static final int MONSTERS_SLAIN_2        = KILL_BADGES+1;
 	public static final int MONSTERS_SLAIN_3        = KILL_BADGES+2;
@@ -129,59 +133,54 @@ public class BadgeV2 {
 	public static final int KILL_DISPORE            = KILL_BADGES+10;
 	public static final int KILL_ELPHELT            = KILL_BADGES+11;
 	public static final int ELPHELT_WEAPON          = KILL_BADGES+12;
-	//3 free slots
+	//空闲3格
 
 	//第五行 食物徽章行
-	private static final int FOOD_BADGES            =                               xy(1, 5);   //16 slots
+	private static final int FOOD_BADGES            =                               xy(1, 5);   //共16格
 	public static final int FOOD_EATEN_1            = FOOD_BADGES+0;
 	public static final int FOOD_EATEN_2            = FOOD_BADGES+1;
 	public static final int FOOD_EATEN_3            = FOOD_BADGES+2;
 	public static final int FOOD_EATEN_4            = FOOD_BADGES+3;
 	public static final int FOOD_EATEN_5            = FOOD_BADGES+4;
-	//11 free slots
+	//空闲11格
 
 	//第六行 等级徽章行（英雄等级）
-	private static final int LEVEL_BADGES           =                               xy(1, 6);   //16 slots
+	private static final int LEVEL_BADGES           =                               xy(1, 6);   //共16格
 	public static final int LEVEL_REACHED_1         = LEVEL_BADGES+0;
 	public static final int LEVEL_REACHED_2         = LEVEL_BADGES+1;
 	public static final int LEVEL_REACHED_3         = LEVEL_BADGES+2;
 	public static final int LEVEL_REACHED_4         = LEVEL_BADGES+3;
 	public static final int LEVEL_REACHED_5         = LEVEL_BADGES+4;
-	//11 free slots
+	//空闲11格
 
 	//第七行 炼药徽章行
-	private static final int ALCHEMY_BADGES         =                               xy(1, 7);   //16 slots
+	private static final int ALCHEMY_BADGES         =                               xy(1, 7);   //共16格
 	public static final int ITEMS_CRAFTED_1         = ALCHEMY_BADGES+0;
 	public static final int ITEMS_CRAFTED_2         = ALCHEMY_BADGES+1;
 	public static final int ITEMS_CRAFTED_3         = ALCHEMY_BADGES+2;
 	public static final int ITEMS_CRAFTED_4         = ALCHEMY_BADGES+3;
 	public static final int ITEMS_CRAFTED_5         = ALCHEMY_BADGES+4;
-	//11 free slots
+	//空闲11格
 
 	//第八行 力量徽章行
-	private static final int STRENGTH_BADGES        =                               xy(1, 8);   //16 slots
+	private static final int STRENGTH_BADGES        =                               xy(1, 8);   //共16格
 	public static final int STRENGTH_ATTAINED_1     = STRENGTH_BADGES+0;
 	public static final int STRENGTH_ATTAINED_2     = STRENGTH_BADGES+1;
 	public static final int STRENGTH_ATTAINED_3     = STRENGTH_BADGES+2;
 	public static final int STRENGTH_ATTAINED_4     = STRENGTH_BADGES+3;
 	public static final int STRENGTH_ATTAINED_5     = STRENGTH_BADGES+4;
-	//11 free slots
+	//空闲11格
 
-	//第九行 职业徽章行（解锁职业+组合技）
-	private static final int CLASS_BADGES           =                               xy(1, 9);   //16 slots
-	public static final int UNLOCK_WARRIOR          = CLASS_BADGES+0;
-	public static final int UNLOCK_MAGE             = CLASS_BADGES+1;
-	public static final int UNLOCK_ROGUE            = CLASS_BADGES+2;
-	public static final int UNLOCK_HUNTRESS         = CLASS_BADGES+3;
-	public static final int UNLOCK_TYPE561          = CLASS_BADGES+4;
-	public static final int UNLOCK_GSH18            = CLASS_BADGES+5;
-	public static final int UNLOCK_HK416            = CLASS_BADGES+6;
-	public static final int UNLOCK_DANDELION        = CLASS_BADGES+7;
-	public static final int MASTERY_COMBO           = CLASS_BADGES+8;
-	//7 free slots
+	//第九行 职业精通徽章行（全职业成就+组合技）
+	private static final int CLASS_BADGES           =                               xy(1, 9);   //共16格
+	public static final int BOSS_SLAIN_1_ALL_CLASSES = CLASS_BADGES+0;   //多面手
+	public static final int BOSS_SLAIN_3_ALL_SUBCLASSES = CLASS_BADGES+1;   //全面手
+	public static final int VICTORY_ALL_CLASSES     = CLASS_BADGES+2;   //全能大师
+	public static final int MASTERY_COMBO           = CLASS_BADGES+3;   //角斗士之怒
+	//空闲12格
 
 	//第十行 探索徽章行
-	private static final int EXPLORE_BADGES         =                               xy(1, 10);  //16 slots
+	private static final int EXPLORE_BADGES         =                               xy(1, 10);  //共16格
 	public static final int PIRANHAS                = EXPLORE_BADGES+0;
 	public static final int BAG_BOUGHT_VELVET_POUCH     = EXPLORE_BADGES+1;
 	public static final int BAG_BOUGHT_SCROLL_HOLDER    = EXPLORE_BADGES+2;
@@ -189,10 +188,10 @@ public class BadgeV2 {
 	public static final int BAG_BOUGHT_MAGICAL_HOLSTER  = EXPLORE_BADGES+4;
 	public static final int ALL_BAGS_BOUGHT         = EXPLORE_BADGES+5;
 	public static final int FOUND_RATMOGRIFY        = EXPLORE_BADGES+6;
-	//9 free slots
+	//空闲9格
 
 	//第十一行 鉴定徽章行
-	private static final int IDENTIFY_BADGES        =                               xy(1, 11);  //16 slots
+	private static final int IDENTIFY_BADGES        =                               xy(1, 11);  //共16格
 	public static final int ALL_POTIONS_IDENTIFIED  = IDENTIFY_BADGES+0;
 	public static final int ALL_SCROLLS_IDENTIFIED  = IDENTIFY_BADGES+1;
 	public static final int ALL_WEAPONS_IDENTIFIED  = IDENTIFY_BADGES+2;
@@ -203,21 +202,21 @@ public class BadgeV2 {
 	public static final int ALL_ITEMS_IDENTIFIED    = IDENTIFY_BADGES+7;
 	public static final int IDENTIFY                = IDENTIFY_BADGES+8;
 	public static final int DEGRADE_EQUIPMENT       = IDENTIFY_BADGES+9;
-	//6 free slots
+	//空闲6格
 
 	//第十二行 死因徽章行
-	private static final int DEATH_BADGES           =                               xy(1, 12);  //16 slots
+	private static final int DEATH_BADGES           =                               xy(1, 12);  //共16格
 	public static final int DEATH_FROM_FIRE         = DEATH_BADGES+0;
 	public static final int DEATH_FROM_POISON       = DEATH_BADGES+1;
 	public static final int DEATH_FROM_GAS          = DEATH_BADGES+2;
 	public static final int DEATH_FROM_HUNGER       = DEATH_BADGES+3;
 	public static final int DEATH_FROM_FALLING      = DEATH_BADGES+4;
 	public static final int DEATH_FROM_GLYPH        = DEATH_BADGES+5;
-	//10 free slots
+	//空闲10格
 
 	//第十三行 boss徽章行
 	//TODO: BOSS_SLAIN_3_* 子职业系列（共9个）超出本行容量，待分配到其他行
-	private static final int BOSS_BADGES            =                               xy(1, 13);  //16 slots
+	private static final int BOSS_BADGES            =                               xy(1, 13);  //共16格
 	public static final int BOSS_SLAIN_1            = BOSS_BADGES+0;
 	public static final int BOSS_SLAIN_2            = BOSS_BADGES+1;
 	public static final int BOSS_SLAIN_3            = BOSS_BADGES+2;
@@ -229,11 +228,10 @@ public class BadgeV2 {
 	public static final int BOSS_SLAIN_1_TYPE561    = BOSS_BADGES+8;
 	public static final int BOSS_SLAIN_1_GSH18      = BOSS_BADGES+9;
 	public static final int BOSS_SLAIN_1_HK416      = BOSS_BADGES+10;
-	public static final int BOSS_SLAIN_1_ALL_CLASSES= BOSS_BADGES+11;
-	//4 free slots
+	//空闲5格
 
 	//第十四行 结局徽章行
-	private static final int ENDING_BADGES          =                               xy(1, 14);  //16 slots
+	private static final int ENDING_BADGES          =                               xy(1, 14);  //共16格
 	public static final int VICTORY                 = ENDING_BADGES+0;
 	public static final int VICTORY_WARRIOR         = ENDING_BADGES+1;
 	public static final int VICTORY_MAGE            = ENDING_BADGES+2;
@@ -242,37 +240,32 @@ public class BadgeV2 {
 	public static final int VICTORY_TYPE561         = ENDING_BADGES+5;
 	public static final int VICTORY_GSH18           = ENDING_BADGES+6;
 	public static final int VICTORY_HK416           = ENDING_BADGES+7;
-	public static final int VICTORY_ALL_CLASSES     = ENDING_BADGES+8;
-	public static final int HAPPY_END               = ENDING_BADGES+9;
-	public static final int YASD                    = ENDING_BADGES+10;
-	//5 free slots
+	public static final int HAPPY_END               = ENDING_BADGES+8;
+	public static final int YASD                    = ENDING_BADGES+9;
+	//空闲6格
 
 	//第十五行 挑战徽章行
-	private static final int CHALLENGE_BADGES       =                               xy(1, 15);  //16 slots
+	private static final int CHALLENGE_BADGES       =                               xy(1, 15);  //共16格
 	public static final int CHAMPION_1              = CHALLENGE_BADGES+0;
 	public static final int CHAMPION_2              = CHALLENGE_BADGES+1;
 	public static final int CHAMPION_3              = CHALLENGE_BADGES+2;
 	public static final int CHAMPION_4              = CHALLENGE_BADGES+3;
-	//13 free slots
+	//空闲13格
 
-	//第十六行 特殊徽章行（游戏局数+金币收集+节日）
-	private static final int SPECIAL_BADGES         =                               xy(1, 16);  //16 slots
+	//第十六行 特殊徽章行（游戏局数+极限挑战+节日）
+	private static final int SPECIAL_BADGES         =                               xy(1, 16);  //共16格
 	public static final int GAMES_PLAYED_1          = SPECIAL_BADGES+0;
 	public static final int GAMES_PLAYED_2          = SPECIAL_BADGES+1;
 	public static final int GAMES_PLAYED_3          = SPECIAL_BADGES+2;
 	public static final int GAMES_PLAYED_4          = SPECIAL_BADGES+3;
 	public static final int GAMES_PLAYED_5          = SPECIAL_BADGES+4;
-	public static final int GOLD_COLLECTED_1        = SPECIAL_BADGES+5;
-	public static final int GOLD_COLLECTED_2        = SPECIAL_BADGES+6;
-	public static final int GOLD_COLLECTED_3        = SPECIAL_BADGES+7;
-	public static final int GOLD_COLLECTED_4        = SPECIAL_BADGES+8;
-	public static final int GOLD_COLLECTED_5        = SPECIAL_BADGES+9;
-	public static final int XMAS_GIFT               = SPECIAL_BADGES+10;
-	//5 free slots
+	public static final int XMAS_GIFT               = SPECIAL_BADGES+5;
+	public static final int CRYSTAL_TROPHY          = SPECIAL_BADGES+6;
+	//空闲9格
 
 	//第十七行 徽章背景行（各品质底框，供徽章图标叠加使用）
-	private static final int BADGE_BACKGROUNDS      =                               xy(1, 17);  //16 slots
-	//16 free slots（背景框按迭代需要再命名）
+	private static final int BADGE_BACKGROUNDS      =                               xy(1, 17);  //共16格
+	//空闲16格（背景框按迭代需要再命名）
 
 	static{
 		//全部17*16个格子均为16*16像素
@@ -370,16 +363,16 @@ public class BadgeV2 {
 
 		private static final ArrayList<CatDef> CATEGORY_DEFS = new ArrayList<>();
 		static {
-			//1 角色图标徽章行
+			//1 角色解锁徽章行
 			CATEGORY_DEFS.add(new CatDef("hero_v2",
-					e(MASTERY_WARRIOR,   Badges.Badge.MASTERY_WARRIOR),
-					e(MASTERY_MAGE,      Badges.Badge.MASTERY_MAGE),
-					e(MASTERY_ROGUE,     Badges.Badge.MASTERY_ROGUE),
-					e(MASTERY_HUNTRESS,  Badges.Badge.MASTERY_HUNTRESS),
-					e(MASTERY_TYPE561,   Badges.Badge.MASTERY_TYPE561),
-					e(MASTERY_GSH18,     Badges.Badge.MASTERY_GSH18),
-					e(MASTERY_HK416,     Badges.Badge.MASTERY_HK416),
-					e(MASTERY_DANDELION, Badges.Badge.MASTERY_DANDELION)));
+					e(UNLOCK_WARRIOR,   Badges.Badge.UNLOCK_WARRIOR),
+					e(UNLOCK_MAGE,      Badges.Badge.UNLOCK_MAGE),
+					e(UNLOCK_ROGUE,     Badges.Badge.UNLOCK_ROGUE),
+					e(UNLOCK_HK416,     Badges.Badge.UNLOCK_HK416),
+					e(UNLOCK_TYPE561,   Badges.Badge.UNLOCK_TYPE561),
+					e(UNLOCK_GSH18,     Badges.Badge.UNLOCK_GSH18),
+					e(UNLOCK_HUNTRESS,  Badges.Badge.UNLOCK_HUNTRESS),
+					e(UNLOCK_DANDELION, Badges.Badge.UNLOCK_DANDELION)));
 
 			//2 物品徽章行
 			CATEGORY_DEFS.add(new CatDef("item_v2",
@@ -389,9 +382,13 @@ public class BadgeV2 {
 					e(ITEM_LEVEL_4, Badges.Badge.ITEM_LEVEL_4),
 					e(ITEM_LEVEL_5, Badges.Badge.ITEM_LEVEL_5)));
 
-			//3 钻石徽章行
+			//3 钻石获取徽章行
 			CATEGORY_DEFS.add(new CatDef("diamond_v2",
-					e(CRYSTAL_TROPHY, Badges.Badge.CRYSTAL_TROPHY)));
+					e(GOLD_COLLECTED_1, Badges.Badge.GOLD_COLLECTED_1),
+					e(GOLD_COLLECTED_2, Badges.Badge.GOLD_COLLECTED_2),
+					e(GOLD_COLLECTED_3, Badges.Badge.GOLD_COLLECTED_3),
+					e(GOLD_COLLECTED_4, Badges.Badge.GOLD_COLLECTED_4),
+					e(GOLD_COLLECTED_5, Badges.Badge.GOLD_COLLECTED_5)));
 
 			//4 击杀徽章行
 			CATEGORY_DEFS.add(new CatDef("kill_v2",
@@ -441,17 +438,12 @@ public class BadgeV2 {
 					e(STRENGTH_ATTAINED_4, Badges.Badge.STRENGTH_ATTAINED_4),
 					e(STRENGTH_ATTAINED_5, Badges.Badge.STRENGTH_ATTAINED_5)));
 
-			//9 职业徽章行
+			//9 职业精通徽章行
 			CATEGORY_DEFS.add(new CatDef("class_v2",
-					e(UNLOCK_WARRIOR,    Badges.Badge.UNLOCK_WARRIOR),
-					e(UNLOCK_MAGE,       Badges.Badge.UNLOCK_MAGE),
-					e(UNLOCK_ROGUE,      Badges.Badge.UNLOCK_ROGUE),
-					e(UNLOCK_HUNTRESS,   Badges.Badge.UNLOCK_HUNTRESS),
-					e(UNLOCK_TYPE561,    Badges.Badge.UNLOCK_TYPE561),
-					e(UNLOCK_GSH18,      Badges.Badge.UNLOCK_GSH18),
-					e(UNLOCK_HK416,      Badges.Badge.UNLOCK_HK416),
-					e(UNLOCK_DANDELION,  Badges.Badge.UNLOCK_DANDELION),
-					e(MASTERY_COMBO,     Badges.Badge.MASTERY_COMBO)));
+					e(BOSS_SLAIN_1_ALL_CLASSES,  Badges.Badge.BOSS_SLAIN_1_ALL_CLASSES),
+					e(BOSS_SLAIN_3_ALL_SUBCLASSES, Badges.Badge.BOSS_SLAIN_3_ALL_SUBCLASSES),
+					e(VICTORY_ALL_CLASSES,       Badges.Badge.VICTORY_ALL_CLASSES),
+					e(MASTERY_COMBO,             Badges.Badge.MASTERY_COMBO)));
 
 			//10 探索徽章行
 			CATEGORY_DEFS.add(new CatDef("explore_v2",
@@ -497,8 +489,7 @@ public class BadgeV2 {
 					e(BOSS_SLAIN_1_HUNTRESS,  Badges.Badge.BOSS_SLAIN_1_HUNTRESS),
 					e(BOSS_SLAIN_1_TYPE561,   Badges.Badge.BOSS_SLAIN_1_TYPE561),
 					e(BOSS_SLAIN_1_GSH18,     Badges.Badge.BOSS_SLAIN_1_GSH18),
-					e(BOSS_SLAIN_1_HK416,     Badges.Badge.BOSS_SLAIN_1_HK416),
-					e(BOSS_SLAIN_1_ALL_CLASSES, Badges.Badge.BOSS_SLAIN_1_ALL_CLASSES)));
+					e(BOSS_SLAIN_1_HK416,     Badges.Badge.BOSS_SLAIN_1_HK416)));
 
 			//14 结局徽章行
 			CATEGORY_DEFS.add(new CatDef("ending_v2",
@@ -510,7 +501,6 @@ public class BadgeV2 {
 					e(VICTORY_TYPE561,     Badges.Badge.VICTORY_TYPE561),
 					e(VICTORY_GSH18,       Badges.Badge.VICTORY_GSH18),
 					e(VICTORY_HK416,       Badges.Badge.VICTORY_HK416),
-					e(VICTORY_ALL_CLASSES, Badges.Badge.VICTORY_ALL_CLASSES),
 					e(HAPPY_END,           Badges.Badge.HAPPY_END),
 					e(YASD,                Badges.Badge.YASD)));
 
@@ -527,12 +517,8 @@ public class BadgeV2 {
 					e(GAMES_PLAYED_3, Badges.Badge.GAMES_PLAYED_3),
 					e(GAMES_PLAYED_4, Badges.Badge.GAMES_PLAYED_4),
 					e(GAMES_PLAYED_5, Badges.Badge.GAMES_PLAYED_5),
-					e(GOLD_COLLECTED_1, Badges.Badge.GOLD_COLLECTED_1),
-					e(GOLD_COLLECTED_2, Badges.Badge.GOLD_COLLECTED_2),
-					e(GOLD_COLLECTED_3, Badges.Badge.GOLD_COLLECTED_3),
-					e(GOLD_COLLECTED_4, Badges.Badge.GOLD_COLLECTED_4),
-					e(GOLD_COLLECTED_5, Badges.Badge.GOLD_COLLECTED_5),
-					e(XMAS_GIFT, Badges.Badge.XMASGift)));
+					e(XMAS_GIFT, Badges.Badge.XMASGift),
+					e(CRYSTAL_TROPHY, Badges.Badge.CRYSTAL_TROPHY)));
 		}
 
 		//---------------- 可展开分类 ----------------
