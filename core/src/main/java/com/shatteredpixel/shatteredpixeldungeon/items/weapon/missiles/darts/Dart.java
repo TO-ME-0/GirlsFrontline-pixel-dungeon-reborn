@@ -46,6 +46,8 @@ import java.util.ArrayList;
 public class Dart extends MissileWeapon {
 
 	{
+		levelKnown = true;
+
 		image = ItemSpriteSheet.DART;
 		hitSound = Assets.Sounds.HIT_ARROW;
 		hitSoundPitch = 1.3f;
@@ -55,6 +57,9 @@ public class Dart extends MissileWeapon {
 		unique = true;
 		//infinite, even with penalties
 		baseUses = 1000;
+
+		//所有 .50 弹药共享一个 set ID，0 表示无数量限制（统计上可永久使用）
+		setID = 0L;
 	}
 	
 	protected static final String AC_TIP = "TIP";
@@ -161,8 +166,13 @@ public class Dart extends MissileWeapon {
 	}
 	
 	@Override
+	public boolean isIdentified() {
+		return true;
+	}
+
+	@Override
 	public int value() {
-		return super.value()/2; //half normal value
+		return Math.round(super.value()/2f); //half normal value
 	}
 	
 	private final WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {

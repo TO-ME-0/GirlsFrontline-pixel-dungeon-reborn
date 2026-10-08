@@ -24,7 +24,9 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ChallengeParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WraithSprite;
 import com.watabou.noosa.tweeners.AlphaTweener;
@@ -36,7 +38,7 @@ public class Wraith extends Mob {
 
 	private static final float SPAWN_DELAY	= 2f;
 	
-	private int level;
+	protected int level;
 	
 	{
 		spriteClass = WraithSprite.class;
@@ -102,7 +104,14 @@ public class Wraith extends Mob {
 	public static Wraith spawnAt( int pos ) {
 		if ((!Dungeon.level.solid[pos] || Dungeon.level.passable[pos]) && Actor.findChar( pos ) == null) {
 			
-			Wraith w = new Wraith();
+			Wraith w;
+			//鼠颅饰品：基准为 1/100 概率生成异化幽魂（TormentedSpirit），生成概率暂设 0 待贴图补齐
+			float altChance = 0f * RatSkull.exoticChanceMultiplier();
+			if (Random.Float() < altChance){
+				w = new TormentedSpirit();
+			} else {
+				w = new Wraith();
+			}
 			w.adjustStats( Dungeon.cur().depth );
 			w.pos = pos;
 			w.state = w.HUNTING;
@@ -112,7 +121,11 @@ public class Wraith extends Mob {
 			w.sprite.alpha( 0 );
 			w.sprite.parent.add( new AlphaTweener( w.sprite, 1, 0.5f ) );
 			
-			w.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
+			if (w instanceof TormentedSpirit){
+				w.sprite.emitter().burst( ChallengeParticle.FACTORY, 10 );
+			} else {
+				w.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
+			}
 			
 			return w;
 		} else {

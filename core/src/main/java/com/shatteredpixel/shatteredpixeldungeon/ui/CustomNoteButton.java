@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
@@ -150,10 +151,14 @@ public class CustomNoteButton extends IconButton {
         @Override
         public boolean itemSelectable(Item item) {
             Notes.CustomRecord ClassNote = Notes.findCustomRecord(item);
+            //装备类物品按实例级笔记处理，即使可堆叠（如迁移后的投掷武器）
+            if (item instanceof EquipableItem) {
+                if (item instanceof Ring && ClassNote != null)
+                    return false;
+                return item.customNoteID == -1 || Notes.findCustomRecord(item.customNoteID) == null;
+            }
             if (item.stackable)
                 return ClassNote == null;
-            if (item instanceof Ring && ClassNote != null)
-                return false;
             return item.customNoteID == -1 || Notes.findCustomRecord(item.customNoteID) == null;
         }
 
@@ -161,10 +166,11 @@ public class CustomNoteButton extends IconButton {
         public void onSelect( Item item ) {
             if (item != null){
                 Notes.CustomRecord custom;
-                if (item.stackable)
-                    custom = new Notes.CustomRecord(item.getClass(), "", "");
-                else
+                //装备类物品或不可堆叠物品使用实例级笔记，其余可堆叠物品使用类别级笔记
+                if (item instanceof EquipableItem || !item.stackable)
                     custom = new Notes.CustomRecord(item, "", "");
+                else
+                    custom = new Notes.CustomRecord(item.getClass(), "", "");
                 curItem = item;
                 addNote(null, custom,
                         Messages.get(CustomNoteButton.class, "new_inv"),

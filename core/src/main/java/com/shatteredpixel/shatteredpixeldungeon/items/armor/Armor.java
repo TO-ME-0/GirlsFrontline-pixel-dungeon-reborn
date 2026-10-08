@@ -278,6 +278,15 @@ public class Armor extends EquipableItem {
         inside = null;
 	}
 
+	//迁移 3.3.8：鉴定进度已达标（可在遗忘碎片下令被动鉴定就绪）
+	public void setIDReady(){
+		usesLeftToID = -1;
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && usesLeftToID <= 0;
+	}
+
 	@Override
 	public void resetBone() {
 		//reset() above nulls inside, so capture the nested armor first and
@@ -749,16 +758,21 @@ public class Armor extends EquipableItem {
 			damage = glyph.proc( this, attacker, defender, damage );
 		}
 		
-		//遗忘碎片饰品：携带时禁用武器/护甲被动鉴定（实现见 ShardOfOblivion）
-		if (!ShardOfOblivion.passiveIDDisabled()
-				&& !levelKnown && defender == Dungeon.hero()) {
+		if (!levelKnown && defender == Dungeon.hero()) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero(), this) );
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
-				identify();
-				GLog.p( Messages.get(Armor.class, "identify") );
-				Badges.validateItemLevelAquired( this );
+				if (ShardOfOblivion.passiveIDDisabled()){
+					if (usesLeftToID > -1){
+						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+					}
+					setIDReady();
+				} else {
+					identify();
+					GLog.p( Messages.get(Armor.class, "identify") );
+					Badges.validateItemLevelAquired( this );
+				}
 			}
 		}
 		
@@ -863,17 +877,23 @@ public class Armor extends EquipableItem {
 			}
 		}
 		level(n);
-		
-		//30% chance to be cursed
-		//15% chance to be inscribed
-		//羊皮纸碎片饰品：改变诅咒/铭文出现概率（实现见 ParchmentScrap）
-		float effectRoll = Random.Float();
-		if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
-			inscribe(Glyph.randomCurse());
-			cursed = true;
-		} else if (effectRoll >= 1f - (0.15f * ParchmentScrap.enchantChanceMultiplier())){
-			inscribe();
-		}
+
+		//we use a separate RNG here so that variance due to things like parchment scrap
+		//does not affect levelgen
+		Random.pushGenerator(Random.Long());
+
+			//30% chance to be cursed
+			//15% chance to be inscribed
+			//羊皮纸碎片饰品：改变诅咒/铭文出现概率（实现见 ParchmentScrap）
+			float effectRoll = Random.Float();
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+				inscribe(Glyph.randomCurse());
+				cursed = true;
+			} else if (effectRoll >= 1f - (0.15f * ParchmentScrap.enchantChanceMultiplier())){
+				inscribe();
+			}
+
+		Random.popGenerator();
 
 		return this;
 	}

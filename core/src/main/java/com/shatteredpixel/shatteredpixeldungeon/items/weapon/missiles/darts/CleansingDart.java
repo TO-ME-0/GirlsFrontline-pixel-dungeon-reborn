@@ -26,10 +26,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RatXMAS;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class CleansingDart extends TippedDart {
@@ -39,42 +39,51 @@ public class CleansingDart extends TippedDart {
 	}
 	
 	@Override
+	public int damageRoll(Char owner) {
+		if (owner instanceof Hero) {
+			if (((Hero) owner).enemy != null && ((Hero) owner).enemy.alignment == owner.alignment){
+				return 0; //does not deal damage to allies
+			}
+		}
+		return super.damageRoll(owner);
+	}
+
+	@Override
 	public int proc(Char attacker, final Char defender, int damage) {
         if (attacker.alignment == defender.alignment) {
-            PotionOfCleansing.cleanse(defender, 10.0F);
-            return 0;
-        }
-
-        for(Buff b : defender.buffs()) {
-            if (!(b instanceof ChampionEnemy) && b.type == Buff.buffType.POSITIVE ) {
-                b.detach();
-            }
-        }
-
-        if (!defender.isAlive()) {
-            defender.die(attacker);
-            return super.proc(attacker, defender, damage);
-        }
-
-        if (defender instanceof Mob) {
-            (new FlavourBuff() {
-                {
-                    this.actPriority = 100;
+            PotionOfCleansing.cleanse(defender, PotionOfCleansing.Cleanse.DURATION*2f);
+        } else {
+            for(Buff b : defender.buffs()) {
+                if (!(b instanceof ChampionEnemy) && b.type == Buff.buffType.POSITIVE ) {
+                    b.detach();
                 }
+            }
 
-                public boolean act() {
-                    if (((Mob)defender).state == ((Mob)defender).HUNTING || ((Mob)defender).state == ((Mob)defender).FLEEING) {
-                        if(defender!=null){
-                            if (defender.getClass() != RatXMAS.class)
-                                ((Mob) defender).state = ((Mob) defender).WANDERING;
-                        }
+            if (!defender.isAlive()) {
+                defender.die(attacker);
+                return super.proc(attacker, defender, damage);
+            }
+
+            if (defender instanceof Mob) {
+                (new FlavourBuff() {
+                    {
+                        this.actPriority = 100;
                     }
 
-                    ((Mob)defender).beckon(Dungeon.level.randomDestination(defender));
-                    defender.sprite.showLost();
-                    return super.act();
-                }
-            }).attachTo(defender);
+                    public boolean act() {
+                        if (((Mob)defender).state == ((Mob)defender).HUNTING || ((Mob)defender).state == ((Mob)defender).FLEEING) {
+                            if(defender!=null){
+                                if (defender.getClass() != RatXMAS.class)
+                                    ((Mob) defender).state = ((Mob) defender).WANDERING;
+                            }
+                        }
+
+                        ((Mob)defender).beckon(Dungeon.level.randomDestination(defender));
+                        defender.sprite.showLost();
+                        return super.act();
+                    }
+                }).attachTo(defender);
+            }
         }
 
 		return super.proc(attacker, defender, damage);

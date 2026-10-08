@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.RedBook;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShootGun;
@@ -122,8 +123,13 @@ public final class Type561Talent {
 
 	/** 装备物品后：战场老兵（旧版）立即鉴定武器 */
 	public static void onItemEquipped( Hero hero, Item item ){
-		if (hero.pointsInTalent(Talent.OLD_SOLDIER) == 2 && item instanceof Weapon)
-			item.identify();
+		if (hero.pointsInTalent(Talent.OLD_SOLDIER) == 2 && item instanceof Weapon){
+			if (ShardOfOblivion.passiveIDDisabled()){
+				((Weapon) item).setIDReady();
+			} else {
+				item.identify();
+			}
+		}
 	}
 
 	/** 获取物品后：百战老兵标记诅咒 / 战场老兵（旧版）标记诅咒 */

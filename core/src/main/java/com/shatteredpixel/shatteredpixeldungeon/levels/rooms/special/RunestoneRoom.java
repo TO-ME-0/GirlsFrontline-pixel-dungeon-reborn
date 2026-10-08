@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.Runestone;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -66,9 +67,15 @@ public class RunestoneRoom extends SpecialRoom {
 	
 	private static Item prize( Level level ) {
 		
-		Item prize = level.findPrizeItem( Runestone.class );
-		if (prize == null)
-			prize = Generator.random( Generator.Category.STONE );
+		//催化剂生成暂关闭（概率 0），保留代码待后续启用
+		float catalystChance = 0f;
+		Item prize = catalystChance > 0f ? level.findPrizeItem( TrinketCatalyst.class ) : null;
+		if (prize == null){
+			prize = level.findPrizeItem( Runestone.class );
+			if (prize == null) {
+				prize = Generator.random( Generator.Category.STONE );
+			}
+		}
 		
 		return prize;
 	}

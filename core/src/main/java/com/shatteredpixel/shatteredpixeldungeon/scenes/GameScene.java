@@ -58,6 +58,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundial;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -738,6 +739,12 @@ public class GameScene extends PixelScene {
 		if (Rankings.INSTANCE.totalNumber > 0 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_DIEING)){
 			GLog.p(Messages.get(Guidebook.class, "hint"));
 			GameScene.flashForDocument(Document.GUIDE_DIEING);
+		}
+
+		//催化剂已 roll 出饰品时，进层弹出选择窗口
+		TrinketCatalyst cata = Dungeon.hero().belongings.getItem(TrinketCatalyst.class);
+		if (cata != null && cata.hasRolledTrinkets()){
+			addToFront(new TrinketCatalyst.WndTrinket(cata));
 		}
 
 		if (!invVisible) toggleInvPane();

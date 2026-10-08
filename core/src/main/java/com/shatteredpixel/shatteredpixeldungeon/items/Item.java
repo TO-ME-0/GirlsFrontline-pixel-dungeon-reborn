@@ -81,6 +81,11 @@ public class Item implements Bundlable {
 	protected static final float TIME_TO_THROW		= 1.0f;
 	protected static final float TIME_TO_PICK_UP	= 1.0f;
 	protected static final float TIME_TO_DROP		= 1.0f;
+
+	//拾取该物品所花费的回合数（默认 1 回合，子类可覆写实现即时拾取等特性）
+	public float pickupDelay(){
+		return TIME_TO_PICK_UP;
+	}
     public int UpgradeUSED = 0;
     public int BASE_COOLDOWN_TURNS; //技能时间
     public int coolDownLeft; // 当前剩余冷却时间
@@ -206,7 +211,7 @@ public class Item implements Bundlable {
 
 			GameScene.pickUp( this, pos );
 			Sample.INSTANCE.play( Assets.Sounds.ITEM );
-			hero.spendAndNext( TIME_TO_PICK_UP );
+			hero.spendAndNext( pickupDelay() );
 			Tracker(hero);
 			return true;
 			
@@ -826,7 +831,8 @@ public class Item implements Bundlable {
 	}
 	public void addOldNote(String title){
 		Notes.CustomRecord note;
-		if (stackable) {
+		//装备类物品按实例级笔记处理，即使可堆叠（如迁移后的投掷武器）
+		if (!(this instanceof EquipableItem) && stackable) {
 			Class<? extends Item> itemClass;
 			if(this instanceof ExoticPotion)
 				itemClass = ExoticPotion.exoToReg.get(getClass());

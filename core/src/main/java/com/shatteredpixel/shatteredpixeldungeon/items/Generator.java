@@ -79,6 +79,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfParalyticG
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfPurity;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfToxicGas;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotion;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfAccuracy;
@@ -105,6 +106,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportat
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTerror;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.Runestone;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAugmentation;
@@ -118,7 +120,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfFear;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfFlock;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfIntuition;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfShock;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorrosion;
@@ -640,12 +641,9 @@ public class Generator {
 					ShardOfOblivion.class,
 					ChaoticCenser.class,
 					FerretTuft.class,
-					CrackedSpyglass.class,
-					TrinketCatalyst.class
+					CrackedSpyglass.class
 			};
-			TRINKET.defaultProbs = new float[TRINKET.classes.length];
-			Arrays.fill(TRINKET.defaultProbs, 1F);
-			TRINKET.defaultProbs[TRINKET.defaultProbs.length - 1] = 0;
+			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 			TRINKET.probs = TRINKET.defaultProbs.clone();
 
 			//双牌堆类别的完整牌堆 = 两套之和，供非牌堆生成路径（randomUsingDefaults）使用
@@ -790,7 +788,20 @@ public class Generator {
 				}
 
 				if (cat.defaultProbs != null) cat.probs()[i]--;
-				return ((Item) Reflection.newInstance(cat.classes[i])).random();
+				Class<?> itemCls = cat.classes[i];
+
+				//异晶簇饰品：概率将普通药剂/卷轴转化为异域版本（实现见 ExoticCrystals）
+				if (ExoticPotion.regToExo.containsKey(itemCls)){
+					if (Random.Float() < ExoticCrystals.consumableExoticChance()){
+						itemCls = ExoticPotion.regToExo.get(itemCls);
+					}
+				} else if (ExoticScroll.regToExo.containsKey(itemCls)){
+					if (Random.Float() < ExoticCrystals.consumableExoticChance()){
+						itemCls = ExoticScroll.regToExo.get(itemCls);
+					}
+				}
+
+				return ((Item) Reflection.newInstance(itemCls)).random();
 		}
 	}
 
@@ -815,7 +826,20 @@ public class Generator {
 			//双牌堆类别使用完整牌堆（两套之和），不受当前使用哪套的影响
 			return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbsTotal)])).random();
 		} else {
-            return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbs)])).random();
+			Class<?> itemCls = cat.classes[Random.chances(cat.defaultProbs)];
+
+			//异晶簇饰品：概率将普通药剂/卷轴转化为异域版本（实现见 ExoticCrystals）
+			if (ExoticPotion.regToExo.containsKey(itemCls)){
+				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
+					itemCls = ExoticPotion.regToExo.get(itemCls);
+				}
+			} else if (ExoticScroll.regToExo.containsKey(itemCls)){
+				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
+					itemCls = ExoticScroll.regToExo.get(itemCls);
+				}
+			}
+
+			return ((Item) Reflection.newInstance(itemCls)).random();
         }
 	}
 	

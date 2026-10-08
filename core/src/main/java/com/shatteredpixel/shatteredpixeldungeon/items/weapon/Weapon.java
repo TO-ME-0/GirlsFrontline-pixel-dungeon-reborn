@@ -165,9 +165,12 @@ abstract public class Weapon extends KindOfWeapon {
 	//射线攻击模式开关（贴附后默认为射线模式，可由更换弹夹按钮切换）
 	public boolean beamRayMode = true;
 
-	private static final int USES_TO_ID = 20;
-	private float usesLeftToID = USES_TO_ID;
-	private float availableUsesToID = USES_TO_ID/2f;
+	//迁移 3.3.8：鉴定所需使用次数改为可覆写方法，近战默认 20，投武覆写为 10
+	protected int usesToID(){
+		return 20;
+	}
+	protected float usesLeftToID = usesToID();
+	protected float availableUsesToID = usesToID()/2f;
 	
 	public Enchantment enchantment;
 	//附魔硬化：铁匠硬化服务，升级时按 +6 起的概率仅失去硬化而保留附魔（照搬 3.3.8）
@@ -189,16 +192,29 @@ abstract public class Weapon extends KindOfWeapon {
 
 		damage = enchantmentProc(attacker, defender, damage);
 
-		//遗忘碎片饰品：携带时禁用武器/护甲被动鉴定（实现见 ShardOfOblivion）
-		if (!ShardOfOblivion.passiveIDDisabled()
-				&& !levelKnown && attacker == Dungeon.hero()) {
+		//迁移 3.3.8：投武无父且用掉最后一件时不进行鉴定（没有可鉴定的东西了）
+		if (this instanceof MissileWeapon
+				&& ((MissileWeapon) this).durabilityLeft() <= ((MissileWeapon) this).durabilityPerUse()
+				&& ((MissileWeapon) this).getParent() == null){
+			return damage;
+		}
+
+		if (!levelKnown && attacker == Dungeon.hero()) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero(), this) );
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
-				identify();
-				GLog.p( Messages.get(Weapon.class, "identify") );
-				Badges.validateItemLevelAquired( this );
+				if (ShardOfOblivion.passiveIDDisabled()){
+					//迁移 3.3.8：遗忘碎片禁用被动鉴定时，达到阈值提示"可手动鉴定"
+					if (usesLeftToID > -1){
+						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+					}
+					setIDReady();
+				} else {
+					identify();
+					GLog.p( Messages.get(Weapon.class, "identify") );
+					Badges.validateItemLevelAquired( this );
+				}
 			}
 		}
 
@@ -207,10 +223,9 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	public void onHeroGainExp( float levelPercent, Hero hero ){
 		levelPercent *= Talent.itemIDSpeedFactor(hero, this);
-		if (!ShardOfOblivion.passiveIDDisabled()
-				&& !levelKnown && isEquipped(hero) && availableUsesToID <= USES_TO_ID/2f) {
+		if (!levelKnown && (isEquipped(hero) || this instanceof MissileWeapon) && availableUsesToID <= usesToID()/2f) {
 			//gains enough uses to ID over 0.5 levels
-			availableUsesToID = Math.min(USES_TO_ID/2f, availableUsesToID + levelPercent * USES_TO_ID);
+			availableUsesToID = Math.min(usesToID()/2f, availableUsesToID + levelPercent * usesToID());
 		}
 	}
 	
@@ -264,8 +279,17 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public void reset() {
 		super.reset();
-		usesLeftToID = USES_TO_ID;
-		availableUsesToID = USES_TO_ID/2f;
+		usesLeftToID = usesToID();
+		availableUsesToID = usesToID()/2f;
+	}
+
+	//迁移 3.3.8：鉴定进度已达标（可在遗忘碎片下令被动鉴定就绪）
+	public void setIDReady(){
+		usesLeftToID = -1;
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && usesLeftToID <= 0;
 	}
 
 	@Override
@@ -495,17 +519,23 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 		level(n);
-		
-		//30% chance to be cursed
-		//10% chance to be enchanted
-		//羊皮纸碎片饰品：改变诅咒/附魔出现概率（实现见 ParchmentScrap）
-		float effectRoll = Random.Float();
-		if (effectRoll < 0.3F * cursedChance * ParchmentScrap.curseChanceMultiplier()) {
-			enchant(Enchantment.randomCurse());
-			cursed = true;
-		} else if (effectRoll >= (1F - 0.1F * enchantChance * ParchmentScrap.enchantChanceMultiplier())){
-			enchant();
-		}
+
+		//we use a separate RNG here so that variance due to things like parchment scrap
+		//does not affect levelgen
+		Random.pushGenerator(Random.Long());
+
+			//30% chance to be cursed
+			//10% chance to be enchanted
+			//羊皮纸碎片饰品：改变诅咒/附魔出现概率（实现见 ParchmentScrap）
+			float effectRoll = Random.Float();
+			if (effectRoll < 0.3F * cursedChance * ParchmentScrap.curseChanceMultiplier()) {
+				enchant(Enchantment.randomCurse());
+				cursed = true;
+			} else if (effectRoll >= (1F - 0.1F * enchantChance * ParchmentScrap.enchantChanceMultiplier())){
+				enchant();
+			}
+
+		Random.popGenerator();
 
 		return this;
 	}

@@ -338,7 +338,16 @@ public class Ring extends KindofMisc implements ColorItem {
 		levelsToID = 0;
 		return super.identify(byHero);
 	}
-	
+
+	//迁移 3.3.8：鉴定进度已达标（可在遗忘碎片下令被动鉴定就绪）
+	public void setIDReady(){
+		levelsToID = -1;
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && levelsToID <= 0;
+	}
+
 	@Override
 	public Item random() {
 		//+0: 66.67% (2/3)
@@ -412,15 +421,20 @@ public class Ring extends KindofMisc implements ColorItem {
 	
 	public void onHeroGainExp( float levelPercent, Hero hero ){
 		if (isIdentified() || !isEquipped(hero)) return;
-		//遗忘碎片饰品：携带时禁用戒指被动鉴定（实现见 ShardOfOblivion）
-		if (ShardOfOblivion.passiveIDDisabled()) return;
 		levelPercent *= Talent.itemIDSpeedFactor(hero, this);
 		//becomes IDed after 1 level
 		levelsToID -= levelPercent;
 		if (levelsToID <= 0){
-			identify();
-			GLog.p( Messages.get(Ring.class, "identify", toString()) );
-			Badges.validateItemLevelAquired( this );
+			if (ShardOfOblivion.passiveIDDisabled()){
+				if (levelsToID > -1){
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+				}
+				setIDReady();
+			} else {
+				identify();
+				GLog.p( Messages.get(Ring.class, "identify", toString()) );
+				Badges.validateItemLevelAquired( this );
+			}
 		}
 	}
 

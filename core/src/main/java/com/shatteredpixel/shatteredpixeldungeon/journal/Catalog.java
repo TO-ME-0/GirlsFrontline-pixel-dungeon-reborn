@@ -253,7 +253,7 @@ public enum Catalog {
 
 		MISC_CONSUMABLES.addItems( Gold.class, EnergyCrystal.class, Dewdrop.class,
 				IronKey.class, GoldenKey.class, CrystalKey.class, SkeletonKey.class,
-				Stylus.class, Torch.class, Honeypot.class, Ankh.class,
+				TrinketCatalyst.class, Stylus.class, Torch.class, Honeypot.class, Ankh.class,
 				CorpseDust.class, Embers.class, CeremonialCandle.class, DarkGold.class, DwarfToken.class,
 				GooBlob.class, TengusMask.class, MetalShard.class, KingsCrown.class,
 				DriedRose.Petal.class, TimekeepersHourglass.sandBag.class,

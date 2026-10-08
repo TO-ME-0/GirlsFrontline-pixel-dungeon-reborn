@@ -643,12 +643,8 @@ public class Hero extends Char {
             accuracy *= FestivalCakeBuff.ACCURACY_MULTIPLIER;
 
 		if (wep instanceof MissileWeapon){
-			if (Dungeon.level.adjacent( pos, target.pos )) {
-				// 女猎（隼）点射：近战距离投掷命中系数（实现见 HuntressTalent）
-				accuracy *= HuntressTalent.pointBlankAdjacentAccuracy(this);
-			} else {
-				accuracy *= 1.5f;
-			}
+			//同步 3.3.8：改为调用投掷武器的相邻命中钩子（回旋武器等可覆写）
+			accuracy *= ((MissileWeapon) wep).adjacentAccFactor(this, target);
 		}
 		
 		if (wep != null) {

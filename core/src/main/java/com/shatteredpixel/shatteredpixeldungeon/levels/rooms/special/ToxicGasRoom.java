@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfPurity;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -96,8 +97,12 @@ public class ToxicGasRoom extends SpecialRoom {
 		mainGold.quantity(mainGold.quantity()*2);
 		level.drop(mainGold, furthestPos).type = Heap.Type.SKELETON;
 
+		//催化剂生成暂关闭（概率 0），保留代码待后续启用
+		float catalystChance = 0f;
 		for (int i = 0; i < 2; i++){
-			level.drop(new Gold().random(), goldPositions.remove(0)).type = Heap.Type.CHEST;
+			Item item = catalystChance > 0f ? level.findPrizeItem(TrinketCatalyst.class) : null;
+			if (item == null) item = new Gold().random();
+			level.drop(item, goldPositions.remove(0)).type = Heap.Type.CHEST;
 		}
 
 		level.addItemToSpawn(new PotionOfPurity());

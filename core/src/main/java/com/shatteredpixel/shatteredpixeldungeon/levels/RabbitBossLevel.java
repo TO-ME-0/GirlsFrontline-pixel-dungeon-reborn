@@ -235,7 +235,7 @@ public class RabbitBossLevel extends Level {
 			}
 		}
 		for (HeavyBoomerang.CircleBack b : Dungeon.hero().buffs(HeavyBoomerang.CircleBack.class)){
-			if (b.activeDepth() == Dungeon.cur().depth
+			if (b.activeLevelID() == Dungeon.cur().levelId
 					&& (safeArea == null || !safeArea.inside(cellToPoint(b.returnPos())))){
 				storedItems.add(b.cancel());
 			}

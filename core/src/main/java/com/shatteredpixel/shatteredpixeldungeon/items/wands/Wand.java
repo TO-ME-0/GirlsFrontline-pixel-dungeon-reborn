@@ -239,7 +239,16 @@ public abstract class Wand extends Item {
 		
 		return this;
 	}
-	
+
+	//迁移 3.3.8：鉴定进度已达标（可在遗忘碎片下令被动鉴定就绪）
+	public void setIDReady(){
+		usesLeftToID = -1;
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && usesLeftToID <= 0;
+	}
+
 	public void onHeroGainExp( float levelPercent, Hero hero ){
 		levelPercent *= Talent.itemIDSpeedFactor(hero, this);
 		if (!isIdentified() && availableUsesToID <= USES_TO_ID/2f) {
@@ -414,19 +423,25 @@ public abstract class Wand extends Item {
 	}
 
 	protected void wandUsed() {
-		//遗忘碎片饰品：携带时禁用法杖被动鉴定，并记录法杖使用（实现见 ShardOfOblivion）
-		if (!isIdentified() && !ShardOfOblivion.passiveIDDisabled()) {
+		if (!isIdentified()) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero(), this) );
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0 || MageTalent.instantIdentifyWand(Dungeon.hero())) {
-				identify();
-				GLog.p( Messages.get(Wand.class,"identify",toString()) );
-				Badges.validateItemLevelAquired( this );
+				if (ShardOfOblivion.passiveIDDisabled()){
+					if (usesLeftToID > -1){
+						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+					}
+					setIDReady();
+				} else {
+					identify();
+					GLog.p( Messages.get(Wand.class,"identify",toString()) );
+					Badges.validateItemLevelAquired( this );
+				}
 			}
-		}
-		if (ShardOfOblivion.passiveIDDisabled()){
-			Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, ShardOfOblivion.WandUseTracker.DURATION);
+			if (ShardOfOblivion.passiveIDDisabled()){
+				Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, ShardOfOblivion.WandUseTracker.DURATION);
+			}
 		}
 		curCharges -= cursed ? 1 : chargesPerCast();
 

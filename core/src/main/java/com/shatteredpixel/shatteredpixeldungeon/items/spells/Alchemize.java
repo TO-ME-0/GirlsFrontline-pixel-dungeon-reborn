@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -36,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndEnergizeItem;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTradeItem;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
@@ -173,9 +175,30 @@ public class Alchemize extends Spell {
 					RedButton btnEnergize = new RedButton(Messages.get(this, "energize", item.energyVal())) {
 						@Override
 						protected void onClick() {
-							WndEnergizeItem.energize(item);
-							hide();
-							consumeAlchemize();
+							if (item instanceof Trinket){
+								GameScene.show(new WndOptions(new ItemSprite(item), Messages.titleCase(item.name()),
+										Messages.get(WndEnergizeItem.class, "trinket_warn"),
+										Messages.get(WndEnergizeItem.class, "trinket_yes"),
+										Messages.get(WndEnergizeItem.class, "trinket_no")){
+
+									@Override
+									protected void onSelect(int index) {
+										if (index == 0) {
+											WndEnergizeItem.energize(item);
+										}
+									}
+
+									@Override
+									public void hide() {
+										super.hide();
+										WndAlchemizeItem.this.hide();
+									}
+								});
+							} else {
+								WndEnergizeItem.energize(item);
+								hide();
+								consumeAlchemize();
+							}
 						}
 					};
 					btnEnergize.setRect(0, pos + GAP, width, BTN_HEIGHT);

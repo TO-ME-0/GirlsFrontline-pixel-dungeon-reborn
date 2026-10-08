@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -66,8 +67,8 @@ public final class WarriorTalent {
 	/** 天赋升级后：武器大师直觉立即鉴定、大力神力量检定 */
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
 		if (talent == Talent.ARMSMASTERS_INTUITION && hero.pointsInTalent(Talent.ARMSMASTERS_INTUITION) == 2){
-			if (hero.belongings.weapon() != null) hero.belongings.weapon().identify();
-			if (hero.belongings.armor() != null) {
+			if (hero.belongings.weapon() != null && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.weapon().identify();
+			if (hero.belongings.armor() != null && !ShardOfOblivion.passiveIDDisabled()) {
 				hero.belongings.armor.identify();
 				Armor armor = hero.belongings.armor.inside;
 				while (armor != null) {
@@ -148,8 +149,14 @@ public final class WarriorTalent {
 
 	/** 装备物品后：武器大师直觉+2立即鉴定武器/护甲 */
 	public static void onItemEquipped( Hero hero, Item item ){
-		if (hero.pointsInTalent(Talent.ARMSMASTERS_INTUITION) == 2 && (item instanceof Weapon || item instanceof Armor))
-			item.identify();
+		if (hero.pointsInTalent(Talent.ARMSMASTERS_INTUITION) == 2 && (item instanceof Weapon || item instanceof Armor)){
+			if (ShardOfOblivion.passiveIDDisabled()){
+				if (item instanceof Weapon) ((Weapon) item).setIDReady();
+				else                        ((Armor) item).setIDReady();
+			} else {
+				item.identify();
+			}
+		}
 	}
 
 	/** 鉴定物品后：试验对象回血 */

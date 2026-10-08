@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -40,7 +41,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.SmallRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.SugarZongzi;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.GuidePage;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.CrackedSpyglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.FigureEightBuilder;
@@ -386,7 +389,17 @@ public abstract class RegularLevel extends Level {
 
 		for (Item item : itemsToSpawn) {
 			int cell = randomDropCell();
-			drop( item, cell ).type = Heap.Type.HEAP;
+			if (item instanceof TrinketCatalyst){
+				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
+				int keyCell = randomDropCell();
+				drop( new GoldenKey(Dungeon.cur().depth), keyCell ).type = Heap.Type.HEAP;
+				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+					map[keyCell] = Terrain.GRASS;
+					losBlocking[keyCell] = false;
+				}
+			} else {
+				drop( item, cell ).type = Heap.Type.HEAP;
+			}
 			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 				map[cell] = Terrain.GRASS;
 				losBlocking[cell] = false;
@@ -506,6 +519,50 @@ public abstract class RegularLevel extends Level {
 			drop( p, cell );
 		}
 
+		Random.popGenerator();
+
+		//ebony mimics >:)
+		Random.pushGenerator(Random.Long());
+			if (Random.Float() < MimicTooth.ebonyMimicChance()){
+				ArrayList<Integer> candidateCells = new ArrayList<>();
+				if (Random.Int(2) == 0){
+					for (Heap h : heaps.valueList()){
+						if (h.type == Heap.Type.HEAP
+								&& !(room(h.pos) instanceof SpecialRoom)
+								&& findMob(h.pos) == null){
+							candidateCells.add(h.pos);
+						}
+					}
+				}
+
+				if (candidateCells.isEmpty()) {
+					if (Random.Int(5) == 0 && findMob(exit) == null) {
+						candidateCells.add(exit);
+					} else {
+						for (int i = 0; i < length(); i++) {
+							if (map[i] == Terrain.DOOR && findMob(i) == null) {
+								candidateCells.add(i);
+							}
+						}
+					}
+				}
+
+				int pos = Random.element(candidateCells);
+				mobs.add(Mimic.spawnAt(pos, new ArrayList<Item>(), EbonyMimic.class));
+			}
+		Random.popGenerator();
+
+		//extra spyglass loot
+		Random.pushGenerator(Random.Long());
+			int items = (int)(Random.Float() + CrackedSpyglass.extraLootChance());
+			for (int i = 0; i < items; i++){
+				int cell = randomDropCell();
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
+				}
+				drop( Generator.randomUsingDefaults(), cell).hidden = true;
+			}
 		Random.popGenerator();
 
 	}

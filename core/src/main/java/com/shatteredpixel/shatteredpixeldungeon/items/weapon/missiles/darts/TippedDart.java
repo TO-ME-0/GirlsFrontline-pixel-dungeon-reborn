@@ -170,7 +170,7 @@ public abstract class TippedDart extends Dart {
 	@Override
 	public int value() {
 		//value of regular dart plus half of the seed
-		return 8 * quantity;
+		return Math.round(7.5f * quantity);
 	}
 	
 	public final static HashMap<Class<?extends Plant.Seed>, Class<?extends TippedDart>> types = new HashMap<>();

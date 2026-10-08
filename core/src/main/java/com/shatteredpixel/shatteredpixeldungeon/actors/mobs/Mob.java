@@ -790,12 +790,12 @@ public abstract class Mob extends Char {
 	public float lootChance(){
 		float lootChance = this.lootChance;
 
-		lootChance *= RingOfWealth.dropChanceMultiplier( Dungeon.hero() );
+		float dropBonus = RingOfWealth.dropChanceMultiplier( Dungeon.hero() );
 
-		//遗忘碎片饰品：提升未鉴定装备/武器的怪物掉率（实现见 ShardOfOblivion）
-		lootChance *= ShardOfOblivion.lootChanceMultiplier();
+		//遗忘碎片饰品：提升未鉴定装备/武器的怪物掉率（实现见 ShardOfOblivion），按基准做加性叠加
+		dropBonus += ShardOfOblivion.lootChanceMultiplier()-1f;
 
-		return lootChance;
+		return lootChance * dropBonus;
 	}
 	public boolean doDrop(){
 		return Dungeon.hero().lvl <= maxLvl + 2 + Dungeon.LimitedDrops.DropLevel.count();

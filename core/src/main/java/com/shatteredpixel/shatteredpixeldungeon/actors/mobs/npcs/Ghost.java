@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.MailArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ScaleArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -362,10 +363,15 @@ public class Ghost extends NPC {
 				weapon.resetGuessingLevel();
 				armor.resetGuessingLevel();
 
-				//10% to be enchanted. We store it separately so enchant status isn't revealed early
-				if (Random.Int(10) == 0){
-					enchant = Weapon.Enchantment.random();
-					glyph = Armor.Glyph.random();
+				// 20% base chance to be enchanted, stored separately so status isn't revealed early
+				//we generate first so that the outcome doesn't affect the number of RNG rolls
+				enchant = Weapon.Enchantment.random();
+				glyph = Armor.Glyph.random();
+
+				float enchantRoll = Random.Float();
+				if (enchantRoll > 0.2f * ParchmentScrap.enchantChanceMultiplier()){
+					enchant = null;
+					glyph = null;
 				}
 
 			}

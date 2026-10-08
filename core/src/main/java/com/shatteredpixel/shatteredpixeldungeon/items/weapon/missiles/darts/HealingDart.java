@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
@@ -33,6 +34,16 @@ public class HealingDart extends TippedDart {
 		image = ItemSpriteSheet.HEALING_DART;
 	}
 	
+	@Override
+	public int damageRoll(Char owner) {
+		if (owner instanceof Hero) {
+			if (((Hero) owner).enemy != null && ((Hero) owner).enemy.alignment == owner.alignment){
+				return 0; //does not deal damage to allies
+			}
+		}
+		return super.damageRoll(owner);
+	}
+
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
 		

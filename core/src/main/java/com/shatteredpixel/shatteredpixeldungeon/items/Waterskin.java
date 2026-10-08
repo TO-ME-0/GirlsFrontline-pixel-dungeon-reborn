@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.HuntressTalent;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.VialOfBlood;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -101,43 +102,52 @@ public class Waterskin extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_DRINK )) {
-			if(hero.HP == hero.HT){
-				GLog.w(Messages.get(this, "health_is_full"));
-			}else if (volume > 0) {
-				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT);
+				if(hero.HP == hero.HT){
+					GLog.w(Messages.get(this, "health_is_full"));
+				}else if (volume > 0) {
+					float missingHealthPercent = 1f - (hero.HP / (float)hero.HT);
 
-				int curShield = 0;
-				if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
-				int maxShield = HuntressTalent.shieldingDewMaxShield(hero);
-				if (maxShield > 0){
-					float missingShieldPercent = 1f - (curShield / (float)maxShield);
-					missingShieldPercent *= HuntressTalent.shieldingDewPercentFactor(hero);
-					if (missingShieldPercent > 0){
-						missingHealthPercent += missingShieldPercent;
+					//each drop is worth 5% of total health
+					float dropsNeeded = missingHealthPercent / 0.05f;
+
+					//we are getting extra heal value, scale back drops needed accordingly
+					if (dropsNeeded > 1.01f && VialOfBlood.delayBurstHealing()){
+						dropsNeeded /= VialOfBlood.totalHealMultiplier();
 					}
+
+					//add extra drops if we can gain shielding
+					int curShield = 0;
+					if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
+					int maxShield = HuntressTalent.shieldingDewMaxShield(hero);
+					if (maxShield > 0){
+						float missingShieldPercent = 1f - (curShield / (float)maxShield);
+						missingShieldPercent *= HuntressTalent.shieldingDewPercentFactor(hero);
+						if (missingShieldPercent > 0){
+							dropsNeeded += missingShieldPercent / 0.05f;
+						}
+					}
+
+					//trimming off 0.01 drops helps with floating point errors
+					int dropsToConsume = (int)Math.ceil(dropsNeeded - 0.01f);
+					dropsToConsume = (int)GameMath.gate(1, dropsToConsume, volume);
+
+					if (Dewdrop.consumeDew(dropsToConsume, hero, true)){
+						volume -= dropsToConsume;
+
+						Catalog.countUses(Dewdrop.class, dropsToConsume);
+						hero.spend(TIME_TO_DRINK);
+						hero.busy();
+
+						Sample.INSTANCE.play(Assets.Sounds.DRINK);
+						hero.sprite.operate(hero.pos);
+
+						updateQuickslot();
+					}
+				} else {
+					GLog.w( Messages.get(this, "empty") );
 				}
-				
-				//trimming off 0.01 drops helps with floating point errors
-				int dropsNeeded = (int)Math.ceil((missingHealthPercent / 0.05f) - 0.01f);
-				dropsNeeded = (int)GameMath.gate(1, dropsNeeded, volume);
 
-				if (Dewdrop.consumeDew(dropsNeeded, hero, true)){
-					volume -= dropsNeeded;
-
-					Catalog.countUses(Dewdrop.class, dropsNeeded);
-					hero.spend(TIME_TO_DRINK);
-					hero.busy();
-
-					Sample.INSTANCE.play(Assets.Sounds.DRINK);
-					hero.sprite.operate(hero.pos);
-
-					updateQuickslot();
-				}
-			} else {
-				GLog.w( Messages.get(this, "empty") );
 			}
-
-		}
         else if (action.equals(AC_SWITCH_TEXTURE)) {
 			// 切换贴图，不消耗回合
 			usingAlternateTexture = !usingAlternateTexture;

@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -76,9 +77,11 @@ public class CrystalVaultRoom extends SpecialRoom {
 		} while (level.adjacent(i1Pos, doorPos) || level.adjacent(i2Pos, doorPos));
 
 		level.drop( i1, i1Pos ).type = Heap.Type.CRYSTAL_CHEST;
-		//拟态怪之牙饰品：增加水晶宝箱怪生成概率（实现见 MimicTooth）
-		float mimicChance = 1/10f * MimicTooth.mimicChanceMultiplier();
-		if (Random.Float() < mimicChance){
+		//老鼠头骨/拟态怪之牙饰品：增加水晶宝箱怪生成概率（实现见 RatSkull / MimicTooth）
+		float altChance = 1/10f * RatSkull.exoticChanceMultiplier();
+		if (altChance > 0.1f) altChance = (altChance+0.1f)/2f; //rat skull is 1/2 as effective here
+		altChance *= MimicTooth.mimicChanceMultiplier(); //mimic tooth has full effectiveness
+		if (Random.Float() < altChance){
 			level.mobs.add(Mimic.spawnAt(i2Pos, i2, CrystalMimic.class));
 		} else {
 			level.drop(i2, i2Pos).type = Heap.Type.CRYSTAL_CHEST;

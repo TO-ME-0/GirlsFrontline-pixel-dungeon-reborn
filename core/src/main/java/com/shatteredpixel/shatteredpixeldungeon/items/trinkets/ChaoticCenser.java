@@ -36,9 +36,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StormCloud;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -159,7 +161,9 @@ public class ChaoticCenser extends Trinket {
 		float gasQuantity;
 		switch (Random.chances(GAS_CAT_CHANCES[level])){
 			case 0: default:
-				gasToSpawn = Random.element(COMMON_GASSES.keySet());
+				do {
+					gasToSpawn = Random.element(COMMON_GASSES.keySet());
+				} while (!Regeneration.regenOn() && gasToSpawn == Regrowth.class);
 				gasQuantity = COMMON_GASSES.get(gasToSpawn);
 				break;
 			case 1:
@@ -219,7 +223,7 @@ public class ChaoticCenser extends Trinket {
 				Buff.affect(Dungeon.hero(), GasSpewer.class, Dungeon.hero().cooldown()).set(targetCell, gasToSpawn, (int)gasQuantity);
 				GLog.w(Messages.get(ChaoticCenser.class, "spew", Messages.titleCase(Messages.get(gasToSpawn, "name")) ));
 				if (target.sprite != null && target.sprite.parent != null) {
-					//target project doesn't have GameScene.targetedCell, skip visual indicator
+					target.sprite.parent.addToBack(new TargetedCell(targetCell, 0xFF0000));
 				}
 				return true;
 			}
@@ -233,7 +237,7 @@ public class ChaoticCenser extends Trinket {
 
 		private int targetCell;
 
-		private int depth;
+		private int levelId;
 
 		private Class<?extends Blob> gasType;
 		private int gasQuantity;
@@ -241,7 +245,7 @@ public class ChaoticCenser extends Trinket {
 		public void set( int targetCell, Class<?extends Blob> gasType, int gasQuantity){
 			this.targetCell = targetCell;
 
-			depth = Dungeon.cur().depth;
+			levelId = Dungeon.levelId;
 
 			this.gasType = gasType;
 			this.gasQuantity = gasQuantity;
@@ -250,12 +254,12 @@ public class ChaoticCenser extends Trinket {
 		@Override
 		public boolean act() {
 
-			if (depth == Dungeon.cur().depth){
+			if (levelId == Dungeon.levelId){
 				GameScene.add(Blob.seed(targetCell, gasQuantity, gasType));
 
 				//corrosion starts at the same level as potion of corrosive gas
 				if (gasType == CorrosiveGas.class){
-					((CorrosiveGas)Dungeon.level.blobs.get(CorrosiveGas.class)).setStrength( 2 + Dungeon.cur().depth/5 );
+					((CorrosiveGas)Dungeon.level.blobs.get(CorrosiveGas.class)).setStrength( 2 + Dungeon.cur().depth/5, ChaoticCenser.class);
 				}
 
 				MagicMissile.boltFromChar(Dungeon.hero().sprite.parent, MISSILE_VFX.get(gasType), Dungeon.hero().sprite, targetCell, null);
@@ -267,7 +271,7 @@ public class ChaoticCenser extends Trinket {
 		}
 
 		private static final String CELL = "cell";
-		private static final String DEPTH = "depth";
+		private static final String LEVEL_ID = "level_id";
 		private static final String GAS_TYPE = "gas_type";
 		private static final String GAS_QUANTITY = "gas_quantity";
 
@@ -275,7 +279,7 @@ public class ChaoticCenser extends Trinket {
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
 			bundle.put(CELL, targetCell);
-			bundle.put(DEPTH, depth);
+			bundle.put(LEVEL_ID, levelId);
 			bundle.put(GAS_TYPE, gasType);
 			bundle.put(GAS_QUANTITY, gasQuantity);
 		}
@@ -284,7 +288,7 @@ public class ChaoticCenser extends Trinket {
 		public void restoreFromBundle(Bundle bundle) {
 			super.restoreFromBundle(bundle);
 			targetCell = bundle.getInt(CELL);
-			depth = bundle.getInt(DEPTH);
+			levelId = bundle.getInt(LEVEL_ID);
 			gasType = bundle.getClass(GAS_TYPE);
 			gasQuantity = bundle.getInt(GAS_QUANTITY);
 		}
@@ -292,25 +296,24 @@ public class ChaoticCenser extends Trinket {
 
 	private static final float[][] GAS_CAT_CHANCES = new float[4][3];
 	static {
-		GAS_CAT_CHANCES[0] = new float[]{80, 10, 10};
-		GAS_CAT_CHANCES[1] = new float[]{67, 13, 20};
-		GAS_CAT_CHANCES[2] = new float[]{54, 16, 30};
-		GAS_CAT_CHANCES[3] = new float[]{40, 20, 40};
+		GAS_CAT_CHANCES[0] = new float[]{70, 25, 5};
+		GAS_CAT_CHANCES[1] = new float[]{60, 30, 10};
+		GAS_CAT_CHANCES[2] = new float[]{50, 35, 15};
+		GAS_CAT_CHANCES[3] = new float[]{40, 40, 20};
 	}
 
 	private static final HashMap<Class<? extends Blob>, Float> COMMON_GASSES = new HashMap<>();
 	static {
 		COMMON_GASSES.put(ToxicGas.class, 300f);
 		COMMON_GASSES.put(ConfusionGas.class, 300f);
-		COMMON_GASSES.put(StenchGas.class, 200f);
+		COMMON_GASSES.put(Regrowth.class, 200f);
 	}
 
-	//all non-harmful, don't scale as well as rares
 	private static final HashMap<Class<? extends Blob>, Float> UNCOMMON_GASSES = new HashMap<>();
 	static {
 		UNCOMMON_GASSES.put(StormCloud.class, 300f);
 		UNCOMMON_GASSES.put(SmokeScreen.class, 300f);
-		UNCOMMON_GASSES.put(Regrowth.class, 200f);
+		UNCOMMON_GASSES.put(StenchGas.class, 200f);
 	}
 
 	private static final HashMap<Class<? extends Blob>, Float> RARE_GASSES = new HashMap<>();

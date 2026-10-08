@@ -97,4 +97,12 @@ public class Regeneration extends Buff {
 	public int regencap(){
 		return target.HT;
 	}
+
+	public static boolean regenOn(){
+		LockedFloor lock = Dungeon.hero().buff(LockedFloor.class);
+		if (lock != null && !lock.regenOn()){
+			return false;
+		}
+		return true;
+	}
 }

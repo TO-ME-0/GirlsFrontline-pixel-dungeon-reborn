@@ -592,7 +592,7 @@ public abstract class Level implements Bundlable {
 			}
 		}
 		for (HeavyBoomerang.CircleBack b : Dungeon.hero().buffs(HeavyBoomerang.CircleBack.class)){
-			if (b.activeDepth() == Dungeon.cur().depth) items.add(b.cancel());
+			if (b.activeLevelID() == Dungeon.cur().levelId) items.add(b.cancel());
 		}
 		return items;
 	}
@@ -751,6 +751,14 @@ public abstract class Level implements Bundlable {
 			return null;
 
 		if (match == null){
+			//if we have a trinket catalyst, always return that first
+			for (Item item : itemsToSpawn){
+				if (item instanceof TrinketCatalyst){
+					itemsToSpawn.remove(item);
+					return item;
+				}
+			}
+
 			Item item = Random.element(itemsToSpawn);
 			itemsToSpawn.remove(item);
 			return item;

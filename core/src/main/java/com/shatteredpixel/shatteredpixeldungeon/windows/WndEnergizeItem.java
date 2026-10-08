@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.AlchemyScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -53,8 +54,30 @@ public class WndEnergizeItem extends WndInfoItem {
 			RedButton btnEnergize = new RedButton( Messages.get(this, "energize", item.energyVal()) ) {
 				@Override
 				protected void onClick() {
-					energize( item );
-					hide();
+					if (item instanceof Trinket){
+						GirlsFrontlinePixelDungeon.scene().addToFront(new WndOptions(new ItemSprite(item), Messages.titleCase(item.name()),
+								Messages.get(WndEnergizeItem.class, "trinket_warn"),
+								Messages.get(WndEnergizeItem.class, "trinket_yes"),
+								Messages.get(WndEnergizeItem.class, "trinket_no")){
+
+							@Override
+							protected void onSelect(int index) {
+								if (index == 0) {
+									energize(item);
+								}
+								openItemSelector();
+							}
+
+							@Override
+							public void hide() {
+								super.hide();
+								WndEnergizeItem.this.hide();
+							}
+						});
+					} else {
+						energize( item );
+						hide();
+					}
 				}
 			};
 			btnEnergize.setRect( 0, pos + GAP, width, BTN_HEIGHT );

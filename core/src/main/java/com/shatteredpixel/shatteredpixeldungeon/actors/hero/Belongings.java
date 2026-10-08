@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EquipmentBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ItemBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -38,7 +39,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -317,26 +321,67 @@ public class Belongings implements Iterable<Item> {
 	}
 	
 	public void observe() {
-		//遗忘碎片饰品：持有时武器/护甲/戒指不再随楼层观察被动鉴定（实现见 ShardOfOblivion）
-		if (weapon() != null && !ShardOfOblivion.passiveIDDisabled()) {
-			weapon().identify();
-			Badges.validateItemLevelAquired(weapon());
+		//遗忘碎片饰品：持有时武器/护甲/戒指不再随楼层观察被动鉴定，而是标记为“鉴定就绪”（实现见 ShardOfOblivion）
+		if (weapon() != null) {
+			if (ShardOfOblivion.passiveIDDisabled() && weapon() instanceof Weapon){
+				((Weapon) weapon()).setIDReady();
+			} else {
+				weapon().identify();
+				Badges.validateItemLevelAquired(weapon());
+			}
 		}
-        if (armor() != null && !ShardOfOblivion.passiveIDDisabled()) {
-            armor().identify();
-            Badges.validateItemLevelAquired(armor());
-        }
+		if (armor() != null) {
+			if (ShardOfOblivion.passiveIDDisabled()){
+				armor().setIDReady();
+				//嵌套护甲同样处理
+				for (Armor in = armor().inside; in != null; in = in.inside){
+					in.setIDReady();
+				}
+			} else {
+				armor().identify();
+				Badges.validateItemLevelAquired(armor());
+			}
+		}
 		if (artifact() != null) {
+			//oblivion shard does not prevent artifact IDing
 			artifact().identify();
 			Badges.validateItemLevelAquired(artifact());
 		}
 		if (misc() != null) {
-			misc().identify();
-			Badges.validateItemLevelAquired(misc());
+			if (ShardOfOblivion.passiveIDDisabled() && misc() instanceof Ring){
+				((Ring) misc()).setIDReady();
+			} else {
+				misc().identify();
+				Badges.validateItemLevelAquired(misc());
+			}
 		}
-		if (ring() != null && !ShardOfOblivion.passiveIDDisabled()) {
-			ring().identify();
-			Badges.validateItemLevelAquired(ring());
+		if (ring() != null) {
+			if (ShardOfOblivion.passiveIDDisabled()){
+				ring().setIDReady();
+			} else {
+				ring().identify();
+				Badges.validateItemLevelAquired(ring());
+			}
+		}
+		//通过 EquipmentBuff 装备的物品同样遵循遗忘碎片的鉴定规则
+		for (EquipmentBuff buff : owner.buffs(EquipmentBuff.class)){
+			EquipableItem equip = buff.getEquipment();
+			if (equip == null) continue;
+			if (ShardOfOblivion.passiveIDDisabled()){
+				if (equip instanceof Weapon){
+					((Weapon) equip).setIDReady();
+				} else if (equip instanceof Armor){
+					((Armor) equip).setIDReady();
+				} else if (equip instanceof Ring){
+					((Ring) equip).setIDReady();
+				}
+			} else {
+				equip.identify();
+				Badges.validateItemLevelAquired(equip);
+			}
+		}
+		if (ShardOfOblivion.passiveIDDisabled()){
+			GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready_worn"));
 		}
 		for (Item item : backpack) {
 			if (item instanceof EquipableItem || item instanceof Wand) {

@@ -47,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotio
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
@@ -1262,6 +1263,8 @@ public class WndJournal extends WndTabbed {
 						if (Catalog.useCount(itemClass) > 0) {
 							if (item.isUpgradable() || item instanceof Artifact) {
 								desc += "\n\n" + Messages.get(CatalogTab.class, "upgrade_count", Catalog.useCount(itemClass));
+							} else if (item instanceof Trinket) {
+								desc += "\n\n" + Messages.get(CatalogTab.class, "trinket_count", Catalog.useCount(itemClass));
 							} else if (item instanceof Gold) {
 								desc += "\n\n" + Messages.get(CatalogTab.class, "gold_count", Catalog.useCount(itemClass));
 							} else if (item instanceof EnergyCrystal) {

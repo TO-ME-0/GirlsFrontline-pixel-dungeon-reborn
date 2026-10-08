@@ -25,8 +25,10 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -44,7 +46,11 @@ public class TreasuryRoom extends SpecialRoom {
 		Heap.Type heapType = Random.Int( 2 ) == 0 ? Heap.Type.CHEST : Heap.Type.HEAP;
 		
 		int n = Random.IntRange( 2, 3 );
+		float catalystChance = 0f; //催化剂生成暂关闭（概率 0），保留代码待后续启用
 		for (int i=0; i < n; i++) {
+			Item item = catalystChance > 0f ? level.findPrizeItem(TrinketCatalyst.class) : null;
+			if (item == null) item = new Gold().random();
+
 			int pos;
 			do {
 				pos = level.pointToCell(random());
@@ -52,9 +58,9 @@ public class TreasuryRoom extends SpecialRoom {
 			//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
 			float mimicChance = 1/5f * MimicTooth.mimicChanceMultiplier();
 			if (heapType == Heap.Type.CHEST && Dungeon.cur().depth > 1 && Random.Float() < mimicChance){
-				level.mobs.add(Mimic.spawnAt(pos, new Gold().random()));
+				level.mobs.add(Mimic.spawnAt(pos, item));
 			} else {
-				level.drop( new Gold().random(), pos ).type = heapType;
+				level.drop( item, pos ).type = heapType;
 			}
 		}
 		

@@ -35,6 +35,8 @@ public class Healing extends Buff {
 	
 	private float percentHealPerTick;
 	private int flatHealPerTick;
+
+	private boolean healingLimited = false;
 	
 	{
 		//unlike other buffs, this one acts after the hero and takes priority against other effects
@@ -65,24 +67,29 @@ public class Healing extends Buff {
 	}
 	
 	private int healingThisTick(){
-		int healingThisTick = (int)GameMath.gate(1,
+		int heal = (int)GameMath.gate(1,
 				Math.round(healingLeft * percentHealPerTick) + flatHealPerTick,
 				healingLeft);
 		//鲜血药瓶饰品：爆发治疗分摊时限制每回合治疗量（实现见 VialOfBlood）
-		if (VialOfBlood.delayBurstHealing()){
-			healingThisTick = Math.min(healingThisTick, VialOfBlood.maxHealPerTurn());
+		if (healingLimited && heal > VialOfBlood.maxHealPerTurn()){
+			heal = VialOfBlood.maxHealPerTurn();
 		}
-		return healingThisTick;
+		return heal;
 	}
 
 	public void setHeal(int amount, float percentPerTick, int flatPerTick){
-		//鲜血药瓶饰品：爆发治疗总量提升但分摊至多回合（实现见 VialOfBlood）
-		if (VialOfBlood.delayBurstHealing()){
-			amount = Math.round(amount * VialOfBlood.totalHealMultiplier());
+		//multiple sources of healing do not overlap, but do combine the best of their properties
+		healingLeft = Math.max(healingLeft, amount);
+		percentHealPerTick = Math.max(percentHealPerTick, percentPerTick);
+		flatHealPerTick = Math.max(flatHealPerTick, flatPerTick);
+	}
+
+	//鲜血药瓶饰品：爆发治疗总量提升但分摊至多回合（实现见 VialOfBlood）
+	public void applyVialEffect(){
+		healingLimited = VialOfBlood.delayBurstHealing();
+		if (healingLimited){
+			healingLeft = Math.round(healingLeft*VialOfBlood.totalHealMultiplier());
 		}
-		healingLeft = amount;
-		percentHealPerTick = percentPerTick;
-		flatHealPerTick = flatPerTick;
 	}
 	
 	public void increaseHeal( int amount ){
@@ -98,6 +105,8 @@ public class Healing extends Buff {
 	private static final String LEFT = "left";
 	private static final String PERCENT = "percent";
 	private static final String FLAT = "flat";
+
+	private static final String HEALING_LIMITED = "healing_limited";
 	
 	@Override
 	public void storeInBundle(Bundle bundle) {
@@ -105,6 +114,7 @@ public class Healing extends Buff {
 		bundle.put(LEFT, healingLeft);
 		bundle.put(PERCENT, percentHealPerTick);
 		bundle.put(FLAT, flatHealPerTick);
+		bundle.put(HEALING_LIMITED, healingLimited);
 	}
 	
 	@Override
@@ -113,6 +123,7 @@ public class Healing extends Buff {
 		healingLeft = bundle.getInt(LEFT);
 		percentHealPerTick = bundle.getFloat(PERCENT);
 		flatHealPerTick = bundle.getInt(FLAT);
+		healingLimited = bundle.getBoolean(HEALING_LIMITED);
 	}
 	
 	@Override

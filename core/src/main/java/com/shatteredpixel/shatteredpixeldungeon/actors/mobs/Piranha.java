@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlobImmunity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PiranhaSprite;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
@@ -189,6 +190,16 @@ public class Piranha extends Mob {
 			}
 			
 			return super.act(enemyInFOV, justAlerted);
+		}
+	}
+
+	//鼠颅饰品：基准为 1/50 概率生成异化食人鱼（PhantomPiranha），生成概率暂设 0 待贴图补齐
+	public static Piranha random(){
+		float altChance = 0f * RatSkull.exoticChanceMultiplier();
+		if (Random.Float() < altChance){
+			return new PhantomPiranha();
+		} else {
+			return new Piranha();
 		}
 	}
 }

@@ -37,7 +37,6 @@ public class Kunai extends MissileWeapon {
 		hitSoundPitch = 1.1f;
 		
 		tier = 3;
-		baseUses = 5;
 	}
 	
 	private Char enemy;

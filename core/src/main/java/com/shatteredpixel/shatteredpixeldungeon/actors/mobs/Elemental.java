@@ -37,7 +37,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlam
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Embers;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.CursedWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -48,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ElementalSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PyroSprite;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -376,12 +376,20 @@ public abstract class Elemental extends Mob {
 		}
 		@Override
 		protected void meleeProc( Char enemy, int damage ) {
-			CursedWand.cursedEffect(null, this, enemy);
+			Ballistica aim = new Ballistica(pos, enemy.pos, Ballistica.STOP_TARGET);
+			//TODO shortcutting the fx seems fine for now but may cause problems with new cursed effects
+			//of course, not shortcutting it means actor ordering issues =S
+			CursedWand.randomValidEffect(null, this, aim, false).effect(null, this, aim, false);
 		}
-		
+
 		@Override
 		protected void rangedProc( Char enemy ) {
-			CursedWand.cursedEffect(null, this, enemy);
+			CursedWand.cursedZap(null, this, new Ballistica(pos, enemy.pos, Ballistica.STOP_TARGET), new Callback() {
+				@Override
+				public void call() {
+					next();
+				}
+			});
 		}
 	}
 	

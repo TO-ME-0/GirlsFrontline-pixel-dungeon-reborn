@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.watabou.utils.Random;
 
 /**
@@ -67,8 +68,8 @@ public final class RogueTalent {
 			else                                           Buff.count(hero, Talent.CachedRationsDropped.class, 2);
 		}
 		else if (talent == Talent.THIEFS_INTUITION && hero.pointsInTalent(Talent.THIEFS_INTUITION) == 2){
-			if (hero.belongings.ring != null) hero.belongings.ring.identify();
-			if (hero.belongings.misc instanceof Ring) hero.belongings.misc.identify();
+			if (hero.belongings.ring != null && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.ring.identify();
+			if (hero.belongings.misc instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.misc.identify();
 			for (Item item : hero.belongings)
 				if (item instanceof Ring)
 					((Ring) item).setKnown();
@@ -127,7 +128,11 @@ public final class RogueTalent {
 	public static void onItemEquipped( Hero hero, Item item ){
 		if (hero.hasTalent(Talent.THIEFS_INTUITION) && item instanceof Ring){
 			if (hero.pointsInTalent(Talent.THIEFS_INTUITION) == 2){
-				item.identify();
+				if (ShardOfOblivion.passiveIDDisabled()){
+					((Ring) item).setIDReady();
+				} else {
+					item.identify();
+				}
 			} else {
 				((Ring) item).setKnown();
 			}
