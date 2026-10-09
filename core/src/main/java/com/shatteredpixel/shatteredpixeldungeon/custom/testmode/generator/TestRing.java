@@ -123,7 +123,7 @@ public class TestRing extends TestGenerator {
         } else if (category == TRINKET_CAT) {
             Trinket t = Reflection.newInstance(idToTrinket(selected));
             if (t != null) {
-                t.level(levelToGen);
+                t.level(Math.min(3, levelToGen));
                 collect = t.identify().collect();
                 if(collect){
                     GLog.i(Messages.get(this, "collect_success", t.name()));
@@ -159,6 +159,7 @@ public class TestRing extends TestGenerator {
 
     private void modifyWand(Wand w) {
         w.level(levelToGen);
+        w.curCharges = w.maxCharges;
         w.cursed = cursed;
     }
 

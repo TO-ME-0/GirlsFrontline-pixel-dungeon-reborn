@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -156,35 +157,39 @@ public class SeedFindScene extends PixelScene {
     }
 
     // 楼层分组：每 5 层一页；31 层并入 26-30 页；25/1 属于 21-25 页
-    private void buildResultTabs() {
+    private void buildResultTabs(SeedFinder seedFinder) {
         resultTabs = new ArrayList<>();
-        // 总览页：各需求物品所在楼层（测试种子模式不生成）
-        if (!isTestSeed) {
-            StringBuilder ov = new StringBuilder();
-            for (Item w : wantedItems) {
-                WantedTarget t = new WantedTarget(w);
-                StringBuilder fl = new StringBuilder();
-                for (SeedFinder.FloorData fd : resultFloors) {
-                    if (floorHas(fd, t)) {
+        StringBuilder ov = new StringBuilder();
+        // 总览页：各需求物品所在楼层
+
+        seedFinder.buildLogMatchIndex();
+        boolean[] itemsFound = new boolean[seedFinder.wantedArr.length];
+        for (Item item : seedFinder.wantedItems) {
+            StringBuilder fl = new StringBuilder();
+            for (int i = 0; i < item.quantity(); i++) {
+                for (SeedFinder.FloorData fd : seedFinder.lastFloors)
+                    if (floorHas(seedFinder, fd, item, itemsFound)) {
                         if (fl.length() > 0) fl.append("、");
                         fl.append(fd.title);
                     }
-                }
-                ov.append(w).append("：");
-                if (fl.length() > 0) ov.append(fl).append(" 楼");
-                else ov.append("未找到");
-                ov.append("\n\n");
             }
-            if (resultTrinketSequence != null && !resultTrinketSequence.isEmpty()) {
-                ov.append("饰品序列：\n");
-                for (int i = 0; i < resultTrinketSequence.size(); i++)
-                    ov.append(i + 1).append(". ").append(resultTrinketSequence.get(i)).append("\n");
-                ov.append("\n");
-            }
-            resultTabs.add(new ResultTab("总览", ov.toString(), true));
+            ov.append(item).append("：");
+            if (fl.length() > 0) ov.append(fl).append(" 楼");
+            else ov.append("未找到");
+            ov.append("\n\n");
         }
+
+        ov.append("饰品序列：\n");
+        for (int i = 0; i < seedFinder.lastTrinketSequence.size(); i++) {
+            if (i % 5 == 4)
+                ov.append("\n");
+            ov.append(seedFinder.lastTrinketSequence.get(i)).append("、");
+        }
+
+        ov.append("\n");
+        resultTabs.add(new ResultTab("总览", ov.toString(), true));
         StringBuilder[] groupText = new StringBuilder[6];
-        for (SeedFinder.FloorData fd : resultFloors) {
+        for (SeedFinder.FloorData fd : seedFinder.lastFloors) {
             int g = Math.min(5, (fd.depth - 1) / 5);
             if (groupText[g] == null) groupText[g] = new StringBuilder();
             groupText[g].append(fd.text);
@@ -195,18 +200,25 @@ public class SeedFindScene extends PixelScene {
                 resultTabs.add(new ResultTab(titles[g], groupText[g].toString(), false));
     }
 
-    private static boolean floorHas(SeedFinder.FloorData fd, WantedTarget t) {
+    private static boolean floorHas(SeedFinder seedFinder, SeedFinder.FloorData fd, Item item, boolean[] itemFound) {
         for (SeedFinder.HeapItem hi : fd.heapItems)
-            if (t.matches(hi.item)) return true;
+            if (seedFinder.tryMatch(item, hi.item, itemFound)) return true;
+
         if (fd.ghostRewards != null)
             for (Item i : fd.ghostRewards)
-                if (t.matches(i)) return true;
+                if (seedFinder.tryMatch(item, i, itemFound))
+                    return fd.ghostSelect = true;
+
         if (fd.wandmakerRewards != null)
             for (Item i : fd.wandmakerRewards)
-                if (t.matches(i)) return true;
+                if (seedFinder.tryMatch(item, i, itemFound))
+                    return fd.wandmakerSelect = true;
+
         if (fd.impRewards != null)
             for (Item i : fd.impRewards)
-                if (t.matches(i)) return true;
+                if (seedFinder.tryMatch(item, i, itemFound))
+                    return fd.impSelect = true;
+
         return false;
     }
 
@@ -419,9 +431,6 @@ public class SeedFindScene extends PixelScene {
     // ===== 查找状态（后台线程写 / 渲染线程读） =====
     private SeedFinder activeFinder;
     private long searchStartMs;
-    private volatile ArrayList<SeedFinder.FloorData> resultFloors;
-    private volatile ArrayList<Item> resultTrinketSequence;
-    private volatile boolean isTestSeed;
     private volatile boolean searchDone;
 
     // ===== 结果 Tab 弹窗 =====
@@ -562,9 +571,15 @@ public class SeedFindScene extends PixelScene {
         private Component equipmentPane() {
             ArrayList<ItemGroup> groups = new ArrayList<>();
 
+            ItemGroup g;
+            g = new ItemGroup("任意武器");
+            g.items.add(Holder.WeaponHolder.class);
+            g.items.add(Holder.MeleeWeaponHolder.class);
+            g.items.add(Holder.MissileWeaponHolder.class);
+            groups.add(g);
+
             // 2-6阶近战武器
             Generator.Category category;
-            ItemGroup g;
             for (int t = 1; t < Generator.wepTiers.length; t++) {
                 category = Generator.wepTiers[t];
                 g = new ItemGroup(Catalog.valueOf("MELEE_WEAPONS_T" + (t + 1)).title());
@@ -572,8 +587,7 @@ public class SeedFindScene extends PixelScene {
                 for (int i = 0; i < category.classes.length; i++)
                     if (category.probs[i] >= 0f)
                         g.items.add((Class<? extends Item>) category.classes[i]);
-                if (!g.items.isEmpty())
-                    groups.add(g);
+                groups.add(g);
             }
 
             // 2-5阶投掷武器
@@ -584,8 +598,7 @@ public class SeedFindScene extends PixelScene {
                 for (int i = 0; i < category.classes.length; i++)
                     if (category.probs[i] >= 0f)
                         g.items.add((Class<? extends Item>) category.classes[i]);
-                if (!g.items.isEmpty())
-                    groups.add(g);
+                groups.add(g);
             }
 
             // 2-5阶护甲
@@ -1091,7 +1104,7 @@ public class SeedFindScene extends PixelScene {
                 RedButton confirmBtn = new RedButton("添加") {
                     @Override
                     protected void onClick() {
-                        if (item.stackable) {
+                        if (item.stackable && !(item instanceof MissileWeapon)) {
                             Item same = null;
                             for (Item i : wantedItems)
                                 if (cls.isInstance(i))
@@ -1259,9 +1272,9 @@ public class SeedFindScene extends PixelScene {
         if (text != null && !text.isEmpty()) {
             String result = text;
             text = "";
-            if (resultFloors != null) {
+            if (!activeFinder.lastFloors.isEmpty()) {
                 // Tab 弹窗结果（搜索模式：总览+楼层分组；测试种子模式：仅楼层分组）
-                buildResultTabs();
+                buildResultTabs(activeFinder);
                 showResultSheet(0);
             } else {
                 // 无结构化数据（NONE / 异常信息）→ 纯文本回退视图
@@ -1310,9 +1323,6 @@ public class SeedFindScene extends PixelScene {
             public void run() {
                 Dungeon.resetTest();
                 String str = findSeed(threads);
-                SeedFindScene.INSTANCE.resultFloors = lastFloors;
-                SeedFindScene.INSTANCE.resultTrinketSequence = lastTrinketSequence;
-                SeedFindScene.INSTANCE.isTestSeed = false;
                 SeedFindScene.INSTANCE.text = str;
             }
         };
@@ -1324,17 +1334,17 @@ public class SeedFindScene extends PixelScene {
     private void startTestSeed() {
         // 防御：测试种子同样不带 TEST_MODE
         SPDSettings.challenges(SPDSettings.challenges() & ~Challenges.TEST_MODE);
-
-        final SeedFinder finder = new SeedFinder(new ArrayList<>(), currentFloor, currentHero) {
+        ArrayList<Item> list = new ArrayList<>();
+        for (Item item : wantedItems)
+            if (item instanceof Trinket)
+                list.add(item);
+        final SeedFinder finder = new SeedFinder(list, currentFloor, currentHero) {
             @Override
             public void run() {
                 Dungeon.resetTest();
                 Dungeon.enterSearchContext();
                 try {
                     String str = logSeedItems(DungeonSeed.convertFromText(SeedFindScene.seedCode));
-                    SeedFindScene.INSTANCE.resultFloors = lastFloors;
-                    SeedFindScene.INSTANCE.resultTrinketSequence = lastTrinketSequence;
-                    SeedFindScene.INSTANCE.isTestSeed = true;
                     SeedFindScene.INSTANCE.text = str;
                 } finally {
                     Dungeon.exitSearchContext();
@@ -1348,9 +1358,6 @@ public class SeedFindScene extends PixelScene {
     private void launchFinder(final SeedFinder finder) {
         stopThread = false;
         searchDone = false;
-        resultFloors = null;
-        resultTrinketSequence = null;
-        isTestSeed = false;
         resultTabs = null;
 
         showSearchView();

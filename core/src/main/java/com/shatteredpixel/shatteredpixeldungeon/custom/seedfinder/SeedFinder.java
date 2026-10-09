@@ -56,23 +56,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-public class SeedFinder implements Runnable {
-
-    @Override
-    public void run() {
-        Dungeon.resetTest();
-        Dungeon.enterSearchContext();
-        try {
-            String str;
-            if (wantedArr.length == 0)
-                str = logSeedItems(DungeonSeed.convertFromText(SeedFindScene.seedCode));
-            else
-                str = findSeed();
-            SeedFindScene.INSTANCE.text = str;
-        } finally {
-            Dungeon.exitSearchContext();
-        }
-    }
+public abstract class SeedFinder implements Runnable {
 
     public static volatile boolean running;
     public static volatile boolean SeedFinding = false;
@@ -112,9 +96,9 @@ public class SeedFinder implements Runnable {
     }
 
     // logSeedItems 填充：本次生成的结构化楼层数据（供场景构建 Tab 结果窗）
-    protected ArrayList<FloorData> lastFloors;
+    public final ArrayList<FloorData> lastFloors = new ArrayList<>();
     // logSeedItems 填充：饰品牌堆"洗牌前"的完整开出序列（供总览页显示）
-    protected ArrayList<Item> lastTrinketSequence;
+    public final ArrayList<Item> lastTrinketSequence = new ArrayList<>();
 
     protected WantedTarget[] wantedArr;
     // Class → 目标下标数组：tryMatch 先查 map 取候选目标，跳过无关物品
@@ -123,7 +107,8 @@ public class SeedFinder implements Runnable {
     protected final int floor;
     protected final HeroClass heroClass;
     protected SeedFinder(ArrayList<Item> wanted, int fl, HeroClass cl) {
-        buildMatchIndex(wanted);
+        wantedItems = wanted;
+        buildMatchIndex();
         floor = fl;
         heroClass = cl;
         need = Math.max(1, wantedArr.length - SPDSettings.seedFinderMissing());
@@ -131,13 +116,14 @@ public class SeedFinder implements Runnable {
     WantedTarget wand;
     WantedTarget ring;
     Class<? extends Trinket> trinket;
+    public final ArrayList<Item> wantedItems;
 
     // 构造时生成目标数组并按 cls 分组下标，供 tryMatch 做 O(1) 跳查
-    private void buildMatchIndex(ArrayList<Item> wanted) {
+    private void buildMatchIndex() {
         ArrayList<WantedTarget> targets = new ArrayList<>();
         HashMap<Class<? extends Item>, ArrayList<Integer>> temp = new HashMap<>();
         int index = 0;
-        for (Item item : wanted) {
+        for (Item item : wantedItems) {
             for (int i = 0; i < item.quantity(); i++) {
                 if (item instanceof Trinket) {
                     trinket = (Class<? extends Trinket>) item.getClass();
@@ -173,10 +159,28 @@ public class SeedFinder implements Runnable {
         }
         matchIndex = idx;
     }
-    public final String findSeed() {
-        return findSeed(1);
+    public void buildLogMatchIndex() {
+        HashMap<Class<? extends Item>, ArrayList<Integer>> temp = new HashMap<>();
+        int index = 0;
+        for (Item item : wantedItems)
+            for (int i = 0; i < item.quantity(); i++) {
+                if (item instanceof Holder) {
+                    ArrayList<Integer> list = temp.get(item.getClass());
+                    if (list == null)
+                        temp.put(item.getClass(), list = new ArrayList<>());
+                    list.add(index);
+                }
+                index++;
+            }
+        for (Map.Entry<Class<? extends Item>, ArrayList<Integer>> e : temp.entrySet()) {
+            ArrayList<Integer> list = e.getValue();
+            int[] indices = new int[list.size()];
+            for (int k = 0; k < list.size(); k++) {
+                indices[k] = list.get(k);
+            }
+            matchIndex.put(e.getKey(), indices);
+        }
     }
-
     // 多线程分段查种：随机起始种子后，把 [start, TOTAL_SEEDS) 区间均分为 threadCount 段，
     // 每个 worker 独立进入查种上下文扫自己那段，首个命中即广播停止所有线程。
     public final String findSeed(final int threadCount) {
@@ -414,20 +418,24 @@ public class SeedFinder implements Runnable {
         }
         return false;
     }
-
     private boolean tryMatch(Item item, boolean[] itemsFound) {
-        int[] candidates = matchIndex.get(item.getClass());
+        //用于实际查找，超类没法用getClass查找，所以在建表的时候改为添加具体子类
+        return tryMatch(item, item, itemsFound);
+    }
+    public boolean tryMatch(Item wanted, Item testing, boolean[] itemsFound) {
+        //用于总览页以超类查找。
+        int[] candidates = matchIndex.get(wanted.getClass());
+        //兼容以实际查找中的具体子类查找
         if (candidates == null) return false;
         for (int idx : candidates) {
             //只查找这个类所能在的位置
-            if (!itemsFound[idx] && wantedArr[idx].matches(item)) {
+            if (!itemsFound[idx] && wantedArr[idx].matches(testing)) {
                 itemsFound[idx] = true;
                 return true;
             }
         }
         return false;
     }
-
     private ArrayList<Heap> getMobDrops(Level l) {
         ArrayList<Heap> heaps = new ArrayList<>();
         for (Mob m : l.mobs) {
@@ -472,15 +480,13 @@ public class SeedFinder implements Runnable {
 
         // 饰品"洗牌前"完整序列：牌堆由本局 seed 固定、与使用时机无关，
         // 连续调用 classes.length 次即为洗一次牌内的完整开出顺序
-        ArrayList<Item> trinketSeq = new ArrayList<>();
         for (int i = 0; i < Generator.Category.TRINKET.classes.length; i++)
-            trinketSeq.add(Generator.random(Generator.Category.TRINKET));
-        lastTrinketSequence = trinketSeq;
+            lastTrinketSequence.add(Generator.random(Generator.Category.TRINKET));
 
         HashSet<Class<? extends Item>> blacklist = new HashSet<>(Arrays.asList(Dewdrop.class, IronKey.class, GoldenKey.class, CrystalKey.class, EnergyCrystal.class, CorpseDust.class, Embers.class, CeremonialCandle.class, Pickaxe.class));
 
         // Phase 1: 遍历所有楼层，收集物品（不 identify），任务奖励在出现层一次性收取并 complete
-        ArrayList<FloorData> floorDataList = new ArrayList<>();
+        ArrayList<FloorData> floorDataList = lastFloors;
         int depth = 1;
         int levelSub = 0;
         SeedFinding = true;
@@ -499,7 +505,14 @@ public class SeedFinder implements Runnable {
             }
             else
                 depth++;
-            if (l instanceof CityBossLevel)
+
+            Class<? extends Level> cl = l.getClass();
+            if (cl == SewerBossLevel.class && trinket != null)
+                for (int i = 0; i < 4; i++) {
+                    if (trinket.isInstance(lastTrinketSequence.get(i)))
+                        Reflection.newInstance(trinket).upgrade(3).collect();
+                }
+            else if (cl == CityBossLevel.class)
                 ((CityBossLevel) l).spawnShop();
 
             FloorData fd = new FloorData(curDepth,
@@ -641,7 +654,6 @@ public class SeedFinder implements Runnable {
             result.append(builder);
             fd.text = builder.toString();
         }
-        lastFloors = floorDataList;
         return result.toString();
     }
 
@@ -684,15 +696,18 @@ public class SeedFinder implements Runnable {
     }
 
     // 单层数据载体：Phase 1 收集、Phase 2 identify、Phase 3 展示
-    protected static final class FloorData {
+    public static final class FloorData {
         final int depth;
         final String title;   // 楼层显示名：普通层 "25"、子层 "25/1"
         String text;          // Phase 3 生成的本层完整文本（含楼层头）
         final ArrayList<HeapItem> heapItems = new ArrayList<>();
         ArrayList<Item> ghostRewards = null;
+        boolean ghostSelect;
         ArrayList<Item> wandmakerRewards = null;
+        boolean wandmakerSelect;
         int wandmakerType = 0;
         ArrayList<Item> impRewards = null;
+        boolean impSelect;
 
         FloorData(int depth, String title) {
             this.depth = depth;
