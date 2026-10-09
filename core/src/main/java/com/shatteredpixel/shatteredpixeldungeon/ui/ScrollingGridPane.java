@@ -21,15 +21,12 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.input.PointerEvent;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.Visual;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;

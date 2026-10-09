@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
@@ -173,6 +174,12 @@ public class SeedFindScene extends PixelScene {
                 if (fl.length() > 0) ov.append(fl).append(" 楼");
                 else ov.append("未找到");
                 ov.append("\n\n");
+            }
+            if (resultTrinketSequence != null && !resultTrinketSequence.isEmpty()) {
+                ov.append("饰品序列：\n");
+                for (int i = 0; i < resultTrinketSequence.size(); i++)
+                    ov.append(i + 1).append(". ").append(resultTrinketSequence.get(i)).append("\n");
+                ov.append("\n");
             }
             resultTabs.add(new ResultTab("总览", ov.toString(), true));
         }
@@ -413,6 +420,7 @@ public class SeedFindScene extends PixelScene {
     private SeedFinder activeFinder;
     private long searchStartMs;
     private volatile ArrayList<SeedFinder.FloorData> resultFloors;
+    private volatile ArrayList<Item> resultTrinketSequence;
     private volatile boolean isTestSeed;
     private volatile boolean searchDone;
 
@@ -560,6 +568,19 @@ public class SeedFindScene extends PixelScene {
             for (int t = 1; t < Generator.wepTiers.length; t++) {
                 category = Generator.wepTiers[t];
                 g = new ItemGroup(Catalog.valueOf("MELEE_WEAPONS_T" + (t + 1)).title());
+                g.items.add(Holder.meleeHolder[t]);
+                for (int i = 0; i < category.classes.length; i++)
+                    if (category.probs[i] >= 0f)
+                        g.items.add((Class<? extends Item>) category.classes[i]);
+                if (!g.items.isEmpty())
+                    groups.add(g);
+            }
+
+            // 2-5阶投掷武器
+            for (int t = 1; t < Generator.misTiers.length; t++) {
+                category = Generator.misTiers[t];
+                g = new ItemGroup((t + 1) + "阶" + Catalog.MISSILE_WEAPONS.title());
+                g.items.add(Holder.missileHolder[t]);
                 for (int i = 0; i < category.classes.length; i++)
                     if (category.probs[i] >= 0f)
                         g.items.add((Class<? extends Item>) category.classes[i]);
@@ -570,6 +591,7 @@ public class SeedFindScene extends PixelScene {
             // 2-5阶护甲
             category = Generator.Category.ARMOR;
             g = new ItemGroup(Catalog.ARMOR.title());
+            g.items.add(Holder.ArmorHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
@@ -578,20 +600,20 @@ public class SeedFindScene extends PixelScene {
             // wands
             category = Generator.Category.WAND;
             g = new ItemGroup(Catalog.WANDS.title());
+            g.items.add(Holder.WandHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
-            if (!g.items.isEmpty())
-                groups.add(g);
+            groups.add(g);
 
             // rings
             category = Generator.Category.RING;
             g = new ItemGroup(Catalog.RINGS.title());
+            g.items.add(Holder.RingHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
-            if (!g.items.isEmpty())
-                groups.add(g);
+            groups.add(g);
 
             // artifacts
             category = Generator.Category.ARTIFACT;
@@ -620,6 +642,7 @@ public class SeedFindScene extends PixelScene {
 
             category = Generator.Category.POTION;
             g = new ItemGroup(Catalog.POTIONS.title());
+            g.items.add(Holder.PotionHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
@@ -627,6 +650,7 @@ public class SeedFindScene extends PixelScene {
 
             category = Generator.Category.SCROLL;
             g = new ItemGroup(Catalog.SCROLLS.title());
+            g.items.add(Holder.ScrollHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
@@ -634,10 +658,19 @@ public class SeedFindScene extends PixelScene {
 
             category = Generator.Category.STONE;
             g = new ItemGroup(Catalog.STONES.title());
+            g.items.add(Holder.StoneHolder.class);
             for (int i = 0; i < category.classes.length; i++)
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
             groups.add(g);
+            
+            category = Generator.Category.TRINKET;
+            g = new ItemGroup(Catalog.TRINKETS.title());
+            for (int i = 0; i < category.classes.length; i++)
+                if (category.defaultProbs[i] >= 0f)
+                    g.items.add((Class<? extends Item>) category.classes[i]);
+            if (!g.items.isEmpty())
+                groups.add(g);
 
             category = Generator.Category.FOOD;
             g = new ItemGroup(Catalog.FOOD.title());
@@ -944,21 +977,23 @@ public class SeedFindScene extends PixelScene {
         
     private static final class PickGridItem extends ScrollingGridPane.GridItem {
         private final Class<? extends Item> cls;
-        private volatile boolean tinted = false;
+        private final boolean direct;   // 神器/饰品：单击直接加入，无配置窗
+        private final boolean single;   // 饰品：只允许一个
         PickGridItem(Class<? extends Item> cls) {
             super(image(cls));
             this.cls = cls;
-            if (Artifact.class.isAssignableFrom(cls))
-                for (Item item : wantedItems)
-                    if (cls.isInstance(item)) {
-                        tinted = true;
-                        break;
-                    }
+            single = Trinket.class.isAssignableFrom(cls);
+            direct = single || Artifact.class.isAssignableFrom(cls);
+        }
+        private boolean isWanted() {
+            for (Item item : wantedItems)
+                if (cls.isInstance(item)) return true;
+            return false;
         }
         @Override
         public void update() {
             super.update();
-            if (tinted)
+            if (direct && isWanted())
                 hardLightBG(0.25f, 0.7f, 0.3f);
             else
                 bg.resetColor();
@@ -967,22 +1002,24 @@ public class SeedFindScene extends PixelScene {
         @Override
         public void onClick() {
             super.onClick();
-            if (Artifact.class.isAssignableFrom(cls)) {
-                if (tinted) {
-                    for (Item item : wantedItems.toArray(new Item[0]))
-                        if (cls.isInstance(item)) {
-                            wantedItems.remove(item);
-                            break;
-                        }
-                    tinted = false;
-                }
-                else {
-                    wantedItems.add(newInstance(cls));
-                    tinted = true;
-                }
-            }
-            else
+            if (!direct) {
                 GirlsFrontlinePixelDungeon.scene().addToFront(new ItemConfigWindow(cls));
+                return;
+            }
+            if (isWanted()) {
+                for (Item item : wantedItems.toArray(new Item[0]))
+                    if (cls.isInstance(item)) {
+                        wantedItems.remove(item);
+                        break;
+                    }
+                return;
+            }
+            // 饰品只允许一个，选中新的前先清除已有饰品
+            if (single)
+                for (Item item : wantedItems.toArray(new Item[0]))
+                    if (item instanceof Trinket)
+                        wantedItems.remove(item);
+            wantedItems.add(newInstance(cls));
         }
         private final static class ItemConfigWindow extends Window {
             private static final int WIDTH = 120;
@@ -996,12 +1033,12 @@ public class SeedFindScene extends PixelScene {
             ItemConfigWindow(Class<? extends Item> cls) {
                 super();
                 Item item = newInstance(cls);
-                int maxLevel = getMaxLevelForClass(cls);
+                int maxLevel = getMaxLevelForClass(item);
 
-                if (Weapon.class.isAssignableFrom(cls)) {
+                if (item instanceof Weapon) {
                     pools = enchant;
                     isEnchant = true;
-                } else if (Armor.class.isAssignableFrom(cls)) {
+                } else if (item instanceof Armor) {
                     pools = glyph;
                     isEnchant = false;
                 }
@@ -1171,6 +1208,7 @@ public class SeedFindScene extends PixelScene {
     private static Item newInstance(Class<? extends Item> cls) {
         Item item = Reflection.newInstance(cls);
         assert item != null;
+        item.quantity(1);
         if (item instanceof ColorItem)
             ((ColorItem) item).anonymize();
         else
@@ -1193,18 +1231,18 @@ public class SeedFindScene extends PixelScene {
             this.header = header;
         }
     }
-    private static int getMaxLevelForClass(Class<?> cls) {
-        if (Wand.class.isAssignableFrom(cls)) {
+    private static int getMaxLevelForClass(Item item) {
+        if (item instanceof Wand || item instanceof Holder.WandHolder) {
             // 已选 +3 任务配件，其余配件最多 +2（一局仅一根任务杖）
-            return hasQuestLevel(Wand.class) || currentFloor < 7
+            return hasQuestLevel(Wand.class) || hasQuestLevel(Holder.WandHolder.class) || currentFloor < 7
                     ? 2 : 3;
         }
-        if (Ring.class.isAssignableFrom(cls)) {
+        if (item instanceof Ring || item instanceof Holder.RingHolder) {
             // 已选 +3（小恶魔任务奖励 +3/+4 的下限）瞄准镜，其余只能 +2
-            return hasQuestLevel(Ring.class) || currentFloor < 17
+            return hasQuestLevel(Ring.class) || hasQuestLevel(Holder.RingHolder.class) || currentFloor < 17
                     ? 2 : 4;
         }
-        return (Weapon.class.isAssignableFrom(cls) || Armor.class.isAssignableFrom(cls))
+        return item instanceof Weapon || item instanceof Armor
                 ? 3 : 0;
     }
     private static boolean hasQuestLevel(Class<?> type) {
@@ -1266,18 +1304,14 @@ public class SeedFindScene extends PixelScene {
         // 防御：即使 TEST_MODE 曾在 debug 菜单里被写入，种子查找也一律不带它
         SPDSettings.challenges(SPDSettings.challenges() & ~Challenges.TEST_MODE);
 
-        final ArrayList<WantedTarget> targets = new ArrayList<>();
-        for (Item item : wantedItems)
-            for (int i = 0; i < item.quantity(); i++)
-                targets.add(new WantedTarget(item));
-
         final int threads = SPDSettings.seedFinderThreads();
-        final SeedFinder finder = new SeedFinder(targets, currentFloor, currentHero) {
+        final SeedFinder finder = new SeedFinder(wantedItems, currentFloor, currentHero) {
             @Override
             public void run() {
                 Dungeon.resetTest();
                 String str = findSeed(threads);
                 SeedFindScene.INSTANCE.resultFloors = lastFloors;
+                SeedFindScene.INSTANCE.resultTrinketSequence = lastTrinketSequence;
                 SeedFindScene.INSTANCE.isTestSeed = false;
                 SeedFindScene.INSTANCE.text = str;
             }
@@ -1299,6 +1333,7 @@ public class SeedFindScene extends PixelScene {
                 try {
                     String str = logSeedItems(DungeonSeed.convertFromText(SeedFindScene.seedCode));
                     SeedFindScene.INSTANCE.resultFloors = lastFloors;
+                    SeedFindScene.INSTANCE.resultTrinketSequence = lastTrinketSequence;
                     SeedFindScene.INSTANCE.isTestSeed = true;
                     SeedFindScene.INSTANCE.text = str;
                 } finally {
@@ -1314,6 +1349,7 @@ public class SeedFindScene extends PixelScene {
         stopThread = false;
         searchDone = false;
         resultFloors = null;
+        resultTrinketSequence = null;
         isTestSeed = false;
         resultTabs = null;
 

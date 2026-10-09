@@ -154,7 +154,7 @@ public class TrinketCatalyst extends Item {
 		private static final int BTN_GAP	= 4;
 		private static final int GAP		= 2;
 
-		private static final int NUM_TRINKETS = 4;
+		public static final int NUM_TRINKETS = 4;
 
 		public WndTrinket( TrinketCatalyst cata ){
 

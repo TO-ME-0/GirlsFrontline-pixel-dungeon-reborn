@@ -11,14 +11,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
  * 调用方保证 aug 为附魔则 cls 必为 Weapon、aug 为铭文则 cls 必为 Armor）。
  */
 public class WantedTarget {
-
-    public final Class<? extends Item> cls;
     public final int minLevel;
     public final Class<?> aug;
     private final boolean augIsGlyph;
 
     public WantedTarget(Item item) {
-        this.cls = item.getClass();
         this.minLevel = item.trueLevel();
         Object aug = null;
         if (item instanceof Armor) {
@@ -36,7 +33,6 @@ public class WantedTarget {
     }
 
     public boolean matches(Item item) {
-        if (item.getClass() != cls) return false;
         if (item.level() < minLevel) return false;
         if (aug == null) return true;
         if (augIsGlyph) {

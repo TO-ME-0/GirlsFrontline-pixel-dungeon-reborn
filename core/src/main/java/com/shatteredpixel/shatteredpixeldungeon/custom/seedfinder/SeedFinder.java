@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
+import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap.Type;
@@ -33,14 +34,18 @@ import com.shatteredpixel.shatteredpixeldungeon.items.quest.Embers;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,41 +113,55 @@ public class SeedFinder implements Runnable {
 
     // logSeedItems 填充：本次生成的结构化楼层数据（供场景构建 Tab 结果窗）
     protected ArrayList<FloorData> lastFloors;
+    // logSeedItems 填充：饰品牌堆"洗牌前"的完整开出序列（供总览页显示）
+    protected ArrayList<Item> lastTrinketSequence;
 
-    protected final WantedTarget[] wantedArr;
+    protected WantedTarget[] wantedArr;
     // Class → 目标下标数组：tryMatch 先查 map 取候选目标，跳过无关物品
-    private final HashMap<Class<? extends Item>, int[]> matchIndex;
+    private HashMap<Class<? extends Item>, int[]> matchIndex;
     // 预筛下标：循环内直接遍历，避免对全量 wantedArr 逐条 isAssignableFrom
     protected final int floor;
     protected final HeroClass heroClass;
-    protected SeedFinder(ArrayList<WantedTarget> wanted, int fl, HeroClass cl) {
-        wantedArr = wanted.toArray(new WantedTarget[0]);
-        matchIndex = buildMatchIndex(wantedArr);
+    protected SeedFinder(ArrayList<Item> wanted, int fl, HeroClass cl) {
+        buildMatchIndex(wanted);
         floor = fl;
         heroClass = cl;
         need = Math.max(1, wantedArr.length - SPDSettings.seedFinderMissing());
-        for (WantedTarget w : wanted) {
-            if (Wand.class.isAssignableFrom(w.cls) && w.minLevel >= 3)
-                wand = w;
-            else if (Ring.class.isAssignableFrom(w.cls) && w.minLevel >= 3)
-                ring = w;
-        }
     }
     WantedTarget wand;
     WantedTarget ring;
+    Class<? extends Trinket> trinket;
 
-    // 构造时按 cls 分组目标下标，供 tryMatch 做 O(1) 跳查
-    private static HashMap<Class<? extends Item>, int[]> buildMatchIndex(WantedTarget[] arr) {
+    // 构造时生成目标数组并按 cls 分组下标，供 tryMatch 做 O(1) 跳查
+    private void buildMatchIndex(ArrayList<Item> wanted) {
+        ArrayList<WantedTarget> targets = new ArrayList<>();
         HashMap<Class<? extends Item>, ArrayList<Integer>> temp = new HashMap<>();
-        for (int j = 0; j < arr.length; j++) {
-            Class<? extends Item> cls = arr[j].cls;
-            ArrayList<Integer> list = temp.get(cls);
-            if (list == null) {
-                list = new ArrayList<>();
-                temp.put(cls, list);
+        int index = 0;
+        for (Item item : wanted) {
+            for (int i = 0; i < item.quantity(); i++) {
+                if (item instanceof Trinket) {
+                    trinket = (Class<? extends Trinket>) item.getClass();
+                    item = new TrinketCatalyst();
+                }
+                WantedTarget w = new WantedTarget(item);
+                targets.add(w);
+                if ((item instanceof Wand || item instanceof Holder.WandHolder) && item.level() >= 3)
+                    wand = w;
+                else if ((item instanceof Ring || item instanceof Holder.RingHolder) && item.level() >= 3)
+                    ring = w;
+                if (item instanceof Holder)
+                    ((Holder) item).fillMap(temp, index);
+                else {
+                    ArrayList<Integer> list = temp.get(item.getClass());
+                    if (list == null)
+                        temp.put(item.getClass(), list = new ArrayList<>());
+                    list.add(index);
+                }
+                index++;
             }
-            list.add(j);
         }
+        wantedArr = targets.toArray(new WantedTarget[0]);
+
         HashMap<Class<? extends Item>, int[]> idx = new HashMap<>();
         for (Map.Entry<Class<? extends Item>, ArrayList<Integer>> e : temp.entrySet()) {
             ArrayList<Integer> list = e.getValue();
@@ -152,7 +171,7 @@ public class SeedFinder implements Runnable {
             }
             idx.put(e.getKey(), indices);
         }
-        return idx;
+        matchIndex = idx;
     }
     public final String findSeed() {
         return findSeed(1);
@@ -310,6 +329,14 @@ public class SeedFinder implements Runnable {
         //否则天才/盗贼天赋、初始容器（LimitedDrops）都会按错误的英雄生成
         GamesInProgress.selectedClass = heroClass;
         Dungeons.cur().init(DungeonSeed.convertToCode(seed));
+        if (trinket != null) {
+            boolean getTrinket = false;
+            for (int i = 0; i < TrinketCatalyst.WndTrinket.NUM_TRINKETS; i++)
+                if (trinket.isInstance(Generator.random(Generator.Category.TRINKET)))
+                    getTrinket = true;
+            if (!getTrinket)
+                return false;
+        }
         boolean[] itemsFound = new boolean[wantedArr.length];
         int foundCount = 0;
         int n = need;
@@ -329,7 +356,10 @@ public class SeedFinder implements Runnable {
             }
             else
                 depth++;
-            if (l instanceof CityBossLevel)
+            Class<? extends Level> cl = l.getClass();
+            if (cl == SewerBossLevel.class && trinket != null)
+                Reflection.newInstance(trinket).upgrade(3).collect();
+            else if (cl == CityBossLevel.class)
                 ((CityBossLevel) l).spawnShop();
 
             // 地面物品：遇物即匹配，不建中间表、不 identify
@@ -439,6 +469,14 @@ public class SeedFinder implements Runnable {
         Dungeon.cur().hero = null;
         GamesInProgress.selectedClass = heroClass;
         Dungeons.cur().init(seedCode);
+
+        // 饰品"洗牌前"完整序列：牌堆由本局 seed 固定、与使用时机无关，
+        // 连续调用 classes.length 次即为洗一次牌内的完整开出顺序
+        ArrayList<Item> trinketSeq = new ArrayList<>();
+        for (int i = 0; i < Generator.Category.TRINKET.classes.length; i++)
+            trinketSeq.add(Generator.random(Generator.Category.TRINKET));
+        lastTrinketSequence = trinketSeq;
+
         HashSet<Class<? extends Item>> blacklist = new HashSet<>(Arrays.asList(Dewdrop.class, IronKey.class, GoldenKey.class, CrystalKey.class, EnergyCrystal.class, CorpseDust.class, Embers.class, CeremonialCandle.class, Pickaxe.class));
 
         // Phase 1: 遍历所有楼层，收集物品（不 identify），任务奖励在出现层一次性收取并 complete

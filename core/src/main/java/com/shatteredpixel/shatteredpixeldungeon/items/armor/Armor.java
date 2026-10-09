@@ -140,6 +140,9 @@ public class Armor extends EquipableItem {
 	public Armor( int tier ) {
 		this.tier = tier;
 	}
+	public Armor() {
+		this.tier = 0;
+	}
 
     public Item clone(Item item){
         Armor armor = (Armor) item;
