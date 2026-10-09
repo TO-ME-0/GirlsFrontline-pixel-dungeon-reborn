@@ -83,6 +83,19 @@ public class SakuraBlade extends MeleeWeapon {
         return super.buffedLvl(lvl) + skillBuffedLevels;
     }
 
+    //介绍文本末尾追加杀敌强化星级：已获得的等级显示为高亮星号，未获得为普通星号
+    @Override
+    public String info() {
+        String info = super.info();
+        StringBuilder stars = new StringBuilder();
+        for (int i = 0; i < MAX_BUFFED_LEVELS; i++) {
+            if (i > 0) stars.append(' ');
+            stars.append(i < skillBuffedLevels ? "_ * _" : " * ");
+        }
+        info += "\n\n" + Messages.get(this, "kill_stars", stars.toString());
+        return info;
+    }
+
     @Override
     public int STRReq(int lvl) {
         return STRReq(tier+1, lvl); //20 base strength req, up from 18
