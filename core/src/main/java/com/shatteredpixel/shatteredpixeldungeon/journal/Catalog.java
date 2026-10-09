@@ -46,6 +46,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.XMasGift;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MedicalKit;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.RedBook;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.FoodPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.ItemHolder;
@@ -216,6 +218,8 @@ public enum Catalog {
 		RINGS.addItems(Generator.Category.RING.classes);
 
 		ARTIFACTS.addItems(Generator.Category.ARTIFACT.classes);
+		//角色专属神器不在生成池中，额外注册进图鉴
+		ARTIFACTS.addItems(RedBook.class, MedicalKit.class);
 
 		TRINKETS.addItems(Generator.Category.TRINKET.classes);
 
