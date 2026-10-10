@@ -300,6 +300,10 @@ public class SpiritBow extends Weapon {
 
 			hitSound = Assets.Sounds.HIT_ARROW;
 		}
+		@Override
+		public int defaultQuantity(){
+			return 1;
+		}
 
 		@Override
 		public Emitter emitter() {

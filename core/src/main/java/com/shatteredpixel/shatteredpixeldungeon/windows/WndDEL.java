@@ -175,7 +175,8 @@ public class WndDEL extends Window {
                     for (int i = 0; i < time; i++){
                         left -= signalRandomCost();
                     }
-                    MissileWeapon m = (MissileWeapon) Reflection.newInstance(btnItem1.item.getClass()).quantity(time);
+                    MissileWeapon m = (MissileWeapon) Reflection.newInstance(btnItem1.item.getClass()).identify(false).quantity(time);
+                    m.setID = 0;
                     m.UpdatedTierToLevel = true;
                     if (left > 0)
                         mission1.addMission(DEL.getMissionTimes(3)*time,

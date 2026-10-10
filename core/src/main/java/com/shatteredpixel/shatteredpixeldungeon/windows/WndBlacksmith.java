@@ -32,9 +32,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -257,13 +260,43 @@ public class WndBlacksmith extends Window {
 				@Override
 				protected void onClick() {
 
+					Item item1 = btnItem1.item(), item2 = btnItem2.item();
 					Item first, second;
-					if (btnItem1.item().trueLevel() >= btnItem2.item().trueLevel()) {
-						first = btnItem1.item();
-						second = btnItem2.item();
-					} else {
-						first = btnItem2.item();
-						second = btnItem1.item();
+					if (item1 instanceof ClassArmor || item2 instanceof ClassArmor) {
+						if (item1 instanceof ClassArmor) {
+							first = item1; second = item2;
+						}
+						else {
+							first = item2; second = item1;
+						}
+					}
+					else if (item1 instanceof MagesStaff || item2 instanceof MagesStaff) {
+						if (item1 instanceof MagesStaff) {
+							first = item1; second = item2;
+						}
+						else {
+							first = item2; second = item1;
+						}
+					}
+					else if (item1 instanceof MissileWeapon && ((MissileWeapon) item1).setID == 0 && item1 == item2) {
+						first = item1;
+						second = item1.detach(Dungeon.hero().belongings.backpack);
+					}
+					else if (!item1.levelKnown || !item2.levelKnown) {
+						if (item2.levelKnown) {
+							first = item2; second = item1;
+						}
+						else {
+							first = item1; second = item2;
+						}
+					}
+					else {
+						if (item1.trueLevel() >= item2.trueLevel()) {
+							first = item1;second = item2;
+						}
+						else {
+							first = item2;second = item1;
+						}
 					}
 
 					Sample.INSTANCE.play( Assets.Sounds.EVOKE );
@@ -328,7 +361,7 @@ public class WndBlacksmith extends Window {
 
 			@Override
 			public boolean itemSelectable(Item item) {
-				return item.isIdentified() && !item.cursed && item.isUpgradable();
+				return !item.cursed && item.isUpgradable();
 			}
 
 			@Override
@@ -342,18 +375,40 @@ public class WndBlacksmith extends Window {
 					//需要两件物品
 					if (item1 == null || item2 == null) {
 						btnReforge.enable(false);
-
-					//必须同 class
-					} else if (item1.getClass() != item2.getClass()) {
-						btnReforge.enable(false);
-
-					//不能是同一件物品
-					} else if (item1 == item2) {
-						btnReforge.enable(false);
-
-					} else {
-						btnReforge.enable(true);
+						return;
 					}
+					//不能是同一件物品
+					if (item1 == item2) {
+						//量产型投武采用旧的逻辑。
+						if (item1 instanceof MissileWeapon && ((MissileWeapon) item1).setID == 0 && item1.quantity() > 1);
+						else {
+							btnReforge.enable(false);
+							return;
+						}
+					}
+					if (item1 instanceof MissileWeapon && item2 instanceof MissileWeapon) {
+						//量产型投武不能与旧投武合并
+						if (((MissileWeapon) item1).setID == 0 && ((MissileWeapon) item2).setID != 0
+								|| ((MissileWeapon) item1).setID != 0 && ((MissileWeapon) item2).setID == 0) {
+							btnReforge.enable(false);
+							return;
+						}
+					}
+					if (item1 instanceof MagesStaff || item2 instanceof MagesStaff) {
+						MagesStaff staff = (MagesStaff) (item1 instanceof MagesStaff ? item1 : item2);
+						btnReforge.enable(staff.wand != null && (item1.getClass() == staff.wand.getClass() || item2.getClass() == staff.wand.getClass()));
+						return;
+					}
+					if (item1 instanceof Armor && item2 instanceof Armor) {
+						btnReforge.enable(((Armor) item1).tier == ((Armor) item2).tier);
+						return;
+					}
+					//必须同 class
+					if (item1.getClass() != item2.getClass()) {
+						btnReforge.enable(false);
+						return;
+					}
+					btnReforge.enable(true);
 				}
 			}
 		};

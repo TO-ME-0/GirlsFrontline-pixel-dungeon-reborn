@@ -387,14 +387,13 @@ public class AlchemyScene extends PixelScene {
 		}
 	};
 
-	private<T extends Item> ArrayList<T> filterInput(Class<? extends T> itemClass){
+	private<T extends Item> ArrayList<T> filterInput(){
 		ArrayList<T> filtered = new ArrayList<>();
-		for (int i = 0; i < inputs.length; i++){
-			Item item = inputs[i].item();
-			if (item != null && itemClass.isInstance(item)){
-				filtered.add((T)item);
-			}
-		}
+        for (InputButton input : inputs) {
+            Item item = input.item();
+            if (item != null)
+                filtered.add((T) item);
+        }
 		return filtered;
 	}
 
@@ -402,7 +401,7 @@ public class AlchemyScene extends PixelScene {
 
 		repeat.enable(false);
 
-		ArrayList<Item> ingredients = filterInput(Item.class);
+		ArrayList<Item> ingredients = filterInput();
 		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
 
 		//disables / hides unneeded buttons
@@ -466,7 +465,7 @@ public class AlchemyScene extends PixelScene {
 
 	private void combine( int slot ){
 
-		ArrayList<Item> ingredients = filterInput(Item.class);
+		ArrayList<Item> ingredients = filterInput();
 		if (ingredients.isEmpty()) return;
 
 		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);

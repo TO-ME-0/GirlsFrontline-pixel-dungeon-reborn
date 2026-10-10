@@ -27,11 +27,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.HuntressTalent;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
@@ -149,7 +146,12 @@ abstract public class MissileWeapon extends Weapon {
 		//迁移 3.3.8：1-tier 武器力量需求-1；masteryPotionBonus 由基类 Weapon.STRReq(boolean)/baseSTRReq() 统一处理，避免双重计算
 		return STRReq(tier, lvl) - 1; //1 less str than normal for their tier
 	}
-	
+	@Override
+	public Item degrade() {
+		if (Dungeon.hero() != null)
+			Buff.affect(Dungeon.hero(), UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()-1);
+		return super.degrade();
+	}
 	@Override
 	public Item upgrade() {
 		return upgrade(false);
@@ -561,10 +563,18 @@ abstract public class MissileWeapon extends Weapon {
 	}
 	@Override
 	public boolean isSimilar( Item item ) {
-		//同步 3.3.8：同等级、同类、同 setID 才视为同一套（0 = 无数量限制，不受套装判定约束）
-		return trueLevel() == item.trueLevel() && getClass() == item.getClass()
-				&& overLoad == OverLoad.NONE && item.overLoad == OverLoad.NONE
-				&& setID == (((MissileWeapon) item).setID);
+		if (trueLevel() != item.trueLevel())
+			return false;
+		if (getClass() != item.getClass())
+			return false;
+		if (setID != ((MissileWeapon) item).setID)
+			return false;
+
+		//量产型需查询过载状态。
+		if (setID == 0)
+			return overLoad == OverLoad.NONE && item.overLoad == OverLoad.NONE;
+		else
+			return true;
 	}
 
 	@Override
@@ -590,9 +600,8 @@ abstract public class MissileWeapon extends Weapon {
 			cursedKnown = cursedKnown || other.cursedKnown;
 
 			//迁移 3.3.8：合并时若对方鉴定已就绪，则本方也进入就绪状态
-			if (((Weapon) other).readyToIdentify()){
+			if (((Weapon) other).readyToIdentify())
 				setIDReady();
-			}
 
 			masteryPotionBonus = masteryPotionBonus || ((MissileWeapon) other).masteryPotionBonus;
 			enchantHardened = enchantHardened || ((MissileWeapon) other).enchantHardened;
@@ -777,7 +786,8 @@ abstract public class MissileWeapon extends Weapon {
 		super.restoreFromBundle(bundle);
 		bundleRestoring = false;
 
-		setID = bundle.getLong(SET_ID);
+		if ((setID = bundle.getLong(SET_ID)) == 0)
+			levelKnown = true;
 		durability = bundle.getFloat(DURABILITY);
 		spawnedForEffect = bundle.getBoolean(SPAWNED);
 		extraThrownLeft = bundle.getBoolean(EXTRA_LEFT);

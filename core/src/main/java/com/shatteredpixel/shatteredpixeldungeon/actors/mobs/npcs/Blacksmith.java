@@ -37,10 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
-import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.BlacksmithRoom;
-import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.MineEntranceTrigger;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
@@ -67,16 +65,13 @@ public class Blacksmith extends NPC {
 	public Notes.Landmark landmark() {
 		return (!Quest.cur().completed() || Quest.cur().rewardsAvailable()) ? Notes.Landmark.TROLL : null;
 	}
-
 	@Override
 	protected boolean act() {
 		//奖励全部结清后移除路标（mod 的 Hero 会自动添加 landmark，这里只负责移除）
-		if (!Quest.cur().rewardsAvailable() && Quest.cur().completed()){
+		if (!Quest.cur().rewardsAvailable() && Quest.cur().completed())
 			Notes.remove( landmark() );
-		}
 		return super.act();
 	}
-
 	@Override
 	public boolean interact(Char c) {
 
@@ -133,7 +128,7 @@ public class Blacksmith extends NPC {
 							}
 							Quest.cur().pickaxe = null;
 
-							if (msg2Final != ""){
+							if (!msg2Final.isEmpty()){
 								GameScene.show(new WndQuest(Blacksmith.this, msg2Final));
 							}
 
@@ -394,9 +389,8 @@ public class Blacksmith extends NPC {
 		private static final String NODE	= "blacksmith";
 
 		private static final String TYPE    	= "type";
-		private static final String ALTERNATIVE	= "alternative";
 
-		private static final String SPAWNED		= "spawned";
+        private static final String SPAWNED		= "spawned";
 		private static final String GIVEN		= "given";
 		private static final String STARTED		= "started";
 		private static final String BOSS_BEATEN	= "boss_beaten";
@@ -487,28 +481,16 @@ public class Blacksmith extends NPC {
 			completed = node.getBoolean( COMPLETED );
 
 			favor = node.getInt( FAVOR );
-			if (node.contains(PICKAXE)) {
+			if (node.contains(PICKAXE))
 				pickaxe = (Item) node.get(PICKAXE);
-			} else {
-				pickaxe = null;
-			}
-			if (node.contains(FREE_PICKAXE)){
-				freePickaxe = node.getBoolean(FREE_PICKAXE);
-			} else {
-				//3.1 之前存档及早期错误值的兼容
-				if (favor >= 2500){
-					freePickaxe = true;
-				} else {
-					freePickaxe = false;
-				}
-			}
+			freePickaxe = node.getBoolean(FREE_PICKAXE);
 			reforges = node.getInt( REFORGES );
 			hardens = node.getInt( HARDENS );
 			upgrades = node.getInt( UPGRADES );
 			smiths = node.getInt( SMITHS );
 
 			if (node.contains( SMITH_REWARDS )){
-				smithRewards = new ArrayList<Item>((Collection<Item>) ((Collection<?>) node.getCollection( SMITH_REWARDS )));
+				smithRewards = new ArrayList<>((Collection<Item>) ((Collection<?>) node.getCollection(SMITH_REWARDS)));
 				if (node.contains(ENCHANT)) {
 					smithEnchant = (Weapon.Enchantment) node.get(ENCHANT);
 					smithGlyph   = (Armor.Glyph) node.get(GLYPH);
@@ -536,7 +518,7 @@ public class Blacksmith extends NPC {
 		}
 
 		public void generateRewards(){
-			smithRewards = new ArrayList<Item>();
+			smithRewards = new ArrayList<>();
 			smithRewards.add(Generator.randomWeapon(3));
 			smithRewards.add(Generator.randomWeapon(3));
 			//两件武器不能同 class
@@ -599,8 +581,8 @@ public class Blacksmith extends NPC {
 			started = true;
 		}
 
-		public boolean beatBoss(){
-			return bossBeaten = true;
+		public void beatBoss(){
+			bossBeaten = true;
 		}
 
 		public boolean bossBeaten(){
@@ -622,13 +604,10 @@ public class Blacksmith extends NPC {
 			}
 
 			Pickaxe pick = Dungeon.hero().belongings.getItem(Pickaxe.class);
-			if (pick.isEquipped(Dungeon.hero())) {
-				boolean wasCursed = pick.cursed;
-				pick.cursed = false; //保证总能卸下
-				pick.doUnequip(Dungeon.hero(), false);
-				pick.cursed = wasCursed;
-			}
-			pick.detach(Dungeon.hero().belongings.backpack);
+			if (pick.isEquipped(Dungeon.hero()))
+				pick.detachCursedEquipment(Dungeon.hero());
+			else
+				pick.detach(Dungeon.hero().belongings.backpack);
 			Quest.cur().pickaxe = pick;
 
 			if (bossBeaten) favor += 1000;
@@ -674,8 +653,7 @@ public class Blacksmith extends NPC {
 					}
 
 					if (entrancePos != -1){
-						Painter.set(level, entrancePos, Terrain.EXIT);
-						level.placeTrigger(new MineEntranceTrigger().create(entrancePos));
+						BlacksmithRoom.placeTrigger(level, entrancePos);
 						GameScene.updateMap(entrancePos);
 					}
 				}

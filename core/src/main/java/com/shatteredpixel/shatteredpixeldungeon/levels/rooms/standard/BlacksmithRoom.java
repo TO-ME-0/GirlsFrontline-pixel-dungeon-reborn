@@ -85,13 +85,8 @@ public class BlacksmithRoom extends StandardRoom {
 			entrancePos = level.pointToCell(random( 2 ));
 		} while (level.heaps.get( entrancePos ) != null || entrancePos == npc.pos);
 
-		QuestEntrance vis = new QuestEntrance();
-		vis.pos(entrancePos % level.width(), entrancePos / level.width());
-		level.customTiles.add(vis);
-
 		//mod 以触发器替代 3.3.8 的 LevelTransition（BRANCH_EXIT）
-		Painter.set(level, entrancePos, Terrain.EXIT);
-		level.placeTrigger(new MineEntranceTrigger().create(entrancePos));
+		placeTrigger(level, entrancePos);
 
 		for(Point p : getPoints()) {
 			int cell = level.pointToCell(p);
@@ -100,7 +95,14 @@ public class BlacksmithRoom extends StandardRoom {
 			}
 		}
 	}
+	public static void placeTrigger(Level level, int pos) {
+		QuestEntrance vis = new QuestEntrance();
+		vis.pos(pos % level.width(), pos / level.width());
+		level.customTiles.add(vis);
 
+		//mod 以触发器替代 3.3.8 的 LevelTransition（BRANCH_EXIT）
+		level.placeTrigger(new MineEntranceTrigger().create(pos));
+	}
 	@Override
 	public boolean canConnect(Room r) {
 		if (r.isExit()){

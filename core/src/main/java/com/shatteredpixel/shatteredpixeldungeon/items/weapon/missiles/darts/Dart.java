@@ -78,7 +78,11 @@ public class Dart extends MissileWeapon {
 			GameScene.selectItem(itemSelector);
 		}
 	}
-	
+
+	@Override
+	public int defaultQuantity(){
+		return 2;
+	}
 	@Override
 	public int min(int lvl) {
 		if (bow != null){
