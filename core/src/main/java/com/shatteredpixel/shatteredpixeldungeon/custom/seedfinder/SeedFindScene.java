@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -51,12 +52,15 @@ import com.watabou.noosa.ui.Component;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class SeedFindScene extends PixelScene {
     public static String seedCode = "";
     private static final ArrayList<Item> wantedItems = new ArrayList<>();
     public static HeroClass currentHero = HeroClass.NONE;
     public static int currentFloor = Constants.MAX_DEPTH;
+
     public void create() {
         super.create();
 
@@ -73,7 +77,7 @@ public class SeedFindScene extends PixelScene {
         GamesInProgress.selectedClass = currentHero;
         Dungeon.init("");
         GamesInProgress.selectedClass = heroClass;
-        
+
         addToFront(mainWindow = new WndFinder());
 
         buildSearchView();
@@ -149,6 +153,7 @@ public class SeedFindScene extends PixelScene {
         final String title;
         final String body;
         final boolean overview; // 总览页带复制按钮
+
         ResultTab(String title, String body, boolean overview) {
             this.title = title;
             this.body = body;
@@ -165,6 +170,8 @@ public class SeedFindScene extends PixelScene {
         seedFinder.buildLogMatchIndex();
         boolean[] itemsFound = new boolean[seedFinder.wantedArr.length];
         for (Item item : seedFinder.wantedItems) {
+            if (item instanceof Trinket)
+                item = new TrinketCatalyst();
             StringBuilder fl = new StringBuilder();
             for (int i = 0; i < item.quantity(); i++) {
                 for (SeedFinder.FloorData fd : seedFinder.lastFloors)
@@ -260,6 +267,7 @@ public class SeedFindScene extends PixelScene {
             final ScrollPane sp;
             final RenderedTextBlock seedLabel;
             final RedButton copyBtn;
+
             {
                 Component scrollContent = new Component();
                 RenderedTextBlock txt = PixelScene.renderTextBlock(body, 6);
@@ -385,7 +393,9 @@ public class SeedFindScene extends PixelScene {
         public void onBackPressed() {
         }
     }
+
     private ExitButton exitButton;
+
     private void addExitButton() {
         exitButton = new ExitButton() {
             @Override
@@ -411,6 +421,7 @@ public class SeedFindScene extends PixelScene {
     protected void onBackPressed() {
         exitScene();
     }
+
     // 挑战文本（始终过滤 TEST_MODE，种子查找不允许测试模式）
     private static String challengeText() {
         StringBuilder sb = new StringBuilder();
@@ -426,6 +437,7 @@ public class SeedFindScene extends PixelScene {
         if (first) sb.append("无");
         return sb.toString();
     }
+
     private volatile boolean stopThread = false;
 
     // ===== 查找状态（后台线程写 / 渲染线程读） =====
@@ -478,7 +490,8 @@ public class SeedFindScene extends PixelScene {
             add(page);
             page.setRect(0, 0, winW, winH);
             Tab tab = new IconTab(tabIcon) {
-                @Override protected void select(boolean value) {
+                @Override
+                protected void select(boolean value) {
                     super.select(value);
                     pages[index].active = pages[index].visible = value;
                 }
@@ -486,6 +499,7 @@ public class SeedFindScene extends PixelScene {
             tabs[index] = tab;
             add(tab);
         }
+
         @Override
         public void update() {
             super.update();
@@ -544,7 +558,7 @@ public class SeedFindScene extends PixelScene {
                             ) {
                                 @Override
                                 public void onSelect(boolean check, String text) {
-                                    if(check) {
+                                    if (check) {
                                         seedCode = DungeonSeed.formatText(text);
                                         startTestSeed();
                                     }
@@ -559,6 +573,7 @@ public class SeedFindScene extends PixelScene {
 
             return root;
         }
+
         private void refreshPage1Info() {
             if (page1Info == null) return;
             page1Info.text(
@@ -566,6 +581,7 @@ public class SeedFindScene extends PixelScene {
                             + "最深楼层：" + currentFloor + "\n"
                             + "挑战：" + challengeText(), winW);
         }
+
         //第二页装备
         @SuppressWarnings("unchecked")
         private Component equipmentPane() {
@@ -646,6 +662,7 @@ public class SeedFindScene extends PixelScene {
             grid.scrollTo(0, 0);
             return grid;
         }
+
         //第三页消耗品
         @SuppressWarnings("unchecked")
         private Component stackablePage() {
@@ -676,7 +693,7 @@ public class SeedFindScene extends PixelScene {
                 if (category.probs[i] >= 0f)
                     g.items.add((Class<? extends Item>) category.classes[i]);
             groups.add(g);
-            
+
             category = Generator.Category.TRINKET;
             g = new ItemGroup(Catalog.TRINKETS.title());
             for (int i = 0; i < category.classes.length; i++)
@@ -701,101 +718,110 @@ public class SeedFindScene extends PixelScene {
             grid.scrollTo(0, 0);
             return grid;
         }
+
         //第四页物品清单
         private Component listPage() {
-            return new listPageWrapper();
+            return listPage;
         }
+        listPageWrapper listPage = new listPageWrapper();
         private class listPageWrapper extends Component {
-            listPane pane;
+            listPane pane = new listPane();
             RedButton removeAllBtn;
+
             listPageWrapper() {
                 super();
-                pane = new listPane();
                 add(pane);
                 removeAllBtn = new RedButton("移除全部") {
                     @Override
                     protected void onClick() {
                         wantedItems.clear();
-                        pane.lastCount = -1;
+                        updateList();
                     }
                 };
                 add(removeAllBtn);
             }
+
             @Override
             protected void layout() {
                 // 下方常驻"移除全部"按钮(24px)，上方为滚动列表
                 pane.setRect(0, 0, width, Math.max(0, height - 24));
                 removeAllBtn.setRect(0, Math.max(0, height - 22), width, 20);
             }
-        }
-        private class listPane extends ScrollPane {
-            int lastCount = -1;
-            ArrayList<WndRanking.canScrollItemButton> buttons = new ArrayList<>();
-            public listPane() {
-                super(new Component());
-            }
-            @Override
-            public void update() {
-                super.update();
-                int count = wantedItems.size();
-                if (count != lastCount) {
-                    resetButton();
-                    lastCount = count;
+            private class listPane extends ScrollPane {
+                int lastCount = -1;
+                ArrayList<WndRanking.canScrollItemButton> buttons = new ArrayList<>();
+
+                public listPane() {
+                    super(new Component());
+                }
+
+                @Override
+                public void update() {
+                    super.update();
+                    int count = wantedItems.size();
+                    if (count != lastCount) {
+                        resetButton();
+                        lastCount = count;
+                    }
+                }
+
+                void resetButton() {
+                    for (WndRanking.canScrollItemButton button : buttons)
+                        button.destroy();
+                    content.clear();
+                    buttons.clear();
+
+                    float pos = 0;
+                    for (Item item : wantedItems.toArray(new Item[0])) {
+                        String[] actions = item.quantity() > 1 ? new String[]{"移除一个", "移除全部", "取消"} : new String[]{"移除", "取消"};
+                        WndRanking.canScrollItemButton button = new WndRanking.canScrollItemButton(item, true) {
+                            @Override
+                            public void onClick() {
+                                GirlsFrontlinePixelDungeon.scene().addToFront(
+                                        new WndOptions(item.toString(), item.desc(), actions) {
+                                            @Override
+                                            public void onSelect(int index) {
+                                                if (item.quantity() == 1)
+                                                    index++;
+
+                                                if (index == 0) {
+                                                    item.quantity(item.quantity() - 1);
+                                                    updateList();
+                                                    hide();
+                                                } else if (index == 1) {
+                                                    wantedItems.remove(item);
+                                                    updateList();
+                                                    hide();
+                                                } else if (index == 2)
+                                                    hide();
+                                            }
+                                        });
+                            }
+                        };
+                        button.setRect(0, pos, width, 23);
+                        content.add(button);
+                        buttons.add(button);
+                        pos += button.height() + 1;
+                    }
+                    content.setSize(width, pos - 1);
                 }
             }
-            void resetButton() {
-                for (WndRanking.canScrollItemButton button : buttons)
-                    button.destroy();
-                content.clear();
-                buttons.clear();
-
-                float pos = 0;
-                for (Item item : wantedItems.toArray(new Item[0])) {
-                    String[] actions = item.quantity() > 1 ? new String[]{"移除一个", "移除全部", "取消"}: new String[]{"移除", "取消"};
-                    WndRanking.canScrollItemButton button = new WndRanking.canScrollItemButton(item, true) {
-                        @Override
-                        public void onClick() {
-                            GirlsFrontlinePixelDungeon.scene().addToFront(
-                                    new WndOptions(item.toString(), item.desc(), actions) {
-                                        @Override
-                                        public void onSelect(int index) {
-                                            if (item.quantity() == 1)
-                                                index++;
-
-                                            if (index == 0) {
-                                                item.quantity(item.quantity() - 1);
-                                                lastCount = -1;
-                                                hide();
-                                            }
-                                            else if (index == 1) {
-                                                wantedItems.remove(item);
-                                                lastCount = -1;
-                                                hide();
-                                            }
-                                            else if (index == 2)
-                                                hide();
-                                        }
-                                    });
-                        }
-                    };
-                    button.setRect( 0, pos, width, 23 );
-                    content.add(button);
-                    buttons.add(button);
-                    pos += button.height() + 1;
-                }
-                content.setSize(width, pos - 1);
-            }
         }
+
+
         //第五页文字清单+开始查询
         private Component startFindingPane() {
-            return new summaryPane();
+            return summary;
         }
+        summaryPane summary = new summaryPane();
         private class summaryPane extends ScrollPane {
             int lastCount = -1;
             RedButton startBtn;
+
             public summaryPane() {
                 super(new Component());
             }
+
             @Override
             public void update() {
                 super.update();
@@ -805,6 +831,7 @@ public class SeedFindScene extends PixelScene {
                     lastCount = count;
                 }
             }
+
             void resetButton() {
                 Component content = this.content();
                 content.clear();
@@ -817,7 +844,7 @@ public class SeedFindScene extends PixelScene {
                 sb.append("物品需求（共 ").append(wantedItems.size()).append(" 件）：\n");
                 for (int i = 0; i < wantedItems.size(); i++)
                     sb.append(i + 1).append(". ").append(wantedItems.get(i).toString()).append("\n");
-                
+
                 RenderedTextBlock summary = PixelScene.renderTextBlock("", 6);
                 summary.text(sb.toString(), (int) w);
                 content.add(summary);
@@ -861,148 +888,174 @@ public class SeedFindScene extends PixelScene {
                 content.setSize(w, pos);
             }
         }
+        private void updateList() {
+            summary.lastCount = listPage.pane.lastCount = -1;
+        }
         @Override
         public void onBackPressed() {
 
         }
     }
-    public static class WndFinderSettings extends WndStartGame {
-            // 与父类窗口同宽；底部按钮行位于 HEIGHT(150)-20
-            private static final int WIN_W = 117;
-            private static final int ROW_Y = 130;
 
-            private int tempFloor = currentFloor;
-            public WndFinderSettings() {
-                super(WndStartGame.slot, true, WndStartGame.mode);
-            }
-            @Override
-            public void addStartButton() {
-                RedButton confirmBtn = new RedButton("确认") {
-                    @Override
-                    public void onClick() {
-                        if (GamesInProgress.selectedClass == null) return;
-                        super.onClick();
-                        SeedFindScene.currentHero = GamesInProgress.selectedClass;
-                        currentFloor = tempFloor;
-                        Dungeon.init("");
-                        mainWindow.refreshPage1Info();
-                        hide();
-                    }
-                    @Override
-                    public void update() {
-                        if(!visible && GamesInProgress.selectedClass != null){
-                            visible = true;
-                        }
-                        super.update();
-                    }
-                };
-                confirmBtn.visible = false;
-                confirmBtn.setRect(0, ROW_Y, WIN_W, 20);
-                add(confirmBtn);
-            }
-            @Override
-            public void addLeftButton(boolean ignored) {
-                StyledButton floorBtn = new FloorButton();
-                floorBtn.setRect(0, ROW_Y, 20, 20);
-                floorBtn.visible = false;
-                add(floorBtn);
-            }
-            @Override
-            public void addRightButton(boolean ignore, boolean ignored) {
-                super.addRightButton(false, true);
-            }
-            public final class FloorButton extends StyledButton {
-                public FloorButton() {
-                    super(Chrome.Type.GEM, String.valueOf(currentFloor), 8);
-                }
+    public static class WndFinderSettings extends WndStartGame {
+        // 与父类窗口同宽；底部按钮行位于 HEIGHT(150)-20
+        private static final int WIN_W = 117;
+        private static final int ROW_Y = 130;
+
+        private int tempFloor = currentFloor;
+
+        public WndFinderSettings() {
+            super(WndStartGame.slot, true, WndStartGame.mode);
+        }
+
+        @Override
+        public void addStartButton() {
+            RedButton confirmBtn = new RedButton("确认") {
                 @Override
-                protected void onClick() {
-                    GirlsFrontlinePixelDungeon.scene().addToFront(new WndSelectLevel());
+                public void onClick() {
+                    if (GamesInProgress.selectedClass == null) return;
+                    super.onClick();
+                    SeedFindScene.currentHero = GamesInProgress.selectedClass;
+                    currentFloor = tempFloor;
+                    Dungeon.init("");
+                    mainWindow.refreshPage1Info();
+                    hide();
                 }
+
                 @Override
                 public void update() {
-                    // 与父类种子/挑战按钮一致：选中角色后才显现
                     if (!visible && GamesInProgress.selectedClass != null) {
                         visible = true;
                     }
                     super.update();
                 }
-                public final class WndSelectLevel extends Window {
-                    private static final int PICKER_W = 120;
-                    private static final int GAP = 2;
-                    private static final int BTN_SIZE = 16;
-                    private static final int PANE_MAX_HEIGHT = 96;
+            };
+            confirmBtn.visible = false;
+            confirmBtn.setRect(0, ROW_Y, WIN_W, 20);
+            add(confirmBtn);
+        }
 
-                    private int selectedFloor = tempFloor;
-                    final public RedButton confirm;
+        @Override
+        public void addLeftButton(boolean ignored) {
+            StyledButton floorBtn = new FloorButton();
+            floorBtn.setRect(0, ROW_Y, 20, 20);
+            floorBtn.visible = false;
+            add(floorBtn);
+        }
 
-                    WndSelectLevel() {
-                        super();
-                        ScrollPane sp = new ScrollPane(new Component());
-                        add(sp);
+        @Override
+        public void addRightButton(boolean ignore, boolean ignored) {
+            super.addRightButton(false, true);
+        }
 
-                        confirm = new RedButton(Messages.get(SeedFindScene.class, "setFloor", selectedFloor)) {
-                            @Override
-                            protected void onClick() {
-                                tempFloor = selectedFloor;
-                                FloorButton.this.text(String.valueOf(selectedFloor));
-                                hide();
-                            }
-                        };
-                        add(confirm);
+        public final class FloorButton extends StyledButton {
+            public FloorButton() {
+                super(Chrome.Type.GEM, String.valueOf(currentFloor), 8);
+            }
 
-                        Component content = sp.content();
-                        float xPos = (PICKER_W - 5 * BTN_SIZE - GAP * 8) / 2f;
-                        float each = GAP * 2 + BTN_SIZE;
-                        for (int i = 0; i < Constants.MAX_DEPTH; ++i) {
-                            StyledButton btn = floorBtn(i);
-                            btn.setRect(xPos + (i % 5) * each, (i / 5) * each, BTN_SIZE, BTN_SIZE);
-                            PixelScene.align(btn);
-                            content.add(btn);
+            @Override
+            protected void onClick() {
+                GirlsFrontlinePixelDungeon.scene().addToFront(new WndSelectLevel());
+            }
+
+            @Override
+            public void update() {
+                // 与父类种子/挑战按钮一致：选中角色后才显现
+                if (!visible && GamesInProgress.selectedClass != null) {
+                    visible = true;
+                }
+                super.update();
+            }
+
+            public final class WndSelectLevel extends Window {
+                private static final int PICKER_W = 120;
+                private static final int GAP = 2;
+                private static final int BTN_SIZE = 16;
+                private static final int PANE_MAX_HEIGHT = 96;
+
+                private int selectedFloor = tempFloor;
+                final public RedButton confirm;
+
+                WndSelectLevel() {
+                    super();
+                    ScrollPane sp = new ScrollPane(new Component());
+                    add(sp);
+
+                    confirm = new RedButton(Messages.get(SeedFindScene.class, "setFloor", selectedFloor)) {
+                        @Override
+                        protected void onClick() {
+                            tempFloor = selectedFloor;
+                            FloorButton.this.text(String.valueOf(selectedFloor));
+                            hide();
+                        }
+                    };
+                    add(confirm);
+
+                    Component content = sp.content();
+                    float xPos = (PICKER_W - 5 * BTN_SIZE - GAP * 8) / 2f;
+                    float each = GAP * 2 + BTN_SIZE;
+                    for (int i = 0; i < Constants.MAX_DEPTH; ++i) {
+                        StyledButton btn = floorBtn(i);
+                        btn.setRect(xPos + (i % 5) * each, (i / 5) * each, BTN_SIZE, BTN_SIZE);
+                        PixelScene.align(btn);
+                        content.add(btn);
+                    }
+
+                    int rows = (Constants.MAX_DEPTH - 1) / 5 + 1;
+                    float contentHeight = rows * each - GAP * 2;
+                    content.setSize(PICKER_W, contentHeight);
+                    sp.setRect(0, 0, PICKER_W, contentHeight);
+                    confirm.setRect(0, PANE_MAX_HEIGHT + GAP * 2, PICKER_W, BTN_SIZE);
+                    resize(PICKER_W, (int) confirm.bottom());
+                    sp.setRect(0, 0, PICKER_W, PANE_MAX_HEIGHT);
+                    sp.scrollTo(0, 0);
+                }
+
+                private StyledButton floorBtn(int i) {
+                    final int j = i + 1;
+                    return new StyledButton(Chrome.Type.GEM, String.valueOf(j), 8) {
+                        {
+                            hotArea.blockLevel = PointerArea.NEVER_BLOCK;
                         }
 
-                        int rows = (Constants.MAX_DEPTH - 1) / 5 + 1;
-                        float contentHeight = rows * each - GAP * 2;
-                        content.setSize(PICKER_W, contentHeight);
-                        sp.setRect(0, 0, PICKER_W, contentHeight);
-                        confirm.setRect(0, PANE_MAX_HEIGHT + GAP * 2, PICKER_W, BTN_SIZE);
-                        resize(PICKER_W, (int) confirm.bottom());
-                        sp.setRect(0, 0, PICKER_W, PANE_MAX_HEIGHT);
-                        sp.scrollTo(0, 0);
-                    }
-
-                    private StyledButton floorBtn(int i) {
-                        final int j = i + 1;
-                        return new StyledButton(Chrome.Type.GEM, String.valueOf(j), 8) {
-                            {
-                                hotArea.blockLevel = PointerArea.NEVER_BLOCK;
-                            }
-                            @Override
-                            protected void onClick() {
-                                selectedFloor = j;
-                                confirm.text(Messages.get(SeedFindScene.class, "setFloor", selectedFloor));
-                            }
-                        };
-                    }
+                        @Override
+                        protected void onClick() {
+                            selectedFloor = j;
+                            confirm.text(Messages.get(SeedFindScene.class, "setFloor", selectedFloor));
+                        }
+                    };
                 }
             }
         }
-        
+    }
+    private static void addWantedItem(Item item) {
+        wantedItems.add(item);
+        Collections.sort(wantedItems, itemComparator);
+    }
+    public static final Comparator<Item> itemComparator = new Comparator<Item>() {
+        @Override
+        public int compare( Item lhs, Item rhs ) {
+            return rhs.trueLevel() - lhs.trueLevel();
+        }
+    };
     private static final class PickGridItem extends ScrollingGridPane.GridItem {
         private final Class<? extends Item> cls;
         private final boolean direct;   // 神器/饰品：单击直接加入，无配置窗
         private final boolean single;   // 饰品：只允许一个
+
         PickGridItem(Class<? extends Item> cls) {
             super(image(cls));
             this.cls = cls;
             single = Trinket.class.isAssignableFrom(cls);
             direct = single || Artifact.class.isAssignableFrom(cls);
         }
+
         private boolean isWanted() {
             for (Item item : wantedItems)
                 if (cls.isInstance(item)) return true;
             return false;
         }
+
         @Override
         public void update() {
             super.update();
@@ -1032,8 +1085,9 @@ public class SeedFindScene extends PixelScene {
                 for (Item item : wantedItems.toArray(new Item[0]))
                     if (item instanceof Trinket)
                         wantedItems.remove(item);
-            wantedItems.add(newInstance(cls));
+            addWantedItem(newInstance(cls));
         }
+
         private final static class ItemConfigWindow extends Window {
             private static final int WIDTH = 120;
             private static final int GAP = 2;
@@ -1043,6 +1097,7 @@ public class SeedFindScene extends PixelScene {
             boolean isEnchant;
             int augRare, augId;
             RenderedTextBlock augInfo;
+
             ItemConfigWindow(Class<? extends Item> cls) {
                 super();
                 Item item = newInstance(cls);
@@ -1109,12 +1164,13 @@ public class SeedFindScene extends PixelScene {
                             for (Item i : wantedItems)
                                 if (cls.isInstance(i))
                                     same = i;
-                            if (same != null)
+                            if (same != null) {
                                 same.quantity(same.quantity() + item.quantity());
+                                mainWindow.updateList();
+                            }
                             else
-                                wantedItems.add(item);
-                        }
-                        else {
+                                addWantedItem(item);
+                        } else {
                             if (augRare > 0) {
                                 Class<?>[] pool = pools[augRare - 1];
                                 if (augId < pool.length) {
@@ -1125,7 +1181,7 @@ public class SeedFindScene extends PixelScene {
                                         ((Armor) item).inscribe((Armor.Glyph) aug);
                                 }
                             }
-                            wantedItems.add(item);
+                            addWantedItem(item);
                         }
                         hide();
                     }
@@ -1146,6 +1202,7 @@ public class SeedFindScene extends PixelScene {
                 resize(WIDTH, (int) pos);
 
             }
+
             private OptionSlider getSlider(int maxLevel, Item item) {
                 OptionSlider slider;
                 if (maxLevel > 0) {
@@ -1155,9 +1212,8 @@ public class SeedFindScene extends PixelScene {
                             item.level(getSelectedValue());
                         }
                     };
-                slider.setSelectedValue(0);
-                }
-                else {
+                    slider.setSelectedValue(0);
+                } else {
                     slider = new OptionSlider("数量", "1", "10", 1, 10) {
                         @Override
                         protected void onChange() {
@@ -1166,13 +1222,15 @@ public class SeedFindScene extends PixelScene {
                                 item.quantity(value);
                         }
                     };
-                slider.setSelectedValue(1);
-            }
+                    slider.setSelectedValue(1);
+                }
                 return slider;
             }
+
             private String getAugName(Class<?> augClass) {
                 return Messages.get(augClass, "name", "");
             }
+
             private void updateAugText() {
                 StringBuilder info = new StringBuilder();
                 int lines = 0;
@@ -1218,6 +1276,7 @@ public class SeedFindScene extends PixelScene {
             Armor.Glyph.rare,
             Armor.Glyph.curses
     };
+
     private static Item newInstance(Class<? extends Item> cls) {
         Item item = Reflection.newInstance(cls);
         assert item != null;
@@ -1229,12 +1288,14 @@ public class SeedFindScene extends PixelScene {
         item.levelKnown = true;
         return item;
     }
+
     private static Image image(Class<? extends Item> cls) {
         Item item = newInstance(cls);
         if (item instanceof ColorItem)
             return Icons.Notice((ColorItem) item);
         return new ItemSprite(item.image, item.glowing());
     }
+
     // ---- 物品分组（懒构建，全局复用） ----
     private static final class ItemGroup {
         final String header;
@@ -1244,6 +1305,7 @@ public class SeedFindScene extends PixelScene {
             this.header = header;
         }
     }
+
     private static int getMaxLevelForClass(Item item) {
         if (item instanceof Wand || item instanceof Holder.WandHolder) {
             // 已选 +3 任务配件，其余配件最多 +2（一局仅一根任务杖）
@@ -1258,12 +1320,14 @@ public class SeedFindScene extends PixelScene {
         return item instanceof Weapon || item instanceof Armor
                 ? 3 : 0;
     }
+
     private static boolean hasQuestLevel(Class<?> type) {
         for (Item item : wantedItems)
             if (type.isInstance(item) && item.trueLevel() >= 3)
                 return true;
         return false;
     }
+
     // ======================== update() / 查找状态节流刷新 ========================
     @Override
     public void update() {
@@ -1302,6 +1366,7 @@ public class SeedFindScene extends PixelScene {
             }
         }
     }
+
     public static SeedFindScene INSTANCE = null;
     volatile String text = "";
 
@@ -1313,6 +1378,7 @@ public class SeedFindScene extends PixelScene {
 
     private static WndFinder mainWindow;
     private Thread findSeedThread;
+
     private void startSearch() {
         // 防御：即使 TEST_MODE 曾在 debug 菜单里被写入，种子查找也一律不带它
         SPDSettings.challenges(SPDSettings.challenges() & ~Challenges.TEST_MODE);

@@ -68,7 +68,6 @@ public enum Rankings {
 		if(Dungeon.isChallenged(Challenges.TEST_MODE)){
 			return;
 		}
-		Notes.addNoteToBag();
 		for (Item i :Dungeon.hero().belongings){
 			if (i.buffedLvl() != i.level()) {
 				i.BuffLevelPoint = i.buffedLvl() - i.level();
