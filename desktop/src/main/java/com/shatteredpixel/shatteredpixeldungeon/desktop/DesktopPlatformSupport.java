@@ -156,19 +156,22 @@ public class DesktopPlatformSupport extends PlatformSupport {
 	private static FreeTypeFontGenerator asianFontGenerator;
 
 	@Override
-	public void setupFontGenerators(int pageSize, boolean systemfont) {
+	public void setupFontGenerators(int pageSize, int fontType) {
 		//don't bother doing anything if nothing has changed
-		if (fonts != null && this.pageSize == pageSize && this.systemfont == systemfont){
+		if (fonts != null && this.pageSize == pageSize && this.fontType == fontType){
 			return;
 		}
 		this.pageSize = pageSize;
-		this.systemfont = systemfont;
+		this.fontType = fontType;
 
 		resetGenerators(false);
 		fonts = new HashMap<>();
 
 		basicFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pixel_font.ttf"));
-		asianFontGenerator = SPDSettings.systemFont() ?  new FreeTypeFontGenerator(Gdx.files.internal("fonts/droid_sans.ttf")) : new FreeTypeFontGenerator(Gdx.files.internal("fonts/fusion_pixel.ttf"));
+		//根据设置选择亚洲字体：系统字体 / 方正像素字体 / 融合像素字体
+		String asianFont = fontType == SPDSettings.FONT_SYSTEM ? "fonts/droid_sans.ttf"
+				: (fontType == SPDSettings.FONT_FZ ? "fonts/fz_pixel.ttf" : "fonts/fusion_pixel.ttf");
+		asianFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(asianFont));
 		fallbackFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/droid_sans.ttf"));
 
 		fonts.put(basicFontGenerator, new HashMap<>());

@@ -408,7 +408,7 @@ public class WndSettings extends WndTabbed {
 		CheckBox chkFlipTags;
 		CheckBox chkMobPos;
 		ColorBlock sep2;
-		CheckBox chkFont;
+		RedButton btnFont;
 		RedButton btnStatusPaneStyle;
 		ColorBlock sep3;
 		RedButton btnKeyBindings;
@@ -536,14 +536,16 @@ public class WndSettings extends WndTabbed {
 			sep2 = new ColorBlock(1, 1, 0xFF000000);
 			add(sep2);
 
-			chkFont = new CheckBox(Messages.get(this, "system_font")){
+			btnFont = new RedButton(fontButtonText()){
 				@Override
 				protected void onClick() {
 					super.onClick();
+					//循环切换三种字体，随后无缝重置场景以重建字体生成器
+					final int newType = (SPDSettings.fontType() + 1) % 3;
 					GirlsFrontlinePixelDungeon.seamlessResetScene(new Game.SceneChangeCallback() {
 						@Override
 						public void beforeCreate() {
-							SPDSettings.systemFont(checked());
+							SPDSettings.fontType(newType);
 						}
 
 						@Override
@@ -553,8 +555,7 @@ public class WndSettings extends WndTabbed {
 					});
 				}
 			};
-			chkFont.checked(SPDSettings.systemFont());
-			add(chkFont);
+			add(btnFont);
 
 			// 状态面板风格切换按钮
 			btnStatusPaneStyle = new RedButton(Messages.get(this, "status_pane_style")){
@@ -585,6 +586,19 @@ public class WndSettings extends WndTabbed {
 				};
 
 				add(btnKeyBindings);
+			}
+		}
+
+		//根据当前字体设置生成按钮文本
+		private String fontButtonText(){
+			switch (SPDSettings.fontType()){
+				case SPDSettings.FONT_FZ:
+					return Messages.get(this, "font_fz");
+				case SPDSettings.FONT_SYSTEM:
+					return Messages.get(this, "font_system");
+				case SPDSettings.FONT_FUSION:
+				default:
+					return Messages.get(this, "font_fusion");
 			}
 		}
 
@@ -626,22 +640,22 @@ public class WndSettings extends WndTabbed {
 			sep2.size(width, 1);
 			sep2.y = chkMobPos.bottom() + 2;
 
-			chkFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
+			btnFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
 
 			if (btnKeyBindings != null){
 				if (width > 200){
 					// 大屏幕：并排显示三个选项
-					chkFont.setSize(width/3-1, BTN_HEIGHT);
-					btnStatusPaneStyle.setRect(chkFont.right()+2, chkFont.top(), width/3-1, BTN_HEIGHT);
+					btnFont.setSize(width/3-1, BTN_HEIGHT);
+					btnStatusPaneStyle.setRect(btnFont.right()+2, btnFont.top(), width/3-1, BTN_HEIGHT);
 					sep3.size(1, BTN_HEIGHT + 2*GAP);
 					sep3.x = btnStatusPaneStyle.right() + 0.5f;
 					sep3.y = sep2.y+1;
 					PixelScene.align(sep3);
-					btnKeyBindings.setRect(btnStatusPaneStyle.right()+2, chkFont.top(), width/3 - 1, BTN_HEIGHT);
+					btnKeyBindings.setRect(btnStatusPaneStyle.right()+2, btnFont.top(), width/3 - 1, BTN_HEIGHT);
 				} else {
 					// 小屏幕：垂直排列
 					sep3.size(width, 1);
-					sep3.y = chkFont.bottom() + 2;
+					sep3.y = btnFont.bottom() + 2;
 					btnStatusPaneStyle.setRect(0, sep3.y + 1 + GAP, width, BTN_HEIGHT);
 					sep3.size(width, 1);
 					sep3.y = btnStatusPaneStyle.bottom() + 2;
@@ -652,12 +666,12 @@ public class WndSettings extends WndTabbed {
 				// 没有键盘绑定按钮的情况
 				if (width > 200){
 					// 大屏幕：并排显示两个选项
-					chkFont.setSize(width/2-1, BTN_HEIGHT);
-					btnStatusPaneStyle.setRect(chkFont.right()+2, chkFont.top(), width/2-1, BTN_HEIGHT);
-					height = chkFont.bottom();
+					btnFont.setSize(width/2-1, BTN_HEIGHT);
+					btnStatusPaneStyle.setRect(btnFont.right()+2, btnFont.top(), width/2-1, BTN_HEIGHT);
+					height = btnFont.bottom();
 				} else {
 					// 小屏幕：垂直排列
-					btnStatusPaneStyle.setRect(0, chkFont.bottom() + 2 + GAP, width, BTN_HEIGHT);
+					btnStatusPaneStyle.setRect(0, btnFont.bottom() + 2 + GAP, width, BTN_HEIGHT);
 					height = btnStatusPaneStyle.bottom();
 				}
 			}

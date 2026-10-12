@@ -467,14 +467,20 @@ public class SPDSettings extends GameSettings {
 	}
 	
 	//Languages and Font
-	
+
 	public static final String KEY_LANG         = "language";
 	public static final String KEY_SYSTEMFONT	= "system_font";
-	
+	public static final String KEY_FONTTYPE     = "font_type";
+
+	//字体类型：0=融合像素字体 1=方正像素字体 2=系统字体
+	public static final int FONT_FUSION = 0;
+	public static final int FONT_FZ     = 1;
+	public static final int FONT_SYSTEM = 2;
+
 	public static void language(Languages lang) {
 		put( KEY_LANG, lang.code());
 	}
-	
+
 	public static Languages language() {
 		String code = getString(KEY_LANG, null);
 		if (code == null){
@@ -483,14 +489,20 @@ public class SPDSettings extends GameSettings {
 			return Languages.matchCode(code);
 		}
 	}
-	
-	public static void systemFont(boolean value){
-		put(KEY_SYSTEMFONT, value);
+
+	public static void fontType(int value){
+		put(KEY_FONTTYPE, value);
 	}
-	
-	public static boolean systemFont(){
-		return getBoolean(KEY_SYSTEMFONT,
-				(language() == Languages.CHINESE));
+
+	public static int fontType(){
+		//兼容旧的"系统字体"布尔开关：true 迁移为系统字体，false 迁移为融合像素字体
+		if (!contains(KEY_FONTTYPE) && contains(KEY_SYSTEMFONT)){
+			int migrated = getBoolean(KEY_SYSTEMFONT,
+					(language() == Languages.CHINESE)) ? FONT_SYSTEM : FONT_FUSION;
+			put(KEY_FONTTYPE, migrated);
+			return migrated;
+		}
+		return getInt(KEY_FONTTYPE, FONT_FUSION, FONT_FUSION, FONT_SYSTEM);
 	}
 
 	//Connectivity

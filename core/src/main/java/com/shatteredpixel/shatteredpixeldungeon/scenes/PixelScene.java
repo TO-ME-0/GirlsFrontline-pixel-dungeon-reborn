@@ -180,7 +180,7 @@ public class PixelScene extends Scene {
 		if (Messages.lang() == Languages.CHINESE){
 			renderedTextPageSize *= 2;
 		}
-		Game.platform.setupFontGenerators(renderedTextPageSize, SPDSettings.systemFont());
+		Game.platform.setupFontGenerators(renderedTextPageSize, SPDSettings.fontType());
 
 		Tooltip.resetLastUsedTime();
 

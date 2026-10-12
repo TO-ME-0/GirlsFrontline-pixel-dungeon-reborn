@@ -80,9 +80,9 @@ public abstract class PlatformSupport {
 
 	protected int pageSize;
 	protected PixmapPacker packer;
-	protected boolean systemfont;
+	protected int fontType;
 
-	public abstract void setupFontGenerators(int pageSize, boolean systemFont );
+	public abstract void setupFontGenerators(int pageSize, int fontType );
 
 	protected abstract FreeTypeFontGenerator getGeneratorForString( String input );
 
@@ -116,7 +116,7 @@ public abstract class PlatformSupport {
 			}
 			fonts = null;
 		}
-		if (setupAfter) setupFontGenerators(pageSize, systemfont);
+		if (setupAfter) setupFontGenerators(pageSize, fontType);
 	}
 
 	public void reloadGenerators(){

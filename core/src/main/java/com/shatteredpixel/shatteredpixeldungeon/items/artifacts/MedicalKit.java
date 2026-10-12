@@ -23,7 +23,9 @@ package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarShield;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -61,11 +63,10 @@ public class MedicalKit extends Artifact {
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
-		// GSH-18 专属；需装备、满充能、未诅咒才可使用
+		// GSH-18 专属；需装备、满充能才可使用（被诅咒时仍可使用，但会带来负面效果）
 		if (hero.heroClass == HeroClass.GSH18
 				&& isEquipped( hero )
-				&& charge >= chargeCap
-				&& !cursed){
+				&& charge >= chargeCap){
 			actions.add( AC_USE );
 		}
 		return actions;
@@ -82,17 +83,23 @@ public class MedicalKit extends Artifact {
 				GLog.i( Messages.get( Artifact.class, "need_to_equip" ) );
 			} else if (charge < chargeCap){
 				GLog.i( Messages.get( this, "no_charge" ) );
-			} else if (cursed){
-				GLog.w( Messages.get( this, "cursed" ) );
 			} else {
 				// 消耗 100% 充能
 				charge = 0;
 				partialCharge = 0;
 
-				// 获得 10 点星之护盾
-				Buff.affect( hero, StarShield.class ).incShield( 10 );
-				if (hero.sprite != null){
-					hero.sprite.centerEmitter().burst( MagicMissile.WardParticle.FACTORY, 4 );
+				if (cursed){
+					// 被诅咒时使用：获得中毒和烧伤各5回合，不获得星之护盾
+					Buff.affect( hero, Poison.class ).set( 5f );
+					Buff.affect( hero, Burning.class ).reignite( hero, 5f );
+					GLog.w( Messages.get( this, "cursed_used" ) );
+				} else {
+					// 正常使用：获得 10 点星之护盾
+					Buff.affect( hero, StarShield.class ).incShield( 10 );
+					if (hero.sprite != null){
+						hero.sprite.centerEmitter().burst( MagicMissile.WardParticle.FACTORY, 4 );
+					}
+					GLog.i( Messages.get( this, "used" ) );
 				}
 
 				hero.sprite.operate( hero.pos );
@@ -106,7 +113,6 @@ public class MedicalKit extends Artifact {
 				growByUse();
 
 				updateQuickslot();
-				GLog.i( Messages.get( this, "used" ) );
 			}
 		}
 
@@ -124,6 +130,28 @@ public class MedicalKit extends Artifact {
 			GLog.p( Messages.get( this, "levelup" ) );
 			need = 100 + level() * 100;
 		}
+	}
+
+	// 急救药箱天赋：医疗包未装备到神器栏时，由 StarShield.incShield 按概率调用充能
+	// 逻辑与 KitRecharge.gainCharge 一致，但不依赖被动 buff（未装备时无 KitRecharge）
+	public void chargeFromInventory( Hero hero, int amount ){
+		if (amount <= 0) return;
+		if (charge >= chargeCap) return;
+		if (cursed) return;
+		LockedFloor lock = hero.buff( LockedFloor.class );
+		if (lock != null && !lock.regenOn()) return;
+
+		float chargeGain = amount * RingOfEnergy.artifactChargeMultiplier( hero );
+		partialCharge += chargeGain;
+		while (partialCharge >= 1){
+			partialCharge -= 1;
+			charge++;
+			if (charge == chargeCap){
+				partialCharge = 0;
+				break;
+			}
+		}
+		updateQuickslot();
 	}
 
 	@Override

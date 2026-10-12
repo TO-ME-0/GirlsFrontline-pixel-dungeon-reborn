@@ -176,6 +176,8 @@ public enum Talent {
 	GSH18_SIRIUS_HEART(171, 3),
 	//GSH18 未来之星 T3
 	GSH18_COMPANION_SYNC(172, 3),
+	//GSH18 T3 通用 - 急救药箱（医疗包未装备时也可充能）
+	GSH18_FIRST_AID_KIT(173, 3),
 	//Huntress 超级小爱 T3 - 飞升自由
 	FLIGHT_FREEDOM(28, 3),
 	//Huntress 超级小爱 T3 - 全能战术（磁轨加速弹射线伤害提升）
@@ -736,7 +738,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, SEARCH_ARMY, ELITE_ARMY);
 				break;
             case GSH18:
-                Collections.addAll(tierTalents,GSH18_INTELLIGENCE_AWARENESS,GSH18_AGILE_MOVEMENT);
+                Collections.addAll(tierTalents,GSH18_INTELLIGENCE_AWARENESS,GSH18_AGILE_MOVEMENT,GSH18_FIRST_AID_KIT);
                 break;
             case HK416:
                 Collections.addAll(tierTalents, HK416_FAST_SUPPLY, HK416_ACOG);

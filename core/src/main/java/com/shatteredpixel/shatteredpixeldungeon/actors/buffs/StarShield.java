@@ -29,7 +29,9 @@ import com.watabou.utils.Bundle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MedicalKit;
+import com.watabou.utils.Random;
 
 import java.util.Locale;
 
@@ -74,11 +76,22 @@ public class StarShield extends ShieldBuff {
 
 		super.incShield(incAmount);
 
-		// 便携医疗包：每 1 点星之护盾充能 1%（仅在 hero 装备 MedicalKit 时生效）
+		// 便携医疗包：每 1 点星之护盾充能 1%
 		if (target instanceof Hero){
-			MedicalKit.KitRecharge medkitBuff = ((Hero)target).buff(MedicalKit.KitRecharge.class);
+			Hero hero = (Hero)target;
+			MedicalKit.KitRecharge medkitBuff = hero.buff(MedicalKit.KitRecharge.class);
 			if (medkitBuff != null){
+				// 已装备：正常充能
 				medkitBuff.gainCharge(incAmount);
+			} else if (hero.hasTalent(Talent.GSH18_FIRST_AID_KIT)){
+				// 未装备：急救药箱天赋按概率充能（+1=35%、+2=70%、+3=100%）
+				MedicalKit kit = hero.belongings.getItem(MedicalKit.class);
+				if (kit != null){
+					float prob = Math.min(1f, 0.35f * hero.pointsInTalent(Talent.GSH18_FIRST_AID_KIT));
+					if (Random.Float() < prob){
+						kit.chargeFromInventory(hero, incAmount);
+					}
+				}
 			}
 		}
 	}

@@ -195,13 +195,13 @@ public class AndroidPlatformSupport extends PlatformSupport {
 	private static boolean koreanAndroid6OTF = false;
 
 	@Override
-	public void setupFontGenerators(int pageSize, boolean systemfont) {
+	public void setupFontGenerators(int pageSize, int fontType) {
 		//don't bother doing anything if nothing has changed
-		if (fonts != null && this.pageSize == pageSize && this.systemfont == systemfont){
+		if (fonts != null && this.pageSize == pageSize && this.fontType == fontType){
 			return;
 		}
 		this.pageSize = pageSize;
-		this.systemfont = systemfont;
+		this.fontType = fontType;
 
 		resetGenerators(false);
 		fonts = new HashMap<>();
@@ -279,13 +279,15 @@ public class AndroidPlatformSupport extends PlatformSupport {
 			if (JPFontGenerator == null) JPFontGenerator = fallbackGenerator;
 
 		}
-		if (!systemfont) {
+		if (fontType != SPDSettings.FONT_SYSTEM) {
+			//像素字体模式：按设置选用融合像素字体或方正像素字体
+			String cjkFont = fontType == SPDSettings.FONT_FZ ? "fonts/fz_pixel.ttf" : "fonts/fusion_pixel.ttf";
 			switch (SPDSettings.language()) {
 				case CHINESE:
 					fallbackFontGenerator = SCFontGenerator;
 					break;
 			}
-			KRFontGenerator = SCFontGenerator = TCFontGenerator = JPFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/fusion_pixel.ttf"));
+			KRFontGenerator = SCFontGenerator = TCFontGenerator = JPFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(cjkFont));
 		} else {
 			switch (SPDSettings.language()) {
 				case CHINESE:
