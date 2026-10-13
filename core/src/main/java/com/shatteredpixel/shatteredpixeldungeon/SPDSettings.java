@@ -290,8 +290,8 @@ public class SPDSettings extends GameSettings {
 	}
 
 	// 状态面板风格：0=默认(旧版), 1=新版, 2=第三种风格
-	public static void statusPaneStyle( int value ) {
-		put( KEY_STATUS_PANE_STYLE, value );
+	public static void statusPaneStyleNext() {
+		put( KEY_STATUS_PANE_STYLE, (statusPaneStyle() + 1) % 3 );
 	}
 
 	public static int statusPaneStyle() {

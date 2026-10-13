@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArc;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArcRing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -59,6 +60,23 @@ public class StatusPane extends Component {
 
 	public static final float FLASH_RATE = (float)(Math.PI*1.5f); //1.5 blinks per second
 
+	//新版UI（status_pane1）中经验圆环的参数
+	private static final int RING_SEGMENTS = 32;
+	//小尺寸布局：状态栏在屏幕顶部，圆环位于头像右下角（朝屏幕中心）
+	private static final float RING_CENTER_X = 27.5f;
+	private static final float RING_CENTER_Y = 28.5f;
+	//大尺寸/桌面布局：状态栏在屏幕底部，圆环位于头像右上角（朝屏幕中心）
+	private static final float RING_CENTER_X_LARGE = 27.5f;
+	private static final float RING_CENTER_Y_LARGE = 0.5f;
+	//实心填充环的半径，与贴图里静态圆弧的粗细一致
+	private static final float RING_INNER = 6.0f;
+	private static final float RING_OUTER = 6.8f;
+	//底环略微加宽，用于完全遮盖贴图里的静态圆弧
+	private static final float RING_TRACK_INNER = 5.65f;
+	private static final float RING_TRACK_OUTER = 7.05f;
+	private static final int RING_TRACK_COLOR = 0x262626;
+	private static final int RING_FILL_COLOR = 0xFFB500;
+
 	private int lastTier = 0;
 
 	private Image rawShielding;
@@ -69,6 +87,10 @@ public class StatusPane extends Component {
 
 	private Image exp;
 	private BitmapText expText;
+
+	//新版UI（status_pane1）头像右下角的圆环经验指示器，仅小尺寸布局使用
+	private CircleArcRing expRingTrack;
+	private CircleArcRing expRingFill;
 
 	private int lastLvl = -1;
 
@@ -105,6 +127,19 @@ public class StatusPane extends Component {
 		if (large)  bg = new NinePatch( asset, 0, 64, 41, 39, 33, 0, 4, 0 );
 		else        bg = new NinePatch( asset, 0, 0, 128, 36, 85, 0, 45, 0 );
 		add( bg );
+
+		//新版UI（status_pane1）用圆环显示真实经验比例：小尺寸贴图已带静态圆弧（用底环遮盖），大尺寸/桌面直接绘制
+		if (SPDSettings.statusPaneStyle() == 1) {
+			//先用不透明底环遮盖贴图里可能存在的静态圆弧
+			expRingTrack = new CircleArcRing( RING_SEGMENTS, RING_TRACK_INNER, RING_TRACK_OUTER );
+			expRingTrack.ringColor( RING_TRACK_COLOR );
+			expRingTrack.setSweep( 1f );
+			add( expRingTrack );
+
+			expRingFill = new CircleArcRing( RING_SEGMENTS, RING_INNER, RING_OUTER );
+			expRingFill.ringColor( RING_FILL_COLOR );
+			add( expRingFill );
+		}
 
 		heroInfo = new Button(){
 			@Override
@@ -209,6 +244,13 @@ public class StatusPane extends Component {
 			exp.x = x + 30;
 			exp.y = y + 30;
 
+			if (expRingTrack != null) {
+				expRingTrack.x = x + RING_CENTER_X_LARGE;
+				expRingTrack.y = y + RING_CENTER_Y_LARGE;
+				expRingFill.x = x + RING_CENTER_X_LARGE;
+				expRingFill.y = y + RING_CENTER_Y_LARGE;
+			}
+
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 19;
 
@@ -229,6 +271,13 @@ public class StatusPane extends Component {
 		} else {
 			exp.x = x;
 			exp.y = y;
+
+			if (expRingTrack != null) {
+				expRingTrack.x = x + RING_CENTER_X;
+				expRingTrack.y = y + RING_CENTER_Y;
+				expRingFill.x = x + RING_CENTER_X;
+				expRingFill.y = y + RING_CENTER_Y;
+			}
 
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 3;
@@ -300,6 +349,12 @@ public class StatusPane extends Component {
 
 		} else {
 			exp.scale.x = (width / exp.width) * Dungeon.hero().exp / Dungeon.hero().maxExp();
+		}
+
+		//经验圆环在大小/桌面两种布局下都要按真实经验比例刷新
+		if (expRingFill != null) {
+			float ratio = Dungeon.hero().exp / (float)Dungeon.hero().maxExp();
+			expRingFill.setSweep( Math.min( 1f, Math.max( 0f, ratio ) ) );
 		}
 
 		if (Dungeon.hero().lvl != lastLvl) {

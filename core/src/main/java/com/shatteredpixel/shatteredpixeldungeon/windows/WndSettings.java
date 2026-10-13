@@ -563,9 +563,7 @@ public class WndSettings extends WndTabbed {
 				protected void onClick() {
 					super.onClick();
 					// 切换状态面板风格
-					int currentStyle = SPDSettings.statusPaneStyle();
-					int newStyle = (currentStyle + 1) % 3; // 现在有三种风格，循环切换
-					SPDSettings.statusPaneStyle(newStyle);
+					SPDSettings.statusPaneStyleNext();
 					// 重启场景以应用新设置
 					GirlsFrontlinePixelDungeon.seamlessResetScene();
 				}
