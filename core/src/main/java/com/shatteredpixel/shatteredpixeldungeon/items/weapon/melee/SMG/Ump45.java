@@ -47,6 +47,7 @@ public class Ump45 extends SubMachineGun {
         image = ItemSpriteSheet.UMP45;
 
         tier = 1;
+        tag = Tag.SMG;
         RCH = 1;
         ACC = 0.7f;
         DEF = 1;

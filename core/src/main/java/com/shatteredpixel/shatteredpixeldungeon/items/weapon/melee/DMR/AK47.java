@@ -32,6 +32,7 @@ public class AK47 extends DesignatedMarksmanRifle {
 		hitSoundPitch = 0.8f;
 
 		tier = 4;
+		tag = Tag.AR;
 		ACC = 0.8f;
         dmgBaseMul = 7;
         dmgUpgradeMul = 1.6F;

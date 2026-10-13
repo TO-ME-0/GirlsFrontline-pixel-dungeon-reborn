@@ -29,6 +29,7 @@ public class Negev extends MachineGun {
 		image = ItemSpriteSheet.NEGEV;
 
 		tier = 3;
+		tag = Tag.MG;
 	}
 
 }

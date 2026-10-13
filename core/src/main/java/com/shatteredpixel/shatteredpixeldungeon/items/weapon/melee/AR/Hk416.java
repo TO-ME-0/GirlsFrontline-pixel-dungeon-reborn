@@ -30,6 +30,7 @@ public class Hk416 extends AssaultRifle {
 
 		DLY = 0.8f;
 		tier = 4;
+		tag = Tag.AR;
         dmgUpgradeDiffer = 3;
 	}
 

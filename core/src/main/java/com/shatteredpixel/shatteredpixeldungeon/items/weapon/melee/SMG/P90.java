@@ -42,6 +42,7 @@ public class P90 extends SubMachineGun {
         image = ItemSpriteSheet.P90;
 
         tier = 5;
+        tag = Tag.SMG;
         DLY = 0.5f;     //极高的射速
         ACC = 1.2f;     //20%命中加成
         DEF = 2;        //可吸收少量伤害

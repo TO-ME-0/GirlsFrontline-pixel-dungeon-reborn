@@ -12,6 +12,7 @@ public class Mg42 extends MachineGun {
         image = ItemSpriteSheet.MG42;
 
         tier = 6;
+        tag = Tag.MG;
         ACC = 0.65f;
         DLY = 0.1f;
         dmgBaseMul = 1.3F;

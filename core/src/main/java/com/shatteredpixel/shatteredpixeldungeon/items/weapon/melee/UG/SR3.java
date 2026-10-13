@@ -33,6 +33,7 @@ public class SR3 extends UniversaleGun {
         image = ItemSpriteSheet.SR3;
 
         tier = 1;
+        tag = Tag.SMG;
         DEF = 3;
         dmgBaseMul = 4;
         dmgUpgradeDiffer = 2;

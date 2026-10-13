@@ -30,6 +30,7 @@ public class M1a1 extends SubMachineGun {
 		image = ItemSpriteSheet.M1A1;
 
 		tier = 2;
+		tag = Tag.SMG;
         DEF = 3;
         dmgBaseMul = 4;
 	}

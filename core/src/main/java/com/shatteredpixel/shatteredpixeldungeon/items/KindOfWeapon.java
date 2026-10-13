@@ -40,6 +40,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import java.util.Locale;
+
 abstract public class KindOfWeapon extends EquipableItem {
 
 	protected static final float TIME_TO_EQUIP = 1f;
@@ -49,10 +51,24 @@ abstract public class KindOfWeapon extends EquipableItem {
 
 	//武器枪种标签，供角色天赋等系统按武器类别进行判定
 	public enum Tag {
-		NONE, HG,	//手枪（Handgun）
-		RF	        //步枪（Rifle）
+		NONE,
+		HG,		//手枪（Handgun）
+		RF,		//步枪（Rifle）
+		AR,		//突击步枪（Assault Rifle）
+		SMG,	//冲锋枪（Submachine Gun）
+		MG,		//机枪（Machine Gun）
+		SG,		//霰弹枪（Shotgun）
+		CQC;	//近战武器（Close Quarters Combat）
+
+		//标签的显示名称（取自items.properties），用于图鉴等界面展示
+		public String label() {
+			return Messages.get(Tag.class, name().toLowerCase(Locale.ROOT));
+		}
 	}
 	protected Tag tag = Tag.NONE;
+	public Tag tag() {
+		return tag;
+	}
 	public boolean hasTag( Tag tag ){
 		return this.tag == tag;
 	}

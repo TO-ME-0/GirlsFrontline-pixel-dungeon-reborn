@@ -29,6 +29,7 @@ public class Dp extends MachineGun {
         image = ItemSpriteSheet.DP;
 
         tier = 1;
+        tag = Tag.MG;
     }
 
 }

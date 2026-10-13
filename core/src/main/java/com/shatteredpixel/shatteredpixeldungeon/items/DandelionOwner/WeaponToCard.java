@@ -87,6 +87,11 @@ public class WeaponToCard {
         CardSelector selector = CardSelector.INSTANCE();
         return !selector.contain(card) || selector.curCards.contains(card);
     }
+
+    //该武器是否可以插入丹德莱的抽卡器换取对应卡牌（仅供图鉴等界面查询）
+    public static boolean isCardCompatible( MeleeWeapon weapon ) {
+        return weapon != null && map.containsKey(weapon.getClass());
+    }
     public static WndBag.ItemSelector weaponSelector = new WndBag.ItemSelector() {
 
         @Override

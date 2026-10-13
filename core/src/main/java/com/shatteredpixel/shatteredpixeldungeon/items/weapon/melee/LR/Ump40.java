@@ -12,6 +12,7 @@ public class Ump40 extends LongRange {
         image = ItemSpriteSheet.UMP40;
 
         tier = 1;
+        tag = Tag.SMG;
         RCH = 4;
         dmgBaseMul = 3;
         dmgUpgradeDiffer = -1;

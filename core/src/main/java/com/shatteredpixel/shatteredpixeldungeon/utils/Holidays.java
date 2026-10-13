@@ -8,7 +8,7 @@ public class Holidays {
         NONE,
         EASTER,             // T BD
         BREAD_INDEPENDENT,  // 6월 4일 빵복절
-        HWEEN,              // 2nd week of october though first day of november
+        HWEEN,              // 公历10月29日~11月1日 万圣节
         midAutumnFestival,  // 八月十五中秋节
         XMAS,               // 3rd week of december through first week of january
         SPRING_FESTIVAL,    // 除夕及正月初一至初七 春节
@@ -49,7 +49,7 @@ public class Holidays {
                 break;
 
             case Calendar.OCTOBER:
-                if (calendar.get(Calendar.WEEK_OF_MONTH) >= 2)
+                if (calendar.get(Calendar.DAY_OF_MONTH) >= 29)
                     holiday = Holiday.HWEEN;
                 break;
             case Calendar.NOVEMBER:

@@ -27,6 +27,7 @@ public class M4A1 extends MeleeWeapon implements ActionIndicator.Action {
 		defaultAction = AC_CHOOSE;
 		tier = 1;
 		RCH = 2;
+		tag = Tag.AR;
 		bones = false;
         dmgBaseDiffer = -0.8F;
 		bones = false;

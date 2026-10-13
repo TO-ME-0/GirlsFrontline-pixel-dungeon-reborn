@@ -38,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.WeaponToCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
@@ -1173,6 +1175,8 @@ public class WndJournal extends WndTabbed {
 		//TODO 这个理应放到各个类里边，默认返回null，重写返回注解效果，然后property非null时，附页展示其机制。
 		private static String property(MeleeWeapon weapon) {
 			weapon.update();
+			//先记录枪种标签，Cypros等武器在下方模式切换过程中会改变自身标签
+			KindOfWeapon.Tag tag = weapon.tag();
 			String info = "";
 			if (weapon instanceof Cypros) {
 				info += Messages.format("该武器阶数_%d_。\n", weapon.tier);
@@ -1209,6 +1213,12 @@ public class WndJournal extends WndTabbed {
 				else if (weapon instanceof SurpriseAttack)
 					info += Messages.format("\n该类武器在伏击时的伤害区间改写为当前的区间的_%.1f_%%~_100_%%。", ((SurpriseAttack) weapon).damageMin * 100);
 			}
+			//追加枪种标签，无标签（NONE）的武器不显示该行
+			if (tag != KindOfWeapon.Tag.NONE)
+				info += Messages.get(CatalogTab.class, "weapon_tag", tag.label());
+			//可插入丹德莱抽卡器的武器额外标注
+			if (WeaponToCard.isCardCompatible(weapon))
+				info += Messages.get(CatalogTab.class, "card_compatible");
 			return info;
 		}
 

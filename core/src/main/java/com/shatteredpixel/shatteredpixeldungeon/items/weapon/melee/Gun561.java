@@ -46,6 +46,7 @@ public class Gun561 extends ShootGun {
 		hasCharge=false;
 		image = ItemSpriteSheet.GUN561;
 		RCH = 2;
+		tag = Tag.AR;
         cooldownTurns=200;
         dmgBaseMul = 4;
 	}

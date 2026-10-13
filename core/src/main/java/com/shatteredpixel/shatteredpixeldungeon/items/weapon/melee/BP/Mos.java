@@ -30,6 +30,7 @@ public class Mos extends BulletProof {
 		image = ItemSpriteSheet.MOS;
 
 		tier = 3;
+		tag = Tag.CQC;
         DEF = 5;
         DEFUPGRADE = 2;
         dmgBaseMul = 3;

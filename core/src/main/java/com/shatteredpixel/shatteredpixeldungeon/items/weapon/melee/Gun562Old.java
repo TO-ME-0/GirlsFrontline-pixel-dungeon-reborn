@@ -23,6 +23,7 @@ public class Gun562Old extends ShootGun_OLD {
 		needReload=false;
 		tier = 3;
 		RCH = 3;
+		tag = Tag.AR;
 	}
 
 	@Override

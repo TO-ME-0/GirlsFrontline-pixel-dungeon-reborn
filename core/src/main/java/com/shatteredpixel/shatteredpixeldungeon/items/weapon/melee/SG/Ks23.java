@@ -29,6 +29,7 @@ public class Ks23 extends ShotGun {
 		image = ItemSpriteSheet.KS23;
 
 		tier = 3;
+		tag = Tag.SG;
 		ACC = 2f; //17.5% boost to accuracy
 	}
 

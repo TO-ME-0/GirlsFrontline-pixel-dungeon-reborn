@@ -223,11 +223,12 @@ public class MenuPane extends Component {
 		dateText.text( DATE_FORMAT.format( new Date() ) );
 		add( dateText );
 
-		//覆盖在日期文字上的透明按钮：当前为节日/特殊日时点击生效（任意层数）
+		//覆盖在日期文字上的透明按钮：当前为节日/特殊日/彩蛋生效时点击生效（任意层数）
 		dateButton = new Button() {
 			@Override
 			protected void onClick() {
-				if (Holidays.holiday != Holidays.Holiday.NONE || SPDSettings.isSpecialDay()) {
+				//手动开启的圣诞彩蛋（非真实节日期间）也可弹出节日介绍
+				if (Holidays.holiday != Holidays.Holiday.NONE || SPDSettings.isSpecialDay() || Dungeon.isXMAS()) {
 					GameScene.show(new WndFestival());
 				}
 			}

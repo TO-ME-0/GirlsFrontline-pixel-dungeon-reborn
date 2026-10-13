@@ -33,6 +33,7 @@ public class GUA91 extends SurpriseAttack {
 		image = ItemSpriteSheet.GUA91;
         damageMin = 0.5F;
 		tier = 4;
+		tag = Tag.AR;
 	}
 
 }

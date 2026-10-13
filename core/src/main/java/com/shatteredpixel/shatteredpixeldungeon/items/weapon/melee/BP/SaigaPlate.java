@@ -30,6 +30,7 @@ public class SaigaPlate extends BulletProof {
 		image = ItemSpriteSheet.GREATSHIELD;
 
 		tier = 5;
+		tag = Tag.CQC;
         DEF = 10;
         DEFUPGRADE = 3;
         dmgBaseMul = 2.5F;

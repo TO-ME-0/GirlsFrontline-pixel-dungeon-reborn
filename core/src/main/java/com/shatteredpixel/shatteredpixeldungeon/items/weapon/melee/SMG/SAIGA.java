@@ -30,6 +30,7 @@ public class SAIGA extends SubMachineGun {
         image = ItemSpriteSheet.SAIGA;
 
         tier=6;
+        tag = Tag.SG;
         DLY = 0.5f;
         ACC = 1.27f; //27% boost to accuracy
         DEF = 5;

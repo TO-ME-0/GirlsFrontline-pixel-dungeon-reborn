@@ -31,6 +31,7 @@ public class Usas12 extends ShotGun {
 		DLY = 0.8f;
 		ACC = 2f;
 		tier=5;
+		tag = Tag.SG;
 	}
 
 }

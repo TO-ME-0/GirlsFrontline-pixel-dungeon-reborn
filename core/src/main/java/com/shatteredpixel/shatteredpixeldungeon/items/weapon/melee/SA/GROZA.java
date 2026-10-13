@@ -34,6 +34,7 @@ public class GROZA extends SurpriseAttack {
         damageMin = 0.5F;
         tier = 6;
         dmgBaseMul = 4.5F;
+        tag = Tag.AR;
     }
 
 }

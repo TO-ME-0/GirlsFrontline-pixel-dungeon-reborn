@@ -43,6 +43,7 @@ public class Pickaxe extends MeleeWeapon {
 
 		levelKnown = true;
 		tier = 3;
+		tag = Tag.CQC;
 		unique = true;
 		bones = false;
 

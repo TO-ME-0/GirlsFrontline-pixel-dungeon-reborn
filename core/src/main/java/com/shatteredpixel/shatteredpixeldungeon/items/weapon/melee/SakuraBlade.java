@@ -57,6 +57,7 @@ public class SakuraBlade extends MeleeWeapon {
     {
         image = ItemSpriteSheet.GREATAXE;
         tier = 5;
+        tag = Tag.CQC;
         defaultAction = AC_SKILL;
 
         dmgBaseDiffer = 4;

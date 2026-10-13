@@ -34,6 +34,7 @@ public class Kriss extends MeleeWeapon {
 		image = ItemSpriteSheet.KRISS;
 
 		tier = 3;
+		tag = Tag.SMG;
         DEF = 3;
         dmgBaseMul = 3;
         dmgUpgradeMul = 0.5F;

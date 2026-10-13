@@ -29,6 +29,7 @@ public class G36 extends AssaultRifle {
         image = ItemSpriteSheet.G36;
 
         tier = 2;
+        tag = Tag.AR;
         DLY = 0.8f;
         dmgBaseMul = 3;
         dmgUpgradeDiffer = 2;

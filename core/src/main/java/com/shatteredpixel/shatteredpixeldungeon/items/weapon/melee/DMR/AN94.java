@@ -10,6 +10,7 @@ public class AN94 extends DesignatedMarksmanRifle {
         hitSoundPitch = 0.5f;
 
         tier = 4;
+        tag = Tag.AR;
         RCH = 3;
         dmgBaseDiffer = -1F;
         dmgUpgradeDiffer = -0.5F;

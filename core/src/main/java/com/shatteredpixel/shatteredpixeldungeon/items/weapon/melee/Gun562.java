@@ -27,6 +27,7 @@ public class Gun562 extends ShootGun {
         needReload=false;
         tier = 3;
         RCH = 2;
+        tag = Tag.AR;
         cooldownTurns=150;
         dmgBaseMul = 6;
         dmgUpgradeDiffer = -1;

@@ -77,6 +77,7 @@ public class MagesStaff extends MeleeWeapon {
         hitSoundPitch = 1.1f;
 
         tier = 1;
+        tag = Tag.AR;
 
         defaultAction = AC_ZAP;
         usesTargeting = true;

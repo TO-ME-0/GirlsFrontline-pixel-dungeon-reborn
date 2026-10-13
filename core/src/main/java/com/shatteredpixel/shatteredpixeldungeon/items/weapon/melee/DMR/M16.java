@@ -42,6 +42,7 @@ public class M16 extends DesignatedMarksmanRifle {
 		image = ItemSpriteSheet.M16;
 
 		tier = 2;
+		tag = Tag.AR;
         DEF = 3;
         DEFUPGRADE = 1;
         dmgBaseMul = 2;

@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -61,6 +62,16 @@ public class WndFestival extends Window {
 			String key = holidayKey(Holidays.holiday);
 			name = Messages.get(WndFestival.class, key + ".name");
 			desc = Messages.get(WndFestival.class, key + ".desc");
+
+			//现实日期无节日但圣诞彩蛋已生效：改显圣诞介绍
+			if (Holidays.holiday == Holidays.Holiday.NONE && Dungeon.isXMAS()) {
+				name = Messages.get(WndFestival.class, "xmas.name");
+				desc = Messages.get(WndFestival.class, "xmas.desc");
+				//彩蛋由营地NPC主动开启（CHRISTMAS模式位）时，标注"主动开启"
+				if (Dungeon.isGameMode(WndStartGame.GameMode.CHRISTMAS)) {
+					desc += Messages.get(WndFestival.class, "manual_note");
+				}
+			}
 		}
 
 		float y = MARGIN;

@@ -47,6 +47,7 @@ public class Gun561Old extends ShootGun_OLD {
 		image = ItemSpriteSheet.GUN561;
 		RCH = 2;
 		bones = false;
+		tag = Tag.AR;
 		}
 
 	@Override
