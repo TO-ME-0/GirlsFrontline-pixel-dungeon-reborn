@@ -561,7 +561,7 @@ public abstract class RegularLevel extends Level {
 					map[cell] = Terrain.GRASS;
 					losBlocking[cell] = false;
 				}
-				drop( Generator.randomUsingDefaults(), cell).hidden = true;
+				drop( Generator.randomUsingDefaults(), cell).opacity = Random.NormalFloat( 0.1F, 0.2F );
 			}
 		Random.popGenerator();
 

@@ -2622,6 +2622,13 @@ public class Hero extends Char {
 						Dungeon.level.mapped[curr] = true;
 					}
 
+					//仅主动搜索覆盖到隐藏物品（如望远镜产生）时，渐进提升其不透明度（不超过1）
+					Heap heap = Dungeon.level.heaps.get(curr);
+					if (intentional && heap != null && heap.opacity < 1f) {
+						heap.opacity = Math.min(1f, heap.opacity + Random.NormalFloat(0.05F, 0.1F));
+						if (heap.sprite != null) heap.sprite.alpha(heap.opacity);
+					}
+
 					if (Dungeon.level.secret[curr]){
 
 						Trap trap = Dungeon.level.traps.get( curr );

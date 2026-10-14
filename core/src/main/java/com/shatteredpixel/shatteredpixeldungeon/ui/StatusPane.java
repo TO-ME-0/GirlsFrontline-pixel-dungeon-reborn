@@ -60,14 +60,11 @@ public class StatusPane extends Component {
 
 	public static final float FLASH_RATE = (float)(Math.PI*1.5f); //1.5 blinks per second
 
-	//新版UI（status_pane1）中经验圆环的参数
+	//新版UI（status_pane1）中经验圆环的参数，仅小尺寸布局使用
 	private static final int RING_SEGMENTS = 32;
-	//小尺寸布局：状态栏在屏幕顶部，圆环位于头像右下角（朝屏幕中心）
+	//状态栏在屏幕顶部，圆环位于头像右下角（朝屏幕中心）
 	private static final float RING_CENTER_X = 27.5f;
 	private static final float RING_CENTER_Y = 28.5f;
-	//大尺寸/桌面布局：状态栏在屏幕底部，圆环位于头像右上角（朝屏幕中心）
-	private static final float RING_CENTER_X_LARGE = 27.5f;
-	private static final float RING_CENTER_Y_LARGE = 0.5f;
 	//实心填充环的半径，与贴图里静态圆弧的粗细一致
 	private static final float RING_INNER = 6.0f;
 	private static final float RING_OUTER = 6.8f;
@@ -128,9 +125,9 @@ public class StatusPane extends Component {
 		else        bg = new NinePatch( asset, 0, 0, 128, 36, 85, 0, 45, 0 );
 		add( bg );
 
-		//新版UI（status_pane1）用圆环显示真实经验比例：小尺寸贴图已带静态圆弧（用底环遮盖），大尺寸/桌面直接绘制
-		if (SPDSettings.statusPaneStyle() == 1) {
-			//先用不透明底环遮盖贴图里可能存在的静态圆弧
+		//新版UI（status_pane1）用圆环显示真实经验比例：小尺寸贴图已带静态圆弧（用底环遮盖后重绘），桌面不显示
+		if (!large && SPDSettings.statusPaneStyle() == 1) {
+			//先用不透明底环遮盖贴图里的静态圆弧
 			expRingTrack = new CircleArcRing( RING_SEGMENTS, RING_TRACK_INNER, RING_TRACK_OUTER );
 			expRingTrack.ringColor( RING_TRACK_COLOR );
 			expRingTrack.setSweep( 1f );
@@ -243,13 +240,6 @@ public class StatusPane extends Component {
 		if (large) {
 			exp.x = x + 30;
 			exp.y = y + 30;
-
-			if (expRingTrack != null) {
-				expRingTrack.x = x + RING_CENTER_X_LARGE;
-				expRingTrack.y = y + RING_CENTER_Y_LARGE;
-				expRingFill.x = x + RING_CENTER_X_LARGE;
-				expRingFill.y = y + RING_CENTER_Y_LARGE;
-			}
 
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 19;
