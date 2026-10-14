@@ -34,17 +34,17 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GhoulSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.UndeadSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class Ghoul extends Mob {
+public class Undead extends Mob {
 	
 	{
-		spriteClass = GhoulSprite.class;
+		spriteClass = UndeadSprite.class;
 		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 45;
@@ -120,7 +120,7 @@ public class Ghoul extends Mob {
 			}
 			
 			if (!candidates.isEmpty()){
-				Ghoul child = new Ghoul();
+				Undead child = new Undead();
 				child.partnerID = this.id();
 				this.partnerID = child.id();
 				if (state != SLEEPING) {
@@ -150,15 +150,15 @@ public class Ghoul extends Mob {
 
 	@Override
 	public void die(Object cause) {
-		if (cause != Chasm.class && cause != GhoulLifeLink.class && !Dungeon.level.pit[pos]){
-			Ghoul nearby = GhoulLifeLink.searchForHost(this);
+		if (cause != Chasm.class && cause != UndeadLifeLink.class && !Dungeon.level.pit[pos]){
+			Undead nearby = UndeadLifeLink.searchForHost(this);
 			if (nearby != null){
 				beingLifeLinked = true;
 				Actor.remove(this);
 				Dungeon.level.mobs.remove( this );
 				timesDowned++;
-				Buff.append(nearby, GhoulLifeLink.class).set(timesDowned*5, this);
-				((GhoulSprite)sprite).crumple();
+				Buff.append(nearby, UndeadLifeLink.class).set(timesDowned*5, this);
+				((UndeadSprite)sprite).crumple();
 				beingLifeLinked = false;
 				return;
 			}
@@ -181,7 +181,7 @@ public class Ghoul extends Mob {
 					Buff.prolong(this, SacrificialFire.Marked.class, 5F);
 				}else if (!(buff instanceof AllyBuff)
 						&& (!(buff instanceof ChampionEnemy))
-						&& !(buff instanceof DwarfKing.KingDamager)
+						&& !(buff instanceof Disloli.KingDamager)
 						&& !(buff instanceof ActiveAbstract.NotDetach)
 						&& !(buff instanceof Buff_Statistics)) {
 					buff.detach();
@@ -195,7 +195,7 @@ public class Ghoul extends Mob {
 	private class Sleeping extends Mob.Sleeping {
 		@Override
 		public boolean act( boolean enemyInFOV, boolean justAlerted ) {
-			Ghoul partner = (Ghoul) Actor.findById( partnerID );
+			Undead partner = (Undead) Actor.findById( partnerID );
 			if (partner != null && partner.state != partner.SLEEPING){
 				state = WANDERING;
 				target = partner.pos;
@@ -212,7 +212,7 @@ public class Ghoul extends Mob {
 		protected boolean continueWandering() {
 			enemySeen = false;
 			
-			Ghoul partner = (Ghoul) Actor.findById( partnerID );
+			Undead partner = (Undead) Actor.findById( partnerID );
 			if (partner != null && (partner.state != partner.WANDERING || Dungeon.level.distance( pos,  partner.target) > 1)){
 				target = partner.pos;
 				int oldPos = pos;
@@ -229,16 +229,16 @@ public class Ghoul extends Mob {
 		}
 	}
 
-	public static class GhoulLifeLink extends Buff{
+	public static class UndeadLifeLink extends Buff{
 
-		private Ghoul ghoul;
+		private Undead undead;
 		private int turnsToRevive;
 
 		@Override
 		public boolean act() {
-			ghoul.sprite.visible = Dungeon.level.heroFOV[ghoul.pos];
+			undead.sprite.visible = Dungeon.level.heroFOV[undead.pos];
 
-			if (target.alignment != ghoul.alignment){
+			if (target.alignment != undead.alignment){
 				detach();
 				return true;
 			}
@@ -248,45 +248,45 @@ public class Ghoul extends Mob {
 				Dungeon.level.updateFieldOfView( target, target.fieldOfView );
 			}
 
-			if (!target.fieldOfView[ghoul.pos] && Dungeon.level.distance(ghoul.pos, target.pos) >= 4){
+			if (!target.fieldOfView[undead.pos] && Dungeon.level.distance(undead.pos, target.pos) >= 4){
 				detach();
 				return true;
 			}
 
-			if (Dungeon.level.pit[ghoul.pos]){
+			if (Dungeon.level.pit[undead.pos]){
 				super.detach();
-				ghoul.die(this);
+				undead.die(this);
 				return true;
 			}
 
 			turnsToRevive--;
 			if (turnsToRevive <= 0){
-				if (Actor.findChar( ghoul.pos ) != null) {
+				if (Actor.findChar( undead.pos ) != null) {
 					ArrayList<Integer> candidates = new ArrayList<>();
 					for (int n : PathFinder.NEIGHBOURS8()) {
-						int cell = ghoul.pos + n;
+						int cell = undead.pos + n;
 						if (Dungeon.level.passable[cell]
 								&& Actor.findChar( cell ) == null
-								&& (!Char.hasProp(ghoul, Property.LARGE) || Dungeon.level.openSpace[cell])) {
+								&& (!Char.hasProp(undead, Property.LARGE) || Dungeon.level.openSpace[cell])) {
 							candidates.add( cell );
 						}
 					}
 					if (candidates.size() > 0) {
 						int newPos = Random.element( candidates );
-						Actor.addDelayed( new Pushing( ghoul, ghoul.pos, newPos ), -1 );
-						ghoul.pos = newPos;
+						Actor.addDelayed( new Pushing( undead, undead.pos, newPos ), -1 );
+						undead.pos = newPos;
 
 					} else {
 						spend(TICK);
 						return true;
 					}
 				}
-				ghoul.HP = Math.round(ghoul.HT/10f);
-				Actor.add(ghoul);
-				ghoul.timeToNow();
-				Dungeon.level.mobs.add(ghoul);
-				Dungeon.level.occupyCell( ghoul );
-				ghoul.sprite.idle();
+				undead.HP = Math.round(undead.HT/10f);
+				Actor.add(undead);
+				undead.timeToNow();
+				Dungeon.level.mobs.add(undead);
+				Dungeon.level.occupyCell( undead );
+				undead.sprite.idle();
 				super.detach();
 				return true;
 			}
@@ -295,58 +295,58 @@ public class Ghoul extends Mob {
 			return true;
 		}
 
-		public void set(int turns, Ghoul ghoul){
-			this.ghoul = ghoul;
+		public void set(int turns, Undead undead){
+			this.undead = undead;
 			turnsToRevive = turns;
 		}
 
 		@Override
 		public void fx(boolean on) {
-			if (on && ghoul != null && ghoul.sprite == null){
-				GameScene.addSprite(ghoul);
-				((GhoulSprite)ghoul.sprite).crumple();
+			if (on && undead != null && undead.sprite == null){
+				GameScene.addSprite(undead);
+				((UndeadSprite)undead.sprite).crumple();
 			}
 		}
 
 		@Override
 		public void detach() {
 			super.detach();
-			Ghoul newHost = searchForHost(ghoul);
+			Undead newHost = searchForHost(undead);
 			if (newHost != null){
 				attachTo(newHost);
 				timeToNow();
 			} else {
-				ghoul.die(this);
+				undead.die(this);
 			}
 		}
 
-		private static final String GHOUL = "ghoul";
+		private static final String UNDEAD = "undead";
 		private static final String LEFT  = "left";
 
 		@Override
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
-			bundle.put(GHOUL, ghoul);
+			bundle.put(UNDEAD, undead);
 			bundle.put(LEFT, turnsToRevive);
 		}
 
 		@Override
 		public void restoreFromBundle(Bundle bundle) {
 			super.restoreFromBundle(bundle);
-			ghoul = (Ghoul) bundle.get(GHOUL);
+			undead = (Undead) bundle.get(UNDEAD);
 			turnsToRevive = bundle.getInt(LEFT);
 		}
 
-		public static Ghoul searchForHost(Ghoul dieing){
+		public static Undead searchForHost(Undead dieing){
 
 			for (Char ch : Actor.chars()){
-				if (ch != dieing && ch instanceof Ghoul && ch.alignment == dieing.alignment){
+				if (ch != dieing && ch instanceof Undead && ch.alignment == dieing.alignment){
 					if (ch.fieldOfView == null){
 						ch.fieldOfView = new boolean[Dungeon.level.length()];
 						Dungeon.level.updateFieldOfView( ch, ch.fieldOfView );
 					}
 					if (ch.fieldOfView[dieing.pos] || Dungeon.level.distance(ch.pos, dieing.pos) < 4){
-						return (Ghoul) ch;
+						return (Undead) ch;
 					}
 				}
 			}

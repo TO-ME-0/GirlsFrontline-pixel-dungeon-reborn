@@ -28,9 +28,9 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.Callback;
 
-public class TenguSprite extends MobSprite {
+public class UroSprite extends MobSprite {
 	
-	public TenguSprite() {
+	public UroSprite() {
 		super();
 		
 		texture( Assets.Sprites.URO );
@@ -74,7 +74,7 @@ public class TenguSprite extends MobSprite {
 	public void attack( int cell ) {
 		if (!Dungeon.level.adjacent( cell, ch.pos )) {
 			((MissileSprite)parent.recycle( MissileSprite.class )).
-					reset( this, cell, new TenguShuriken(), new Callback() {
+					reset( this, cell, new UroShuriken(), new Callback() {
 						@Override
 						public void call() {
 							ch.onAttackComplete();
@@ -105,7 +105,7 @@ public class TenguSprite extends MobSprite {
 		}
 	}
 
-	public static class TenguShuriken extends Item {
+	public static class UroShuriken extends Item {
 		{
 			image = ItemSpriteSheet.SHURIKEN;
 		}

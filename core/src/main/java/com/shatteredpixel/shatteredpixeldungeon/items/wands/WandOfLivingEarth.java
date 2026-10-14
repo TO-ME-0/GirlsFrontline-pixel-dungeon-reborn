@@ -38,7 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.EarthGuardianSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SAT8Sprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.audio.Sample;
@@ -295,7 +295,7 @@ public class WandOfLivingEarth extends DamageWand {
 	public static class EarthGuardian extends NPC {
 
 		{
-			spriteClass = EarthGuardianSprite.class;
+			spriteClass = SAT8Sprite.class;
 
 			alignment = Alignment.ALLY;
 			state = HUNTING;

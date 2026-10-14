@@ -28,7 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Thief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -70,7 +70,7 @@ public class Multiplicity extends Armor.Glyph {
 					//FIXME should probably have a mob property for this
 					if (!(attacker instanceof Mob)
 							|| attacker.properties().contains(Char.Property.BOSS) || attacker.properties().contains(Char.Property.MINIBOSS)
-							|| attacker instanceof Mimic || attacker instanceof Statue){
+							|| attacker instanceof Mimic || attacker instanceof SksStatue){
 						m = Dungeon.level.createMob();
 					} else {
 						Actor.fixTime();

@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.IntruderSprite;
 import com.watabou.utils.Random;
 
-public class Intruder extends Golem {
+public class Intruder extends Manti {
 
     {
         spriteClass = IntruderSprite.class;

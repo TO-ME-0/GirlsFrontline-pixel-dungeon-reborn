@@ -37,16 +37,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Cyclops;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Dragun;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FetidRat;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gnoll;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Undead;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Prowler;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollSWAP;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollTrickster;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerTrickster;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Manti;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golyat;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GolyatFactory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GolyatPlus;
@@ -56,7 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Hydra;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jupiter;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mg5;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Nemeum;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat;
@@ -66,15 +66,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RotHeart;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RotLasher;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Senior;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Succubus;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Thief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Typhoon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerLock;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogDzewa;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
@@ -200,19 +200,19 @@ public enum MobBestiary {
     static {
 
         SEWER.addEntities(
-                Snake.class, Rat.class, Gnoll.class, Brute.class, Swarm.class);
+                Snake.class, Rat.class, Prowler.class, Brute.class, Swarm.class);
 
         PRISON.addEntities(Golyat.class,GolyatFactory.class,Thief.class,
-                Shaman.RedShaman.class,
-                Shaman.BlueShaman.class,
-                Shaman.PurpleShaman.class,
+                Jaeger.RedJaeger.class,
+                Jaeger.BlueJaeger.class,
+                Jaeger.PurpleJaeger.class,
                 Mg5.class,Elemental.NewbornFireElemental.class);
 
         CAVES.addEntities(Bat.class,Vespid.class,
                 Spinner.class,Nemeum.class);
 
         CITYS.addEntities(Elemental.FireElemental.class,Elemental.FrostElemental.class,Elemental.ShockElemental.class,
-                Ghoul.class,Monk.class,Warlock.class,Golem.class);
+                Undead.class,Striker.class,JaegerLock.class,Manti.class);
 
         RECAVES.addEntities(
                 Dragun.class,Guard.class,Jupiter.class
@@ -222,7 +222,7 @@ public enum MobBestiary {
         Jupiter.class, Hydra.class, Typhoon.class);
 
 
-        UNIVERSAL.addEntities(Wraith.class, Piranha.class, Mimic.class, GoldenMimic.class,Statue.class, GuardianTrap.Guardian.class, SentryRoom.Sentry.class);
+        UNIVERSAL.addEntities(Wraith.class, Piranha.class, Mimic.class, GoldenMimic.class,SksStatue.class, GuardianTrap.Guardian.class, SentryRoom.Sentry.class);
 
         RARE.addEntities(
                 Albino.class, CausticSlime.class,
@@ -233,7 +233,7 @@ public enum MobBestiary {
                 EbonyMimic.class, RatXMAS.class);
 
         QUEST.addEntities(
-                FetidRat.class, GnollTrickster.class, GreatCrab.class,
+                FetidRat.class, JaegerTrickster.class, GreatCrab.class,
                 Elemental.NewbornFireElemental.class, RotLasher.class, RotHeart.class);
 
         NEUTRAL.addEntities(
@@ -272,10 +272,10 @@ public enum MobBestiary {
 
         classConversions.put(TenguDartTrap.class,              PoisonDartTrap.class);
 
-        classConversions.put(DwarfKing.DKGhoul.class,          Ghoul.class);
-        classConversions.put(DwarfKing.DKWarlock.class,        Warlock.class);
-        classConversions.put(DwarfKing.DKMonk.class,           Monk.class);
-        classConversions.put(DwarfKing.DKGolem.class,          Golem.class);
+        classConversions.put(Disloli.DKGhoul.class,          Undead.class);
+        classConversions.put(Disloli.DKWarlock.class,        JaegerLock.class);
+        classConversions.put(Disloli.DKMonk.class,           Striker.class);
+        classConversions.put(Disloli.DKGolem.class,          Manti.class);
 
         classConversions.put(YogDzewa.YogRipper.class,         RipperDemon.class);
         classConversions.put(YogDzewa.YogEye.class,            Eye.class);

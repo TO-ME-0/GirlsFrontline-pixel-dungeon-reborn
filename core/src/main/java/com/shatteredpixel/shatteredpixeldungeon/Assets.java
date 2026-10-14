@@ -77,7 +77,6 @@ public class Assets {
 		public static final String FORWARD_CAMP_1   = "environment/custom_tiles/Forward_Camp-1.png";
 	}
 	
-	//TODO include other font assets here? Some are platform specific though... 一些平台特定的字体资产
 	public static class Fonts {
 		public static final String PIXELFONT= "fonts/pixel_font.png";
 	}

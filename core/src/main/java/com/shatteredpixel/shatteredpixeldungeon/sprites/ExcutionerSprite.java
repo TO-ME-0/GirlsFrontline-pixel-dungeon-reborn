@@ -37,7 +37,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class GooSprite extends MobSprite {
+public class ExcutionerSprite extends MobSprite {
 	
 	private Animation pump;
 	private Animation pumpAttack;
@@ -45,7 +45,7 @@ public class GooSprite extends MobSprite {
 	private Emitter spray;
 	private ArrayList<Emitter> pumpUpEmitters = new ArrayList<>();
 
-	public GooSprite() {
+	public ExcutionerSprite() {
 		super();
 
 		texture( Assets.Sprites.EXCU );
@@ -74,7 +74,7 @@ public class GooSprite extends MobSprite {
 
 		spray = centerEmitter();
 		spray.autoKill = false;
-		spray.pour( GooParticle.FACTORY, 0.04f );
+		spray.pour( ExcutionerParticle.FACTORY, 0.04f );
 		spray.on = false;
 	}
 
@@ -97,7 +97,7 @@ public class GooSprite extends MobSprite {
 						&& new Ballistica( ch.pos, i, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID | Ballistica.IGNORE_SOFT_SOLID).collisionPos == i
 						&& new Ballistica( i, ch.pos, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID | Ballistica.IGNORE_SOFT_SOLID).collisionPos == ch.pos){
 					Emitter e = CellEmitter.get(i);
-					e.pour(GooParticle.FACTORY, 0.04f);
+					e.pour(ExcutionerParticle.FACTORY, 0.04f);
 					pumpUpEmitters.add(e);
 				}
 			}
@@ -145,16 +145,16 @@ public class GooSprite extends MobSprite {
 		spray.visible = visible;
 	}
 
-	public static class GooParticle extends PixelParticle.Shrinking {
+	public static class ExcutionerParticle extends PixelParticle.Shrinking {
 
 		public static final Emitter.Factory FACTORY = new Factory() {
 			@Override
 			public void emit( Emitter emitter, int index, float x, float y ) {
-				((GooParticle)emitter.recycle( GooParticle.class )).reset( x, y );
+				((ExcutionerParticle)emitter.recycle( ExcutionerParticle.class )).reset( x, y );
 			}
 		};
 
-		public GooParticle() {
+		public ExcutionerParticle() {
 			super();
 
 			color( 0x000000 );

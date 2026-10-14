@@ -25,68 +25,61 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ShamanSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.JaegerLockSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-public abstract class Shaman extends Mob {
+public class JaegerLock extends Mob implements Callback {
+	
+	private static final float TIME_TO_ZAP	= 1f;
 	
 	{
+		spriteClass = JaegerLockSprite.class;
 		faction = Faction.SANGVIS_FERRI;
-		HP = HT = 20;
-		defenseSkill = 8;
 		
-		EXP = 6;
-		maxLvl = 13;
+		HP = HT = 70;
+		defenseSkill = 18;
 		
-		loot = Generator.Category.WAND;
-		lootChance = 0.03f; //initially, see lootChance()
+		EXP = 11;
+		maxLvl = 21;
+		
+		loot = Generator.Category.POTION;
+		lootChance = 0.5f;
+
+		properties.add(Property.UNDEAD);
 	}
 	
 	@Override
 	public int damageRoll() {
-		return Random.NormalIntRange( 2, 8 );
+		return Random.NormalIntRange( 12, 18 );
 	}
 	
 	@Override
 	public int attackSkill( Char target ) {
-		return 11;
+		return 25;
 	}
 	
 	@Override
 	public int drRoll() {
-		return Random.NormalIntRange(0, 4);
+		return Random.NormalIntRange(0, 8);
 	}
 	
 	@Override
 	protected boolean canAttack( Char enemy ) {
 		return new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
 	}
+	
+	protected boolean doAttack( Char enemy ) {
 
-	@Override
-	public float lootChance() {
-		//each drop makes future drops 1/3 as likely
-		// so loot chance looks like: 1/33, 1/100, 1/300, 1/900, etc.
-		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.SHAMAN_WAND.count());
-	}
-
-	@Override
-	public Item createLoot() {
-		Dungeon.LimitedDrops.SHAMAN_WAND.used();
-		return super.createLoot();
-	}
-
-	protected boolean doAttack(Char enemy ) {
-		
 		if (Dungeon.level.adjacent( pos, enemy.pos )) {
 			
 			return super.doAttack( enemy );
@@ -104,22 +97,22 @@ public abstract class Shaman extends Mob {
 	}
 	
 	//used so resistances can differentiate between melee and magical attacks
-	public static class EarthenBolt{}
+	public static class DarkBolt{}
 	
 	private void zap() {
-		spendAttack( 1f );
+		spendAttack( TIME_TO_ZAP );
 		
 		if (hit( this, enemy, true )) {
-			
-			if (Random.Int( 2 ) == 0) {
-				debuff( enemy );
-				if (enemy == Dungeon.hero()) Sample.INSTANCE.play( Assets.Sounds.DEBUFF );
+			//TODO would be nice for this to work on ghost/statues too
+			if (enemy == Dungeon.hero() && Random.Int( 2 ) == 0) {
+				Buff.prolong( enemy, Degrade.class, Degrade.DURATION );
+				Sample.INSTANCE.play( Assets.Sounds.DEBUFF );
 			}
 			
-			int dmg = Random.NormalIntRange( 3, 9);
-			enemy.damage( dmg, new EarthenBolt(), this );
+			int dmg = Random.NormalIntRange( 12, 18 );
+			enemy.damage( dmg, new DarkBolt(), this );
 			
-			if (!enemy.isAlive() && enemy == Dungeon.hero()) {
+			if (enemy == Dungeon.hero() && !enemy.isAlive()) {
 				Dungeon.fail( getClass() );
 				GLog.n( Messages.get(this, "bolt_kill") );
 			}
@@ -128,59 +121,43 @@ public abstract class Shaman extends Mob {
 		}
 	}
 	
-	protected abstract void debuff( Char enemy );
-	
 	public void onZapComplete() {
 		zap();
 		next();
 	}
 	
 	@Override
-	public String description() {
-		return super.description() + "\n\n" + Messages.get(this, "spell_desc");
+	public void call() {
+		next();
 	}
-	
-	public static class RedShaman extends Shaman {
-		{
-			spriteClass = ShamanSprite.Red.class;
-		}
-		
-		@Override
-		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Weakness.class, Weakness.DURATION );
-		}
-	}
-	
-	public static class BlueShaman extends Shaman {
-		{
-			spriteClass = ShamanSprite.Blue.class;
-		}
-		
-		@Override
-		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Vulnerable.class, Vulnerable.DURATION );
-		}
-	}
-	
-	public static class PurpleShaman extends Shaman {
-		{
-			spriteClass = ShamanSprite.Purple.class;
-		}
-		
-		@Override
-		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Hex.class, Hex.DURATION );
-		}
-	}
-	
-	public static Class<? extends Shaman> random(){
-		float roll = Random.Float();
-		if (roll < 0.4f){
-			return RedShaman.class;
-		} else if (roll < 0.8f){
-			return BlueShaman.class;
+
+	@Override
+	public Item createLoot(){
+
+		// 1/6 chance for healing, scaling to 0 over 8 drops
+		if (Random.Int(3) == 0 && Random.Int(8) >= Dungeon.LimitedDrops.WARLOCK_HP.count() ){
+            //修复术士/四区狙娘掉落血瓶应为8而实际为7的bug，理由如下：当掉落7个的时候计数为7，而Random（7）的范围是0-7，所以破碎出现了只能掉落7个的bug
+			Dungeon.LimitedDrops.WARLOCK_HP.used();
+			return new PotionOfHealing();
 		} else {
-			return PurpleShaman.class;
+			Item i = Generator.random(Generator.Category.POTION);
+			int healingTried = 0;
+			while (i instanceof PotionOfHealing){
+				healingTried++;
+				i = Generator.random(Generator.Category.POTION);
+			}
+
+			//return the attempted healing potion drops to the pool
+			if (healingTried > 0){
+				for (int j = 0; j < Generator.Category.POTION.classes.length; j++){
+					if (Generator.Category.POTION.classes[j] == PotionOfHealing.class){
+						Generator.Category.POTION.probs()[j] += healingTried;
+					}
+				}
+			}
+
+			return i;
 		}
+
 	}
 }

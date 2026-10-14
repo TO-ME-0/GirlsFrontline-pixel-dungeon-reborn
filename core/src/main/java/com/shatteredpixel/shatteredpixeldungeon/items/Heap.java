@@ -80,7 +80,7 @@ public class Heap implements Bundlable {
 
     public enum Room{
         NONE,
-        Statue,
+        STATUE,
         Armored_Statue,
         Armory,
         Crypt,
@@ -486,7 +486,7 @@ public class Heap implements Bundlable {
         }
         switch (room){
             case NONE: default: break;
-            case Statue: desc += "傀儡西蒙诺夫";break;
+            case STATUE: desc += "傀儡西蒙诺夫";break;
             case Armored_Statue: desc += "战术人形西蒙诺夫";break;
             case Armory: desc += "军械房";break;
             case Crypt: desc += "墓碑房";break;

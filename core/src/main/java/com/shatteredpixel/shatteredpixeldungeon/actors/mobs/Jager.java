@@ -4,7 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.JagerSprite;
 import com.watabou.utils.Random;
 
-public class Jager extends Warlock {
+public class Jager extends JaegerLock {
     {
         spriteClass = JagerSprite.class;
 

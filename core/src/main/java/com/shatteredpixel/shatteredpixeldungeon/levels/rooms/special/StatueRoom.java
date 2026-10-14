@@ -22,7 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -67,7 +67,7 @@ public class StatueRoom extends SpecialRoom {
 			
 		}
 		
-		Statue statue = Statue.random();
+		SksStatue statue = SksStatue.random();
 		statue.pos = cx + cy * level.width();
 		level.mobs.add( statue );
 	}

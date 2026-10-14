@@ -25,9 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.GameMath;
 
-public class StatueSprite extends MobSprite {
+public class SksStatueSprite extends MobSprite {
 	
-	public StatueSprite() {
+	public SksStatueSprite() {
 		super();
 		
 		texture( Assets.Sprites.SKS );

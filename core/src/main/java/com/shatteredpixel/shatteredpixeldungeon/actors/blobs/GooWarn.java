@@ -26,14 +26,14 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GooSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ExcutionerSprite;
 
 public class GooWarn extends Blob {
 
 	//cosmetic blob, used to warn noobs that goo's pump up should, infact, be avoided.
 
 	{
-		//this one needs to act just before the Goo
+		//this one needs to act just before the Excutioner
 		actPriority = MOB_PRIO + 1;
 	}
 
@@ -60,7 +60,7 @@ public class GooWarn extends Blob {
 	@Override
 	public void use( BlobEmitter emitter ) {
 		super.use( emitter );
-		emitter.pour(GooSprite.GooParticle.FACTORY, 0.03f );
+		emitter.pour(ExcutionerSprite.ExcutionerParticle.FACTORY, 0.03f );
 	}
 
 	@Override

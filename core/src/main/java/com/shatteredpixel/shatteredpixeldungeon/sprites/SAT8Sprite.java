@@ -23,47 +23,34 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
-import com.watabou.utils.Random;
 
-public class MonkSprite extends MobSprite {
+public class SAT8Sprite extends MobSprite {
 
-	private Animation kick;
-
-	public MonkSprite() {
+	public SAT8Sprite() {
 		super();
 
-		texture( Assets.Sprites.STRIKER );
+		texture( Assets.Sprites.GUARDIAN );
 
-		TextureFilm frames = new TextureFilm( texture, 21, 20 );
+		TextureFilm frames = new TextureFilm( texture, 22, 23 );
 
-		idle = new Animation( 6, true );
-		idle.frames( frames, 0 );
+		idle = new Animation( 2, true );
+		idle.frames( frames, 0, 0, 0, 0, 0, 1, 1 );
 
 		run = new Animation( 15, true );
-		run.frames( frames, 5, 6, 7, 8, 9, 10 );
+		run.frames( frames, 2, 3, 4, 5, 6, 7 );
 
-		attack = new Animation( 24, false );
-		attack.frames( frames, 4, 1, 4, 2, 4, 3, 4, 4 );
+		attack = new Animation( 12, false );
+		attack.frames( frames, 8, 9, 10,11,10,11 );
 
-		kick = new Animation( 24, false );
-		kick.frames( frames, 4, 1, 4, 2, 4, 3, 4, 4 );
-
-		die = new Animation( 8, false );
-		die.frames( frames, 1, 11, 12, 13 );
+		die = new Animation( 10, false );
+		die.frames( frames, 12, 13, 14, 15,16, 16,17,18,18 );
 
 		play( idle );
 	}
 
 	@Override
-	public void attack( int cell ) {
-		super.attack( cell );
-		if (Random.Float() < 0.5f) {
-			play( kick );
-		}
+	public int blood() {
+		return 0xFF966400;
 	}
 
-	@Override
-	public void onComplete( Animation anim ) {
-		super.onComplete( anim == kick ? attack : anim );
-	}
 }

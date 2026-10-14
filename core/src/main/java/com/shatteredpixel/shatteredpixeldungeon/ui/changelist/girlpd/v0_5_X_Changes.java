@@ -15,8 +15,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RotLasher;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Succubus;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerLock;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DEL;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.FieldPot;
@@ -56,11 +56,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BruteSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CyclopsSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.DM300Sprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.GagerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ElpheltSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GhoulSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.UndeadSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollSWAPSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GolemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MantiSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GolyatFactorySprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GolyatPlusSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
@@ -477,7 +477,7 @@ public class v0_5_X_Changes {
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
         changes.hardlight( CharSprite.POSITIVE );
         changeInfos.add(changes);
-        changes.addButton(new ChangeButton(new Tengu(), 0.8F,
+        changes.addButton(new ChangeButton(new Uro(), 0.8F,
                 "现在10层衔尾蛇切换阶段时，不在不变动区域的友方单位不再会被移除，而是传送至玩家周围了\n\n不在不变动区域的敌方依旧会被移除，如果有。"));
         changes.addButton(new ChangeButton(new LloydsBeacon(),
                  "上一个版本我改写空降妖精的时候，原计划是在背包也进行冷却来着，但不知道为什么写去必须装备着才冷却了。现在补回来了。"));
@@ -725,7 +725,7 @@ public class v0_5_X_Changes {
                 "_-_ 不过在只鉴定了其中一者的情况下，非保底稀有道具的基座将会被毁坏，即便经验/嬗变从默认池子的1/30的概率杀了出来()。"
         ));
 
-        ArrayList<Char> MobChange = new ArrayList<>(Arrays.asList(new Rat(), new GolyatFactory(), new Guard(), new Cyclops(), new Succubus(), new Warlock()));
+        ArrayList<Char> MobChange = new ArrayList<>(Arrays.asList(new Rat(), new GolyatFactory(), new Guard(), new Cyclops(), new Succubus(), new JaegerLock()));
         MovieClip.Animation[] GolyatFactoryAction = new MovieClip.Animation[2];
         GolyatFactoryAction[1]=new GolyatFactorySprite().charging;
         ArrayList<String> MobChangeBody = new ArrayList<>(Arrays.asList(
@@ -885,8 +885,8 @@ public class v0_5_X_Changes {
         	"_-_ 艾尔菲尔特在遇见特殊的_无法接近玩家_的情况时，将会进行_穿墙索敌_请避免故意卡_无敌点位_。"
         ));
 
-        changes.addButton(new ChangeButton(new GolemSprite(), 0.5F,
-                new GolemSprite().attack,
+        changes.addButton(new ChangeButton(new MantiSprite(), 0.5F,
+                new MantiSprite().attack,
                 "蝎甲兽",
         "_-_ 敌人_蝎甲兽_的生命值上限提高，且对单次高额伤害获得伤害阈值。\n" +
 		"_-_ 这意味着蝎甲兽将强制性需要多次攻击才能击败。"
@@ -1558,7 +1558,7 @@ public class v0_5_X_Changes {
 		changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.GUN562, null), "56-2式 武器优化",
 			"现在装填冷却会显示在快捷栏中，且提示文本也有具体的回合冷却显示。"));
 
-		changes.addButton( new ChangeButton(new GhoulSprite(), 0.7F,
+		changes.addButton( new ChangeButton(new UndeadSprite(), 0.7F,
                 "五区敌人生成调整",
 			"_-_ 21层 2护卫者\n" +
 				"_-_ 22层 3护卫者1龙骑\n" +
@@ -1618,7 +1618,7 @@ public class v0_5_X_Changes {
 				"_-_ 这是一个全新的开始，我们会在未来带来更多内容\n" +
 				"_-_ 感谢所有支持我们的指挥官，祝各位新版游玩愉快！"));
 
-		changes.addButton( new ChangeButton(new DM300Sprite(), 0.65F,
+		changes.addButton( new ChangeButton(new GagerSprite(), 0.65F,
                 "Boss调整",
 			"由于少前地牢新版本基于的破碎地牢底层版本改变，大部分原有BOSS的战斗机制也发生了改变\n" +
 				"\n" +

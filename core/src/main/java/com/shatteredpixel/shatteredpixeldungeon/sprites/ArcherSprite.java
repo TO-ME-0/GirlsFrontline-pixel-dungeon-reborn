@@ -6,11 +6,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.Callback;
 
-public class KentaurosSprite extends MobSprite {
+public class ArcherSprite extends MobSprite {
 
 	private int cellToAttack;
 
-	public KentaurosSprite() {
+	public ArcherSprite() {
 		super();
 
 		texture( Assets.Sprites.KENTAUROS );
@@ -60,7 +60,7 @@ public class KentaurosSprite extends MobSprite {
 			idle();
 
 			((MissileSprite)parent.recycle( MissileSprite.class )).
-			reset( this, cellToAttack, new KentaurosShot(), new Callback() {
+			reset( this, cellToAttack, new ArcherShot(), new Callback() {
 				@Override
 				public void call() {
 					ch.onAttackComplete();
@@ -71,7 +71,7 @@ public class KentaurosSprite extends MobSprite {
 		}
 	}
 
-	public class KentaurosShot extends Item {
+	public class ArcherShot extends Item {
 		{
 			image = ItemSpriteSheet.FISHING_SPEAR;
 		}

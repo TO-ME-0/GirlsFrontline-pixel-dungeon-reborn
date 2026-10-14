@@ -25,9 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeons;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Manti;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker;
 import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.CardSelector;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DwarfToken;
@@ -235,8 +235,8 @@ public class Imp extends NPC {
 		
 		public void process( Mob mob ) {
 			if (spawned && given && !completed && Dungeon.cur().depth != 20) {
-				if ((alternative && mob instanceof Monk) ||
-					(!alternative && mob instanceof Golem)) {
+				if ((alternative && mob instanceof Striker) ||
+					(!alternative && mob instanceof Manti)) {
 					
 					Dungeon.level.drop( new DwarfToken(), mob.pos ).sprite.drop();
 				}

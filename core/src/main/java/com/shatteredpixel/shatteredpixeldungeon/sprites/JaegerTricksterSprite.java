@@ -28,11 +28,11 @@ import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.Callback;
 
-public class GnollTricksterSprite extends MobSprite {
+public class JaegerTricksterSprite extends MobSprite {
 
 	private Animation cast;
 
-	public GnollTricksterSprite() {
+	public JaegerTricksterSprite() {
 		super();
 
 		texture( Assets.Sprites.JAEGER );

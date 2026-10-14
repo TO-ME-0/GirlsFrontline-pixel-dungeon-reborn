@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2018 Evan Debenham
+ * Copyright (C) 2014-2022 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,26 +25,26 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
 
 public class DisloliSprite extends MobSprite {
-
-    public DisloliSprite() {
-        super();
-
-        texture( Assets.Sprites.DISLOLI );
-
-        TextureFilm frames = new TextureFilm( texture, 19, 19 );
-
-        idle = new Animation( 5, true );
-        idle.frames( frames, 0, 0, 0, 0, 0 );
-
-        run = new Animation( 15, true );
-        run.frames( frames, 1, 2, 3, 4, 5, 6 );
-
-        attack = new Animation( 15, false );
-        attack.frames( frames, 7, 8, 9, 10 );
-
-        die = new Animation( 8, false );
-        die.frames( frames, 11, 12, 13, 14 );
-
-        play( idle );
-    }
+	
+	public DisloliSprite() {
+		super();
+		
+		texture( Assets.Sprites.DISLOLI );
+		
+		TextureFilm frames = new TextureFilm( texture, 19, 19 );
+		
+		idle = new Animation( 12, true );
+		idle.frames( frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2 );
+		
+		run = new Animation( 15, true );
+		run.frames( frames, 2,3, 4, 5, 6 );
+		
+		attack = new Animation( 15, false );
+		attack.frames( frames, 7,8,9, 10 );
+		
+		die = new Animation( 8, false );
+		die.frames( frames, 11,12, 13, 14 );
+		
+		play( idle );
+	}
 }

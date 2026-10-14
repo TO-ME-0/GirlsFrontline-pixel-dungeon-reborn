@@ -34,14 +34,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollTricksterSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.JaegerTricksterSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-public class GnollTrickster extends Gnoll {
+public class JaegerTrickster extends Prowler {
 
 	{
-		spriteClass = GnollTricksterSprite.class;
+		spriteClass = JaegerTricksterSprite.class;
 
 		HP = HT = 20;
 		defenseSkill = 5;

@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SeniorSprite;
 import com.watabou.utils.Random;
 
-public class Senior extends Monk {
+public class Senior extends Striker {
 
 	{
 		spriteClass = SeniorSprite.class;

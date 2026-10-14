@@ -30,11 +30,11 @@ import com.watabou.noosa.TextureFilm;
 
 import java.util.Calendar;
 
-public class RatKingSprite extends MobSprite {
+public class RatDisloliSprite extends MobSprite {
 
 	public boolean festive;
 	
-	public RatKingSprite() {
+	public RatDisloliSprite() {
 		super();
 
 		resetAnims();

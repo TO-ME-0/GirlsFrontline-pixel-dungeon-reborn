@@ -34,7 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollSWAP;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GolyatPlus;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SpinnerCat;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Typhoon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DEL;
@@ -77,7 +77,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.P7Sprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ShopkeeperSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SpawnerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SpinnerCatSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.StatueSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SksStatueSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.TyphoonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WandmakerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
@@ -231,7 +231,7 @@ public class Notes {
 				case SACRIFICIAL_FIRE:
 					return MapEditor.TerrainIcon(Terrain.PEDESTAL);
 				case STATUE:
-					return new StatueSprite();
+					return new SksStatueSprite();
 
 				case LOST_PACK:
 					return Icons.get(Icons.BACKPACK_LRG);
@@ -314,7 +314,7 @@ public class Notes {
 				case WELL_OF_HEALTH:    return Messages.get(WaterOfHealth.class, "desc");
 				case WELL_OF_AWARENESS: return Messages.get(WaterOfAwareness.class, "desc");
 				case SACRIFICIAL_FIRE:  return Messages.get(SacrificialFire.class, "desc");
-				case STATUE:            return Messages.get(Statue.class, "desc");
+				case STATUE:            return Messages.get(SksStatue.class, "desc");
 
 				case LOST_PACK:         return Messages.get(LostBackpack.class, "desc");
 				case BEACON_LOCATION:   return Messages.get(BeaconOfReturning.class, "desc");

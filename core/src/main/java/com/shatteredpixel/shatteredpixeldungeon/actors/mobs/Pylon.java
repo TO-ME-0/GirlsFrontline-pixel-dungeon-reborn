@@ -118,12 +118,12 @@ public class Pylon extends Mob {
 	}
 
 	private void shockChar( Char ch ){
-		if (ch != null && !(ch instanceof DM300)){
+		if (ch != null && !(ch instanceof Gager)){
 			ch.sprite.flash();
 			ch.damage(Random.NormalIntRange(10, 20), new Electricity(), this);
 
 			if (ch == Dungeon.hero() && !ch.isAlive()){
-				Dungeon.fail(DM300.class);
+				Dungeon.fail(Gager.class);
 				GLog.n( Messages.get(Electricity.class, "ondeath") );
 			}
 		}

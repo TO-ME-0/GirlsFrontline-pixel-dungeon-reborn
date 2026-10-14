@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
@@ -143,7 +143,7 @@ public class SacrificialFire extends Blob {
 			int exp = 0;
 			if (ch instanceof Mob) {
 				//same rates as used in wand of corruption, except for swarms
-				if (ch instanceof Statue || ch instanceof Mimic){
+				if (ch instanceof SksStatue || ch instanceof Mimic){
 					exp = 1 + Dungeon.curDepth();
 				} else if (ch instanceof Piranha || ch instanceof Bee) {
 					exp = 1 + Dungeon.curDepth()/2;

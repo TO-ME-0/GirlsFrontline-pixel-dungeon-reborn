@@ -23,7 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Manti;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.watabou.noosa.TextureFilm;
@@ -31,11 +31,11 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Callback;
 
-public class GolemSprite extends MobSprite {
+public class MantiSprite extends MobSprite {
 
 	private Emitter teleParticles;
 	
-	public GolemSprite() {
+	public MantiSprite() {
 		super();
 		
 		texture( Assets.Sprites.MANTI );
@@ -112,7 +112,7 @@ public class GolemSprite extends MobSprite {
 				new Callback() {
 					@Override
 					public void call() {
-						((Golem)ch).onZapComplete();
+						((Manti)ch).onZapComplete();
 					}
 				} );
 		Sample.INSTANCE.play( Assets.Sounds.ZAP );

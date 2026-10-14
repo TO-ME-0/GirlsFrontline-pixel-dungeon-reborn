@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
@@ -276,7 +276,7 @@ public class CavesBossLevel extends Level {
 		Camera.main.shake( 3, 0.7f );
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 
-		DM300 boss = new DM300();
+		Gager boss = new Gager();
 		boss.state = boss.WANDERING;
 		do {
 			boss.pos = pointToCell(Random.element(mainArena.getPoints()));
@@ -355,8 +355,8 @@ public class CavesBossLevel extends Level {
 		if (customArenaVisuals != null) customArenaVisuals.updateState();
 		int pylonsRemaining = 0;
 		for (Mob m : mobs){
-			if (m instanceof DM300){
-				((DM300) m).loseSupercharge();
+			if (m instanceof Gager){
+				((Gager) m).loseSupercharge();
 				PylonEnergy.energySourceSprite = m.sprite;
 			} else if (m instanceof Pylon){
 				pylonsRemaining++;
@@ -790,13 +790,13 @@ public class CavesBossLevel extends Level {
 					if (off[cell] > 0){
 
 						Char ch = Actor.findChar(cell);
-						if (ch != null && !(ch instanceof DM300)) {
+						if (ch != null && !(ch instanceof Gager)) {
 							Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 							ch.damage( Random.NormalIntRange(6, 12), Electricity.class);
 							ch.sprite.flash();
 
 							if (ch == Dungeon.hero() && !ch.isAlive()) {
-								Dungeon.fail(DM300.class);
+								Dungeon.fail(Gager.class);
 								GLog.n( Messages.get(Electricity.class, "ondeath") );
 							}
 						}
@@ -821,7 +821,7 @@ public class CavesBossLevel extends Level {
 						if (c instanceof Pylon && c.alignment != Char.Alignment.NEUTRAL){
 							energySourceSprite = c.sprite;
 							break;
-						} else if (c instanceof DM300){
+						} else if (c instanceof Gager){
 							energySourceSprite = c.sprite;
 						}
 					}

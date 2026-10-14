@@ -51,7 +51,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.KingSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DisloliSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.dialog.boss.Destroyer_Plot;
@@ -68,10 +68,10 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class DwarfKing extends Mob {
+public class Disloli extends Mob {
 
 	{
-		spriteClass = KingSprite.class;
+		spriteClass = DisloliSprite.class;
 
 		HP = HT = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 450 : 300;
 		EXP = 40;
@@ -328,7 +328,7 @@ public class DwarfKing extends Mob {
 	private HashSet<Mob> getSubjects(){
 		HashSet<Mob> subjects = new HashSet<>();
 		for (Mob m : Dungeon.level.mobs){
-			if (m.alignment == alignment && (m instanceof Ghoul || m instanceof Monk || m instanceof Warlock || m instanceof Golem)){
+			if (m.alignment == alignment && (m instanceof Undead || m instanceof Striker || m instanceof JaegerLock || m instanceof Manti)){
 				subjects.add(m);
 			}
 		}
@@ -481,7 +481,7 @@ public class DwarfKing extends Mob {
 				}
 				Bestiary.skipCountingEncounters = true;
 				for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) {
-					if (m instanceof Ghoul || m instanceof Monk || m instanceof Warlock || m instanceof Golem) {
+					if (m instanceof Undead || m instanceof Striker || m instanceof JaegerLock || m instanceof Manti) {
 						m.die(null);
 					}
 				}
@@ -548,7 +548,7 @@ public class DwarfKing extends Mob {
 		return super.isImmune(effect);
 	}
 
-	public static class DKGhoul extends Ghoul {
+	public static class DKGhoul extends Undead {
 		{
 			state = HUNTING;
 		}
@@ -560,19 +560,19 @@ public class DwarfKing extends Mob {
 		}
 	}
 
-	public static class DKMonk extends Monk {
+	public static class DKMonk extends Striker {
 		{
 			state = HUNTING;
 		}
 	}
 
-	public static class DKWarlock extends Warlock {
+	public static class DKWarlock extends JaegerLock {
 		{
 			state = HUNTING;
 		}
 	}
 
-	public static class DKGolem extends Golem {
+	public static class DKGolem extends Manti {
 		{
 			state = HUNTING;
 		}
@@ -630,13 +630,13 @@ public class DwarfKing extends Mob {
 					GameScene.add(m);
 					Dungeon.level.occupyCell(m);
 					m.state = m.HUNTING;
-					if (((DwarfKing)target).phase == 2){
+					if (((Disloli)target).phase == 2){
 						Buff.affect(m, KingDamager.class);
 					}
 				} else {
 					Char ch = Actor.findChar(pos);
 					ch.damage(Random.NormalIntRange(20, 40), target);
-					if (((DwarfKing)target).phase == 2){
+					if (((Disloli)target).phase == 2){
 						if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
 							target.damage(target.HT/18, new KingDamager());
 						} else {
@@ -644,7 +644,7 @@ public class DwarfKing extends Mob {
 						}
 					}
 					if (!ch.isAlive() && ch == Dungeon.hero()) {
-						Dungeon.fail(DwarfKing.class);
+						Dungeon.fail(Disloli.class);
 					}
 				}
 
@@ -711,7 +711,7 @@ public class DwarfKing extends Mob {
 		public void detach() {
 			super.detach();
 			for (Mob m : Dungeon.level.mobs){
-				if (m instanceof DwarfKing){
+				if (m instanceof Disloli){
 					int damage = m.HT / (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 18 : 12);
 					m.damage(damage, this);
 				}

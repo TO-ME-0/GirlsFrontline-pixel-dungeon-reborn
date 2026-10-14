@@ -22,7 +22,7 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import java.util.ArrayList;
 
-public class GnollSWAP extends Gnoll {
+public class GnollSWAP extends Prowler {
     {
         spriteClass = GnollSWAPSprite.class;
         PASSIVE = new Passive();

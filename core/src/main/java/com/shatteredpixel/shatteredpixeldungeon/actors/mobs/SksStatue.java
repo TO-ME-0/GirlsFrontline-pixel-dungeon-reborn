@@ -32,15 +32,15 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.StatueSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SksStatueSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-public class Statue extends Mob {
+public class SksStatue extends Mob {
 	
 	{
-		spriteClass = StatueSprite.class;
+		spriteClass = SksStatueSprite.class;
 
 		EXP = 0;
 		state = PASSIVE;
@@ -53,10 +53,10 @@ public class Statue extends Mob {
         return weapon;
     }
 	
-	public Statue() {
+	public SksStatue() {
 		this(true);
 	}
-	public Statue(boolean noEquip) {
+	public SksStatue(boolean noEquip) {
 		super();
 		if (!noEquip) {
 			do {
@@ -188,14 +188,14 @@ public class Statue extends Mob {
 		resistances.add(Grim.class);
 	}
 
-	public static Statue random(){
+	public static SksStatue random(){
 		//鼠头骨饰品：增加雕像的异化概率（实现见 RatSkull）
 		float altChance = 1/10f * RatSkull.exoticChanceMultiplier();
 		if (altChance > 0.1f) altChance = (altChance+0.1f)/2f; //rat skull is 1/2 as effective here
 		if (Random.Float() < altChance){
 			return new ArmoredStatue(false);
 		} else {
-			return new Statue(false);
+			return new SksStatue(false);
 		}
 	}
 	

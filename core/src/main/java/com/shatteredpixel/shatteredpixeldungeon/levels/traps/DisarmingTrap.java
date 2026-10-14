@@ -25,7 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -65,7 +65,7 @@ public class DisarmingTrap extends Trap{
 			}
 		}
 
-		if (Actor.findChar(pos) instanceof Statue){
+		if (Actor.findChar(pos) instanceof SksStatue){
 			Actor.findChar(pos).die(this);
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 			CellEmitter.get(pos).burst(Speck.factory(Speck.LIGHT), 4);

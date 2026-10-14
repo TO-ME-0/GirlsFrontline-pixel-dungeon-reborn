@@ -77,7 +77,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.N
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elphelt;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DEL;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.Constants;
@@ -699,7 +699,7 @@ public class Hero extends Char {
 			if (!WarriorTalent.parryPersists(this, buff(Combo.class).getComboCount())){
 				parry.detach();
 			}
-			return Messages.get(Monk.class, "parried");
+			return Messages.get(Striker.class, "parried");
 		}
 	}
 

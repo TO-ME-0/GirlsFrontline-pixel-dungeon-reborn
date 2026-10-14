@@ -10,7 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
@@ -382,8 +382,8 @@ public abstract class SeedFinder implements Runnable {
                     if (tryMatch(((ArmoredStatue) m).weapon(), itemsFound) && ++foundCount == n)
                         return true;
                 }
-                else if (m.getClass() == Statue.class) {
-                    if (tryMatch(((Statue) m).weapon(), itemsFound) && ++foundCount == n)
+                else if (m.getClass() == SksStatue.class) {
+                    if (tryMatch(((SksStatue) m).weapon(), itemsFound) && ++foundCount == n)
                         return true;
                 }
                 else if (m instanceof Mimic) {
@@ -439,10 +439,10 @@ public abstract class SeedFinder implements Runnable {
     private ArrayList<Heap> getMobDrops(Level l) {
         ArrayList<Heap> heaps = new ArrayList<>();
         for (Mob m : l.mobs) {
-            if (m instanceof Statue && !(m instanceof ArmoredStatue)) {
+            if (m instanceof SksStatue && !(m instanceof ArmoredStatue)) {
                 Heap h = new Heap();
                 h.items = new LinkedList<>();
-                h.items.add(((Statue) m).weapon().identify());
+                h.items.add(((SksStatue) m).weapon().identify());
                 h.type = Type.HEAP;
                 heaps.add(h);
             } else if (m instanceof ArmoredStatue) {

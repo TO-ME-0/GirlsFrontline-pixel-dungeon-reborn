@@ -10,7 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -37,7 +37,7 @@ public class TelekineticGrab extends TargetedSpell {
         Char ch = Actor.findChar(bolt.collisionPos);
         if (ch == null && bolt.path.size() > bolt.dist + 1) {
             ch = Actor.findChar((Integer)bolt.path.get(bolt.dist + 1));
-            if (!(ch instanceof DwarfKing) || !Dungeon.level.solid[ch.pos]) {
+            if (!(ch instanceof Disloli) || !Dungeon.level.solid[ch.pos]) {
                 ch = null;
             }
         }

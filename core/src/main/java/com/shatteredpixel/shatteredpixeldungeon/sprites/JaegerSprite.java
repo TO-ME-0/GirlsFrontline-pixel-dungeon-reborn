@@ -22,19 +22,19 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
-public abstract class ShamanSprite extends MobSprite {
+public abstract class JaegerSprite extends MobSprite {
 	
 	protected int boltType;
 	
 	protected abstract int texOffset();
 	
-	public ShamanSprite() {
+	public JaegerSprite() {
 		super();
 		
 		int c = texOffset();
@@ -72,7 +72,7 @@ public abstract class ShamanSprite extends MobSprite {
 				new Callback() {
 					@Override
 					public void call() {
-						((Shaman)ch).onZapComplete();
+						((Jaeger)ch).onZapComplete();
 					}
 				} );
 		Sample.INSTANCE.play( Assets.Sounds.ZAP );
@@ -86,7 +86,7 @@ public abstract class ShamanSprite extends MobSprite {
 		super.onComplete( anim );
 	}
 	
-	public static class Red extends ShamanSprite {
+	public static class Red extends JaegerSprite {
 		{
 			boltType = MagicMissile.SHAMAN_RED;
 		}
@@ -97,7 +97,7 @@ public abstract class ShamanSprite extends MobSprite {
 		}
 	}
 	
-	public static class Blue extends ShamanSprite {
+	public static class Blue extends JaegerSprite {
 		{
 			boltType = MagicMissile.SHAMAN_BLUE;
 		}
@@ -108,7 +108,7 @@ public abstract class ShamanSprite extends MobSprite {
 		}
 	}
 	
-	public static class Purple extends ShamanSprite {
+	public static class Purple extends JaegerSprite {
 		{
 			boltType = MagicMissile.SHAMAN_PURPLE;
 		}

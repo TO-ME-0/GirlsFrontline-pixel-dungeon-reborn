@@ -60,7 +60,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.TenguSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.UroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.ui.dialog.boss.Uroboros_Plot;
@@ -80,10 +80,10 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class Tengu extends Mob {
+public class Uro extends Mob {
 	
 	{
-		spriteClass = TenguSprite.class;
+		spriteClass = UroSprite.class;
 		
 		HP = HT = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 250 : 200;
 		EXP = 20;
@@ -129,7 +129,7 @@ public class Tengu extends Mob {
 
 	boolean loading = false;
 
-	//Tengu is immune to debuffs and damage when removed from the level
+	//Uro is immune to debuffs and damage when removed from the level
 	@Override
 	public void add(Buff buff) {
 		if (Actor.chars().contains(this) || buff instanceof Doom || loading){
@@ -196,7 +196,7 @@ public class Tengu extends Mob {
 	
 	@Override
 	public boolean isAlive() {
-		return super.isAlive() || Dungeon.level.mobs.contains(this); //Tengu has special death rules, see prisonbosslevel.progress()
+		return super.isAlive() || Dungeon.level.mobs.contains(this); //Uro has special death rules, see prisonbosslevel.progress()
 	}
 
 	@Override
@@ -417,7 +417,7 @@ public class Tengu extends Mob {
 	}
 	
 	//*****************************************************************************************
-	//***** Tengu abilities. These are expressed in game logic as buffs, blobs, and items *****
+	//***** Uro abilities. These are expressed in game logic as buffs, blobs, and items *****
 	//*****************************************************************************************
 	
 	//so that mobs can also use this
@@ -497,28 +497,28 @@ public class Tengu extends Mob {
 			if (abilityToUse != lastAbility || Random.Int(10) == 0){
 				switch (abilityToUse){
 					case BOMB_ABILITY : default:
-						abilityUsed = throwBomb(Tengu.this, enemy);
-						//if Tengu cannot use his bomb ability first, use fire instead.
+						abilityUsed = throwBomb(Uro.this, enemy);
+						//if Uro cannot use his bomb ability first, use fire instead.
 						if (abilitiesUsed == 0 && !abilityUsed){
 							abilityToUse = FIRE_ABILITY;
-							abilityUsed = throwFire(Tengu.this, enemy);
+							abilityUsed = throwFire(Uro.this, enemy);
 						}
 						break;
 					case FIRE_ABILITY:
-						abilityUsed = throwFire(Tengu.this, enemy);
+						abilityUsed = throwFire(Uro.this, enemy);
 						break;
 					case SHOCKER_ABILITY:
-						abilityUsed = throwShocker(Tengu.this, enemy);
-						//if Tengu cannot use his shocker ability second, use fire instead.
+						abilityUsed = throwShocker(Uro.this, enemy);
+						//if Uro cannot use his shocker ability second, use fire instead.
 						if (abilitiesUsed == 1 && !abilityUsed){
 							abilityToUse = FIRE_ABILITY;
-							abilityUsed = throwFire(Tengu.this, enemy);
+							abilityUsed = throwFire(Uro.this, enemy);
 						}
 						break;
 				}
 				//always use the fire ability with the bosses challenge
 				if (abilityUsed && abilityToUse != FIRE_ABILITY && Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
-					throwFire(Tengu.this, enemy);
+					throwFire(Uro.this, enemy);
 				}
 			}
 			
@@ -611,7 +611,7 @@ public class Tengu extends Mob {
 
 					if (PathFinder.distance()[cell] < Integer.MAX_VALUE) {
 						Char ch = Actor.findChar(cell);
-						if (ch != null && !(ch instanceof Tengu)) {
+						if (ch != null && !(ch instanceof Uro)) {
 							int dmg = Random.NormalIntRange(5 + Dungeon.curDepth(), 10 + Dungeon.curDepth() * 2);
 							dmg -= ch.drRoll();
 
@@ -620,7 +620,7 @@ public class Tengu extends Mob {
 							}
 
 							if (ch == Dungeon.hero() && !ch.isAlive()) {
-								Dungeon.fail(Tengu.class);
+								Dungeon.fail(Uro.class);
 							}
 						}
 
@@ -728,7 +728,7 @@ public class Tengu extends Mob {
 		for (int i = 0; i < PathFinder.CIRCLE8().length; i++){
 			if (aim.sourcePos+PathFinder.CIRCLE8()[i] == aim.path.get(1)){
 				thrower.sprite.zap(target.pos);
-				Buff.append(thrower, Tengu.FireAbility.class).direction = i;
+				Buff.append(thrower, Uro.FireAbility.class).direction = i;
 				
 				thrower.sprite.emitter().start(Speck.factory(Speck.STEAM), .03f, 10);
 				return true;
@@ -844,7 +844,7 @@ public class Tengu extends Mob {
 						if (cur[cell] > 0 && off[cell] == 0){
 							
 							Char ch = Actor.findChar( cell );
-							if (ch != null && !ch.isImmune(Fire.class) && !(ch instanceof Tengu)) {
+							if (ch != null && !ch.isImmune(Fire.class) && !(ch instanceof Uro)) {
 								Buff.affect( ch, Burning.class ).reignite( ch );
 							}
 							
@@ -1025,11 +1025,11 @@ public class Tengu extends Mob {
 							shocked = true;
 							
 							Char ch = Actor.findChar(cell);
-							if (ch != null && !(ch instanceof Tengu)){
+							if (ch != null && !(ch instanceof Uro)){
 								ch.damage(2 + Dungeon.curDepth(), new Electricity());
 								
 								if (ch == Dungeon.hero() && !ch.isAlive()) {
-									Dungeon.fail(Tengu.class);
+									Dungeon.fail(Uro.class);
 									GLog.n( Messages.get(Electricity.class, "ondeath") );
 								}
 							}

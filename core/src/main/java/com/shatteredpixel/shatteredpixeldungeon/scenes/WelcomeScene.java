@@ -182,7 +182,7 @@ public class WelcomeScene extends PixelScene {
 
 		}
 
-		//if the player has beaten Goo, automatically give all guidebook pages
+		//if the player has beaten Excutioner, automatically give all guidebook pages
 		Badges.loadGlobal();
 		if (Badges.isUnlocked(Badges.Badge.BOSS_SLAIN_1)){
 			for (String page : Document.ADVENTURERS_GUIDE.pageNames()){

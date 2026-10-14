@@ -59,7 +59,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.DM300Sprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.GagerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.ui.dialog.boss.Excutioner_Plot;
@@ -80,10 +80,10 @@ import com.watabou.utils.Rect;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DM300 extends Mob {
+public class Gager extends Mob {
 
 	{
-		spriteClass = DM300Sprite.class;
+		spriteClass = GagerSprite.class;
 
 		HP = HT = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 400 : 300;
 		EXP = 30;
@@ -228,7 +228,7 @@ public class DM300 extends Mob {
 							turnsSinceLastAbility = 0;
 							GLog.w(Messages.get(this, "rocks"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
-								((DM300Sprite)sprite).slam(enemy.pos);
+								((GagerSprite)sprite).slam(enemy.pos);
 								return false;
 							} else {
 								dropRocks(enemy);
@@ -274,7 +274,7 @@ public class DM300 extends Mob {
 						} else {
 							GLog.w(Messages.get(this, "rocks"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
-								((DM300Sprite)sprite).slam(enemy.pos);
+								((GagerSprite)sprite).slam(enemy.pos);
 								return false;
 							} else {
 								dropRocks(enemy);
@@ -500,8 +500,8 @@ public class DM300 extends Mob {
 		spendAll(Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 2f : 3f);
 		yell(Messages.get(this, "charging"));
 		sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
-		((DM300Sprite)sprite).updateChargeState(true);
-		((DM300Sprite)sprite).charge();
+		((GagerSprite)sprite).updateChargeState(true);
+		((GagerSprite)sprite).charge();
 		chargeAnnounced = false;
 
 	}
@@ -512,7 +512,7 @@ public class DM300 extends Mob {
 
 	public void loseSupercharge(){
 		supercharged = false;
-		((DM300Sprite)sprite).updateChargeState(false);
+		((GagerSprite)sprite).updateChargeState(false);
 
 		if (pylonsActivated < totalPylonsToActivate()){
 			yell(Messages.get(this, "charge_lost"));
@@ -645,7 +645,7 @@ public class DM300 extends Mob {
 				CellEmitter.get( i ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
 
 				Char ch = Actor.findChar(i);
-				if (ch != null && !(ch instanceof DM300)){
+				if (ch != null && !(ch instanceof Gager)){
 					Buff.prolong( ch, Paralysis.class, Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 5 : 3 );
 				}
 			}

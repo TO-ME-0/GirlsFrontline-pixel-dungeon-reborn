@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -317,7 +317,7 @@ public class FloatingText extends RenderedTextBlock {
 
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.weapon();
-		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
+		if (attacker instanceof SksStatue) wep = ((SksStatue)attacker).weapon();
 
 		Armor arm = null;
 		if (defender instanceof Hero) arm = ((Hero) defender).belongings.armor();
@@ -396,7 +396,7 @@ public class FloatingText extends RenderedTextBlock {
 
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.weapon();
-		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
+		if (attacker instanceof SksStatue) wep = ((SksStatue)attacker).weapon();
 
 		Armor arm = null;
 		if (defender instanceof Hero) arm = ((Hero) defender).belongings.armor();

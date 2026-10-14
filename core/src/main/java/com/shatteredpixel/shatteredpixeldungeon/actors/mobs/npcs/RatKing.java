@@ -28,7 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Excutioner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.ChristmasTicket;
 import com.shatteredpixel.shatteredpixeldungeon.items.KingsCrown;
@@ -167,7 +167,7 @@ public class RatKing extends NPC {
             //部分因为ThrowSkill导致楼层被意外地封锁的存档，通过这里解锁
             Mob goo = null;
             for (Mob m : Dungeon.level.mobs) {
-                if (m instanceof Goo)
+                if (m instanceof Excutioner)
                     goo = m;
             }
             if (goo == null)

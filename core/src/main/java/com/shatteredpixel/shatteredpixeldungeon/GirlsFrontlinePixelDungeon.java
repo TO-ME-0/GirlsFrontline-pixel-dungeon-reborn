@@ -73,6 +73,92 @@ public class GirlsFrontlinePixelDungeon extends Game {
 				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Vespid.VespidRage.class,
 				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute$BruteRage" );
 
+		//怪物贴图同名化后的旧存档类名兼容
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker.Focus.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk$Focus" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Prowler.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gnoll" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Manti.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger.RedJaeger.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman$RedShaman" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger.BlueJaeger.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman$BlueShaman" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger.PurpleJaeger.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman$PurpleShaman" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerLock.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerTrickster.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollTrickster" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Undead.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Undead.UndeadLifeLink.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul$GhoulLifeLink" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Archer.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Kentauros" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro.BombAbility.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu$BombAbility" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro.FireAbility.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu$FireAbility" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro.ShockerAbility.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu$ShockerAbility" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.DKGhoul.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$DKGhoul" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.DKMonk.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$DKMonk" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.DKWarlock.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$DKWarlock" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.DKGolem.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$DKGolem" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.Summoning.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$Summoning" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.KingDamager.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$KingDamager" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli.DKBarrior.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing$DKBarrior" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Excutioner.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager.FallingRockBuff.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300$FallingRockBuff" );
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue" );
+
 	}
 	public static void reportException( Throwable tr ) {
 		Game.GameMode = Dungeon.GameMode;

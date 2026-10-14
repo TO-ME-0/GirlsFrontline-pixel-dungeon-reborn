@@ -31,16 +31,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GolemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MantiSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-public class Golem extends Mob {
+public class Manti extends Mob {
 	
 	{
-		spriteClass = GolemSprite.class;
+		spriteClass = MantiSprite.class;
 		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 150;
@@ -130,7 +130,7 @@ public class Golem extends Mob {
 		selfTeleCooldown--;
 		enemyTeleCooldown--;
 		if (teleporting){
-			((GolemSprite)sprite).teleParticles(false);
+			((MantiSprite)sprite).teleParticles(false);
 			if (Actor.findChar(target) == null && Dungeon.level.openSpace[target]) {
 				ScrollOfTeleportation.appear(this, target);
 				selfTeleCooldown = 30;
@@ -197,11 +197,11 @@ public class Golem extends Mob {
 				spendMove( 1 / speed() );
 				return moveSprite( oldPos, pos );
 			} else if (!Dungeon.bossLevel() && target != -1 && target != pos && selfTeleCooldown <= 0) {
-				((GolemSprite)sprite).teleParticles(true);
+				((MantiSprite)sprite).teleParticles(true);
 				teleporting = true;
 				spendMove( 2*TICK );
 			} else {
-				target = Dungeon.level.randomDestination( Golem.this );
+				target = Dungeon.level.randomDestination( Manti.this );
 				spendAll( TICK );
 			}
 

@@ -24,12 +24,12 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.StatueSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SksStatueSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
@@ -66,7 +66,7 @@ public class GuardianTrap extends Trap {
 
 	}
 
-	public static class Guardian extends Statue {
+	public static class Guardian extends SksStatue {
 
 		{
 			spriteClass = GuardianSprite.class;
@@ -100,7 +100,7 @@ public class GuardianTrap extends Trap {
 
 	}
 
-	public static class GuardianSprite extends StatueSprite {
+	public static class GuardianSprite extends SksStatueSprite {
 
 		public GuardianSprite(){
 			super();

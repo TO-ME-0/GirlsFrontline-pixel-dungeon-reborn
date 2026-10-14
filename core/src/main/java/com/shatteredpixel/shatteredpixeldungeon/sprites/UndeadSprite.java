@@ -22,44 +22,49 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.watabou.noosa.TextureFilm;
 
 public class UndeadSprite extends MobSprite {
+
+	private Animation crumple;
 	
 	public UndeadSprite() {
 		super();
 		
-		texture( Assets.Sprites.UNDEAD );
+		texture( Assets.Sprites.GHOUL );
 		
-		TextureFilm frames = new TextureFilm( texture, 12, 16 );
-		
-		idle = new Animation( 12, true );
-		idle.frames( frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 );
-		
-		run = new Animation( 15, true );
-		run.frames( frames, 4, 5, 6, 7, 8, 9 );
-		
-		attack = new Animation( 15, false );
-		attack.frames( frames, 14, 15, 16 );
-		
-		die = new Animation( 12, false );
-		die.frames( frames, 10, 11, 12, 13 );
+		TextureFilm frames = new TextureFilm( texture, 21, 16 );
+
+		idle = new Animation( 2, true );
+		idle.frames( frames, 0, 0, 0, 1 );
+
+		run = new Animation( 12, true );
+		run.frames( frames, 2, 3, 4, 5, 6 );
+
+		attack = new Animation( 12, false );
+		attack.frames( frames, 0, 7, 8 );
+
+		crumple = new Animation( 15, false);
+		crumple.frames( frames, 0, 9 );
+
+		die = new Animation( 15, false );
+		die.frames( frames, 0, 10, 11 );
 		
 		play( idle );
 	}
-	
+
+	public void crumple(){
+		hideEmo();
+		processStateRemoval(State.PARALYSED);
+		play(crumple);
+	}
+
 	@Override
 	public void die() {
-		super.die();
-		if (Dungeon.level.heroFOV[ch.pos]) {
-			emitter().burst( Speck.factory( Speck.BONE ), 3 );
+		if (curAnim == crumple){
+			//causes the sprite to not rise then fall again when dieing.
+			die.frames[0] = die.frames[1] = die.frames[2];
 		}
-	}
-	
-	@Override
-	public int blood() {
-		return 0xFFcccccc;
+		super.die();
 	}
 }

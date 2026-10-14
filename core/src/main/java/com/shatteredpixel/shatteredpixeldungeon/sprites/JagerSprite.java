@@ -6,7 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
-public class JagerSprite extends WarlockSprite {
+public class JagerSprite extends JaegerLockSprite {
 
     @Override
     public void zap( int cell ) {

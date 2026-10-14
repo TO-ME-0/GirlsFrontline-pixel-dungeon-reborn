@@ -11,14 +11,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.KentaurosSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ArcherSprite;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
-public class Kentauros extends Mob {
+public class Archer extends Mob {
 
 	{
-		spriteClass = KentaurosSprite.class;
+		spriteClass = ArcherSprite.class;
 		faction = Faction.REGULAR_ARMY;
 
 		HP = HT = 125;

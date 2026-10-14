@@ -3,13 +3,55 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Acidic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Aegis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalGuardian;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalWisp;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM200;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM201;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ELID;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elphelt;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Excutioner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalCore;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSentry;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSpinner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollSapper;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Intruder;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jager;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaguar;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.PhantomPiranha;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ripper;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RipperDemon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scarecrow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shielded;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Skeleton;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Slime;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SpectralNecromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.TormentedSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Typhootin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Yog;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogDzewa;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
@@ -35,8 +77,11 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,10 +93,15 @@ public class MobPlacer extends TestItem{
 
     private static final String AC_PLACE = "place";
     private static final String AC_SET = "set";
+    //切换分页模式（阵营分类/图鉴分类），与放置、设置按钮同级
+    private static final String AC_FACTION = "faction";
 
     private int mobTier = 1;
     private int mobIndex = 0;
     private int elite = 0;
+
+    //阵营分类模式开关：true 时按 铁血/正规军/帕拉蒂斯/未启用/矿洞 分页
+    private boolean factionMode = false;
 
     private boolean shouldOverride = false;
     private int HT = 1;
@@ -76,7 +126,17 @@ public class MobPlacer extends TestItem{
         ArrayList<String> actions = super.actions(hero);
         actions.add(AC_PLACE);
         actions.add(AC_SET);
+        actions.add(AC_FACTION);
         return actions;
+    }
+
+    @Override
+    public String actionName(String action, Hero hero) {
+        //按钮上显示将要切换到的模式名
+        if (AC_FACTION.equals(action)) {
+            return M.L(MobPlacer.class, factionMode ? "mode_catalog" : "mode_faction");
+        }
+        return super.actionName(action, hero);
     }
 
     @Override
@@ -90,13 +150,13 @@ public class MobPlacer extends TestItem{
                         if (canPlaceMob(cell)) {
                             try {
                                 Mob m = Reflection.newInstance(getMobClass());
-                                if (m instanceof Statue){
+                                if (m instanceof SksStatue){
                                     if (m instanceof ArmoredStatue)
                                         m = new ArmoredStatue(false);
                                     else if (m instanceof GuardianTrap.Guardian)
                                         m = new GuardianTrap.Guardian(false);
                                     else
-                                        m = new Statue(false);
+                                        m = new SksStatue(false);
                                 }
                                 else if(m instanceof Mimic){
                                     m = Mimic.spawnAt(cell, m.getClass());
@@ -133,6 +193,10 @@ public class MobPlacer extends TestItem{
 
         } else if (action.equals(AC_SET)) {
             GameScene.show(new WndSetMob());
+        } else if (action.equals(AC_FACTION)) {
+            factionMode = !factionMode;
+            GLog.p(M.L(MobPlacer.class, factionMode ? "mode_faction" : "mode_catalog"));
+            updateQuickslot();
         }
     }
 
@@ -142,15 +206,19 @@ public class MobPlacer extends TestItem{
 
 
     protected int maxMobIndex(int tier){
-        return allData.get( tier - 1 ).size();
+        return currentData().get( tier - 1 ).size();
     }
 
     private Class<? extends Mob> getMobClass(){
-        return allData.get( mobTier - 1 ).get( mobIndex );
+        return currentData().get( mobTier - 1 ).get( mobIndex );
     }
 
     private Class<? extends Mob> getMobClass( int index ){
-        return allData.get( mobTier - 1 ).get( index );
+        return currentData().get( mobTier - 1 ).get( index );
+    }
+
+    private LinkedHashMap<Integer, List<Class<? extends Mob>>> currentData(){
+        return factionMode ? factionData() : allData;
     }
 
 
@@ -165,6 +233,7 @@ public class MobPlacer extends TestItem{
         b.put("maxPage",maxPage);
         b.put("elite_ops", elite_op);
         b.put("mob_shouldOverride",shouldOverride);
+        b.put("factionMode", factionMode);
     }
 
     @Override
@@ -178,6 +247,7 @@ public class MobPlacer extends TestItem{
         ST = b.getInt("stTags");
         elite_op = b.getInt("elite_ops");
         shouldOverride = b.getBoolean("mob_shouldOverride");
+        factionMode = b.getBoolean("factionMode");
     }
 
 
@@ -191,8 +261,10 @@ public class MobPlacer extends TestItem{
         private RenderedTextBlock selectedPage;
         private ArrayList<IconButton> mobButtons = new ArrayList<>();
         private RenderedTextBlock selectedMob;
+        private RenderedTextBlock groupLabel;
         private ArrayList<CheckBox> eliteOptions = new ArrayList<>(7);
         private RedButton modifyHealth;
+        private CheckBox overrideResultButton;
 
         public WndSetMob(){
             super();
@@ -237,6 +309,12 @@ public class MobPlacer extends TestItem{
             selectedMob.hardlight(0xFFFF44);
             PixelScene.align(selectedMob);
             add(selectedMob);
+
+            //阵营模式下的分组标题（铁血/正规军/帕拉蒂斯/未启用/矿洞）
+            groupLabel = PixelScene.renderTextBlock("", 7);
+            groupLabel.hardlight(0x88CCFF);
+            PixelScene.align(groupLabel);
+            add(groupLabel);
 
             float pos = 110;
             int column = 0;
@@ -291,7 +369,7 @@ public class MobPlacer extends TestItem{
                 modifyHealth.active = shouldOverride;
                 add(modifyHealth);
 
-                CheckBox overrideResultButton = new CheckBox(Messages.get(MobPlacer.class, "override")) {
+                overrideResultButton = new CheckBox(Messages.get(MobPlacer.class, "override")) {
                     @Override
                     public void checked(boolean value) {
                         if (checked != value) {
@@ -312,8 +390,20 @@ public class MobPlacer extends TestItem{
                 column++;
             }
 
-            createMobImage();
+            applyMode();
+        }
 
+        //切换模式后重建分页：同步页数、钳制索引、按模式显隐精英控件并刷新图标
+        private void applyMode(){
+            maxPage = currentData().size();
+            mobTier = Math.min(Math.max(mobTier, 1), maxPage);
+            mobIndex = Math.min(mobIndex, maxMobIndex(mobTier) - 1);
+            if (mobIndex < 0) mobIndex = 0;
+            boolean fm = factionMode;
+            for (CheckBox cb : eliteOptions) cb.visible = !fm;
+            modifyHealth.visible = !fm;
+            overrideResultButton.visible = !fm;
+            refreshImage();
             updateSelectedMob();
             layout();
         }
@@ -339,15 +429,29 @@ public class MobPlacer extends TestItem{
         }
 
         private void updateMobText(){
+            if (maxMobIndex(mobTier) == 0){
+                selectedMob.text("-");
+                return;
+            }
             selectedMob.text( M.L( getMobClass(), "name") );
         }
 
         private void layout(){
             selectedPage.maxWidth(WIDTH / 2);
             selectedPage.setPos((WIDTH - selectedPage.width())/2, 5);
-            selectedMob.maxWidth(WIDTH);
-            selectedMob.setPos(eliteOptions.get(5).right(), 132);
-            resize(WIDTH, (int)eliteOptions.get(5).bottom() + 1);
+            String key = groupTitleKey();
+            groupLabel.text(key.isEmpty() ? "" : M.L(MobPlacer.class, key));
+            groupLabel.maxWidth(WIDTH);
+            groupLabel.setPos((WIDTH - groupLabel.width())/2, 21);
+            if (factionMode){
+                selectedMob.maxWidth(WIDTH - GAP * 2);
+                selectedMob.setPos(GAP, HEIGHT - 14);
+                resize(WIDTH, HEIGHT);
+            } else {
+                selectedMob.maxWidth(WIDTH);
+                selectedMob.setPos(eliteOptions.get(5).right(), 132);
+                resize(WIDTH, (int)eliteOptions.get(5).bottom() + 2);
+            }
         }
 
         private void createMobImage() {
@@ -435,5 +539,111 @@ public class MobPlacer extends TestItem{
         }
 
 
+    }
+
+    // ===== 阵营分类模式数据 =====
+    //分组页索引
+    private static final int GROUP_SANGVIS  = 0; //铁血工造
+    private static final int GROUP_ARMY     = 1; //正规军
+    private static final int GROUP_PARADEUS = 2; //帕拉蒂斯
+    private static final int GROUP_DORMANT  = 3; //不在生成表中的非Boss单位
+    private static final int GROUP_MINES    = 4; //矿洞任务敌人
+    private static final int GROUP_COUNT    = 5;
+
+    //图鉴之外的Boss与休眠单位（实例化探针时若类不可用会被自动跳过）
+    private static final Class<?>[] EXTRA_MOBS = {
+            Excutioner.class, Uro.class, Elphelt.class, Pylon.class, Gager.class, Disloli.class, YogDzewa.class,
+            DemonSpawner.class, RipperDemon.class,
+            Acidic.class, Aegis.class, CrystalGuardian.class, CrystalSpire.class, CrystalWisp.class,
+            DM100.class, DM200.class, DM201.class, ELID.class, Eye.class,
+            FungalCore.class, FungalSentry.class, FungalSpinner.class,
+            Intruder.class, Jager.class, Jaguar.class, Necromancer.class,
+            PhantomPiranha.class, Ripper.class, Scarecrow.class, Scorpio.class, Shielded.class,
+            Skeleton.class, Slime.class, SpectralNecromancer.class, TormentedSpirit.class, Typhootin.class,
+            Yog.class
+    };
+
+    //惰性初始化：首次打开设置窗口时才构建，避免静态阶段实例化怪物引发崩溃
+    private static LinkedHashMap<Integer, List<Class<? extends Mob>>> factionData = null;
+
+    private static LinkedHashMap<Integer, List<Class<? extends Mob>>> factionData(){
+        if (factionData == null){
+            initFactionData();
+        }
+        return factionData;
+    }
+
+    private static void initFactionData(){
+        factionData = new LinkedHashMap<>();
+        for (int i = 0; i < GROUP_COUNT; i++){
+            factionData.put(i, new ArrayList<>());
+        }
+
+        //全集：图鉴已有单位 + Boss + 休眠单位
+        LinkedHashSet<Class<?>> universe = new LinkedHashSet<>();
+        for (List<Class<? extends Mob>> list : allData.values()){
+            universe.addAll(list);
+        }
+        universe.addAll(Arrays.asList(EXTRA_MOBS));
+
+        //图鉴内单位集合（休眠页只放图鉴之外的单位，避免与经典模式重复）
+        HashSet<Class<?>> cataloged = new HashSet<>(universe);
+        cataloged.removeAll(Arrays.asList(EXTRA_MOBS));
+
+        //1~30层生成表集合，用于筛出"不在生成表中"的单位
+        HashSet<Class<?>> spawned = new HashSet<>();
+        try {
+            for (int f = 1; f <= 30; f++){
+                spawned.addAll(Bestiary.getRotation(f));
+            }
+        } catch (Exception ignored) {}
+
+        for (Class<?> cls : universe){
+            if (!Mob.class.isAssignableFrom(cls)) continue;
+            try {
+                Mob probe = (Mob) Reflection.newInstance(cls);
+                //Boss不允许自由生成：它们的战斗/死亡逻辑硬绑定了各自Boss关卡，放进普通楼层会崩溃
+                if (Char.hasProp(probe, Char.Property.BOSS)) continue;
+                //按阵营归档
+                switch (probe.faction){
+                    case SANGVIS_FERRI:
+                        factionData.get(GROUP_SANGVIS).add((Class<? extends Mob>) cls);
+                        break;
+                    case REGULAR_ARMY:
+                        factionData.get(GROUP_ARMY).add((Class<? extends Mob>) cls);
+                        break;
+                    case PARA_DEUS:
+                        factionData.get(GROUP_PARADEUS).add((Class<? extends Mob>) cls);
+                        break;
+                    default:
+                        break;
+                }
+                //不在生成表中的非Boss、且经典模式图鉴里没有的单位，归入休眠页
+                if (!spawned.contains(cls)
+                        && !cataloged.contains(cls)){
+                    factionData.get(GROUP_DORMANT).add((Class<? extends Mob>) cls);
+                }
+            } catch (Exception ignored) {
+                //某个类实例化失败时跳过，保证其余单位不受影响
+            }
+        }
+
+        //矿洞任务敌人单独一页
+        factionData.get(GROUP_MINES).add(GnollGuard.class);
+        factionData.get(GROUP_MINES).add(GnollSapper.class);
+        factionData.get(GROUP_MINES).add(GnollGeomancer.class);
+    }
+
+    //当前分组页的标题键名
+    private String groupTitleKey(){
+        if (!factionMode) return "";
+        switch (mobTier - 1){
+            case GROUP_SANGVIS:  return "group_sangvis";
+            case GROUP_ARMY:     return "group_army";
+            case GROUP_PARADEUS: return "group_paradeus";
+            case GROUP_DORMANT:  return "group_dormant";
+            case GROUP_MINES:    return "group_mines";
+            default:             return "";
+        }
     }
 }

@@ -150,19 +150,19 @@ public enum Bestiary {
 
     static {
 
-        REGIONAL.addEntities(Rat.class, Snake.class, Gnoll.class, Brute.class, Swarm.class,
-                Golyat.class, Thief.class, Shaman.RedShaman.class, Shaman.BlueShaman.class, Shaman.PurpleShaman.class, Mg5.class, GolyatFactory.class, GolyatFactory.FactoryGolyat.class,
+        REGIONAL.addEntities(Rat.class, Snake.class, Prowler.class, Brute.class, Swarm.class,
+                Golyat.class, Thief.class, Jaeger.RedJaeger.class, Jaeger.BlueJaeger.class, Jaeger.PurpleJaeger.class, Mg5.class, GolyatFactory.class, GolyatFactory.FactoryGolyat.class,
                 Bat.class, Vespid.class, Spinner.class, Nemeum.class,
-                Ghoul.class, Elemental.FireElemental.class, Elemental.FrostElemental.class, Elemental.ShockElemental.class, Warlock.class, Monk.class, Golem.class,
+                Undead.class, Elemental.FireElemental.class, Elemental.FrostElemental.class, Elemental.ShockElemental.class, JaegerLock.class, Striker.class, Manti.class,
                 Guard.class, Dragun.class, Jupiter.class,
                 Cyclops.class, Hydra.class, Succubus.class,
-                Kentauros.class,
+                Archer.class,
                 RipperDemon.class, DemonSpawner.class);
 
-        BOSSES.addEntities(Goo.class,
-                Tengu.class, Elphelt.class,
-                Pylon.class, DM300.class,
-                DwarfKing.class,
+        BOSSES.addEntities(Excutioner.class,
+                Uro.class, Elphelt.class,
+                Pylon.class, Gager.class,
+                Disloli.class,
                 YogDzewa.Larva.class,
                 YogFist.BurningFist.class, YogFist.SoiledFist.class,
                 YogFist.RottingFist.class, YogFist.RustedFist.class,
@@ -171,7 +171,7 @@ public enum Bestiary {
 
         UNIVERSAL.addEntities(Wraith.class, Piranha.class,
                 Mimic.class, GoldenMimic.class,
-                Statue.class, GuardianTrap.Guardian.class,
+                SksStatue.class, GuardianTrap.Guardian.class,
                 SentryRoom.Sentry.class);
 
         RARE.addEntities(RatXMAS.class, Albino.class, GnollSWAP.class,
@@ -182,7 +182,7 @@ public enum Bestiary {
                 CrystalMimic.class, ArmoredStatue.class,
                 ArmoredBrute.class);
 
-        QUEST.addEntities(FetidRat.class, GnollTrickster.class, GreatCrab.class,
+        QUEST.addEntities(FetidRat.class, JaegerTrickster.class, GreatCrab.class,
                 Elemental.NewbornFireElemental.class, RotLasher.class, RotHeart.class);
 
         NEUTRAL.addEntities(Ghost.class, DEL.class, RatKing.class,
@@ -221,10 +221,10 @@ public enum Bestiary {
 
         classConversions.put(TenguDartTrap.class,              PoisonDartTrap.class);
 
-        classConversions.put(DwarfKing.DKGhoul.class,          Ghoul.class);
-        classConversions.put(DwarfKing.DKWarlock.class,        Warlock.class);
-        classConversions.put(DwarfKing.DKMonk.class,           Monk.class);
-        classConversions.put(DwarfKing.DKGolem.class,          Golem.class);
+        classConversions.put(Disloli.DKGhoul.class,          Undead.class);
+        classConversions.put(Disloli.DKWarlock.class,        JaegerLock.class);
+        classConversions.put(Disloli.DKMonk.class,           Striker.class);
+        classConversions.put(Disloli.DKGolem.class,          Manti.class);
 
         classConversions.put(YogDzewa.YogRipper.class,         RipperDemon.class);
     }
@@ -372,7 +372,7 @@ public enum Bestiary {
     static {
         //1-5
         swapMob.put(Rat.class, Albino.class);
-        swapMob.put(Gnoll.class, GnollSWAP.class);
+        swapMob.put(Prowler.class, GnollSWAP.class);
         swapMob.put(Slime.class, CausticSlime.class);
 
         //6-10
@@ -388,7 +388,7 @@ public enum Bestiary {
         swapMob.put(Elemental.FireElemental.class, Elemental.ChaosElemental.class);
         swapMob.put(Elemental.FrostElemental.class, Elemental.ChaosElemental.class);
         swapMob.put(Elemental.ShockElemental.class, Elemental.ChaosElemental.class);
-        swapMob.put(Monk.class, Senior.class);
+        swapMob.put(Striker.class, Senior.class);
 
         //-
         swapMob.put(Scorpio.class, Acidic.class);
@@ -439,13 +439,13 @@ public enum Bestiary {
 
             case 2:
                 add(list, 3, Rat.class);
-                add(list, 3, Gnoll.class);
+                add(list, 3, Prowler.class);
                 add(list, 1, Snake.class);
                 break;
 
             case 3:
                 add(list, 2, Rat.class);
-                add(list, 4, Gnoll.class);
+                add(list, 4, Prowler.class);
                 add(list, 1, Brute.class);
                 add(list, 1, Swarm.class);
                 break;
@@ -453,7 +453,7 @@ public enum Bestiary {
             case 4:
             case 5:
                 add(list, 1, Rat.class);
-                add(list, 2, Gnoll.class);
+                add(list, 2, Prowler.class);
                 add(list, 3, Brute.class);
                 add(list, 1, Swarm.class);
                 break;
@@ -469,7 +469,7 @@ public enum Bestiary {
                 add(list, 1, Thief.class);
                 add(list, 1, Mg5.class);
 
-                list.add(Shaman.random());
+                list.add(Jaeger.random());
                 break;
 
             case 8:
@@ -478,8 +478,8 @@ public enum Bestiary {
                 add(list, 2, Mg5.class);
                 add(list, 1, GolyatFactory.class);
 
-                list.add(Shaman.random());
-                list.add(Shaman.random());
+                list.add(Jaeger.random());
+                list.add(Jaeger.random());
                 break;
 
             case 9:
@@ -489,8 +489,8 @@ public enum Bestiary {
                 add(list, 2, Mg5.class);
                 add(list, 2, GolyatFactory.class);
 
-                list.add(Shaman.random());
-                list.add(Shaman.random());
+                list.add(Jaeger.random());
+                list.add(Jaeger.random());
                 break;
 
             case 11:
@@ -521,7 +521,7 @@ public enum Bestiary {
                 break;
 
             case 16:
-                add(list, 2, Ghoul.class);
+                add(list, 2, Undead.class);
 
                 list.add(Elemental.random());
                 list.add(Elemental.random());
@@ -529,24 +529,24 @@ public enum Bestiary {
                 break;
 
             case 17:
-                add(list, 3, Ghoul.class);
-                add(list, 2, Monk.class);
+                add(list, 3, Undead.class);
+                add(list, 2, Striker.class);
 
                 list.add(Elemental.random());
                 list.add(Elemental.random());
                 break;
 
             case 18:
-                add(list, 3, Monk.class);
-                add(list, 2, Warlock.class);
-                add(list, 1, Golem.class);
+                add(list, 3, Striker.class);
+                add(list, 2, JaegerLock.class);
+                add(list, 1, Manti.class);
                 break;
 
             case 19:
             case 20:
-                add(list, 1, Monk.class);
-                add(list, 3, Warlock.class);
-                add(list, 2, Golem.class);
+                add(list, 1, Striker.class);
+                add(list, 3, JaegerLock.class);
+                add(list, 2, Manti.class);
                 break;
 
             case 21:
@@ -578,7 +578,7 @@ public enum Bestiary {
                 add(list, 2, Succubus.class);
                 add(list, 2, Jupiter.class);
                 add(list, 1, Hydra.class);
-                add(list, 2, Kentauros.class);
+                add(list, 2, Archer.class);
                 break;
 
             case 28:
@@ -586,13 +586,13 @@ public enum Bestiary {
                 add(list, 1, Succubus.class);
                 add(list, 1, Jupiter.class);
                 add(list, 6, Hydra.class);
-                add(list, 2, Kentauros.class);
+                add(list, 2, Archer.class);
                 break;
 
             case 29:
                 add(list, 1, Cyclops.class);
                 add(list, 6, Hydra.class);
-                add(list, 3, Kentauros.class);
+                add(list, 3, Archer.class);
                 break;
 
             case 30:

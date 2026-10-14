@@ -33,7 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StormCloud;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Uro;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Noel;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -78,7 +78,7 @@ public class PrisonBossLevel extends Level {
 		color2 = 0x88924c;
         prevent = true;
 		
-		//the player should be able to see all of Tengu's arena
+		//the player should be able to see all of Uro's arena
 		viewDistance = 12;
 	}
 	
@@ -91,7 +91,7 @@ public class PrisonBossLevel extends Level {
 	}
 	
 	private State state;
-	private Tengu tengu;
+	private Uro tengu;
 
 	@Override
 	public void playLevelMusic() {
@@ -137,11 +137,11 @@ public class PrisonBossLevel extends Level {
 
 		//in some states tengu won't be in the world, in others he will be.
 		if (state == State.START || state == State.FIGHT_PAUSE) {
-			tengu = (Tengu)bundle.get( TENGU );
+			tengu = (Uro)bundle.get( TENGU );
 		} else {
 			for (Mob mob : mobs){
-				if (mob instanceof Tengu) {
-					tengu = (Tengu) mob;
+				if (mob instanceof Uro) {
+					tengu = (Uro) mob;
 					break;
 				}
 			}
@@ -437,7 +437,7 @@ public class PrisonBossLevel extends Level {
 				
 				int tenguPos = pointToCell(tenguCellCenter);
 				
-				//if something is occupying Tengu's space, try to put him in an adjacent cell
+				//if something is occupying Uro's space, try to put him in an adjacent cell
 				if (Actor.findChar(tenguPos) != null){
 					ArrayList<Integer> candidates = new ArrayList<>();
 					for (int i : PathFinder.NEIGHBOURS8()){
@@ -556,8 +556,8 @@ public class PrisonBossLevel extends Level {
 				cleanMapState();
 				
 				for (Item item : storedItems) {
-					if (!(item instanceof Tengu.BombAbility.BombItem)
-						&& !(item instanceof Tengu.ShockerAbility.ShockerItem)) {
+					if (!(item instanceof Uro.BombAbility.BombItem)
+						&& !(item instanceof Uro.ShockerAbility.ShockerItem)) {
 						drop(item, randomTenguCellPos());
 					}
 				}
@@ -600,7 +600,7 @@ public class PrisonBossLevel extends Level {
 	
 	@Override
 	protected void createMobs() {
-		tengu = new Tengu(); //We want to keep track of tengu independently of other mobs, he's not always in the level.
+		tengu = new Uro(); //We want to keep track of tengu independently of other mobs, he's not always in the level.
 	}
 	
 	@Override
@@ -624,7 +624,7 @@ public class PrisonBossLevel extends Level {
 		items.addAll(storedItems);
 
 		for (Item i : items.toArray(new Item[0])){
-			if (i instanceof Tengu.BombAbility.BombItem || i instanceof Tengu.ShockerAbility.ShockerItem){
+			if (i instanceof Uro.BombAbility.BombItem || i instanceof Uro.ShockerAbility.ShockerItem){
 				items.remove(i);
 			}
 		}

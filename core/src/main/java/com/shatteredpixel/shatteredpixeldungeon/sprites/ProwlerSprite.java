@@ -25,9 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.watabou.noosa.TextureFilm;
 
-public class GnollSprite extends MobSprite {
+public class ProwlerSprite extends MobSprite {
 	
-	public GnollSprite() {
+	public ProwlerSprite() {
 		super();
 		
 		texture( Assets.Sprites.PROWLER );

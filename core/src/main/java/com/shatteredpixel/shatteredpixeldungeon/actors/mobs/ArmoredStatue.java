@@ -35,7 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ArmoredStatueSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-public class ArmoredStatue extends Statue {
+public class ArmoredStatue extends SksStatue {
 
 	{
 		spriteClass = ArmoredStatueSprite.class;
@@ -121,7 +121,7 @@ public class ArmoredStatue extends Statue {
 //	@Override
 //	public CharSprite sprite() {
 //		CharSprite sprite = super.sprite();
-//		((StatueSprite)sprite).setArmor(armor.tier);
+//		((SksStatueSprite)sprite).setArmor(armor.tier);
 //		return sprite;
 //	}
 

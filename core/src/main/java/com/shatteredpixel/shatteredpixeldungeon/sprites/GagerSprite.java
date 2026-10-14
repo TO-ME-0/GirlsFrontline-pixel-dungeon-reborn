@@ -23,7 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
@@ -33,14 +33,14 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Callback;
 
-public class DM300Sprite extends MobSprite {
+public class GagerSprite extends MobSprite {
 
 	private Animation charge;
 	private Animation slam;
 
 	private Emitter superchargeSparks;
 	
-	public DM300Sprite() {
+	public GagerSprite() {
 		super();
 		
 		texture( Assets.Sprites.GAGER );
@@ -94,7 +94,7 @@ public class DM300Sprite extends MobSprite {
 				new Callback() {
 					@Override
 					public void call() {
-						((DM300)ch).onZapComplete();
+						((Gager)ch).onZapComplete();
 					}
 				} );
 		Sample.INSTANCE.play( Assets.Sounds.GAS );
@@ -119,7 +119,7 @@ public class DM300Sprite extends MobSprite {
 		}
 
 		if (anim == slam){
-			((DM300)ch).onSlamComplete();
+			((Gager)ch).onSlamComplete();
 		}
 
 		super.onComplete( anim );
@@ -140,7 +140,7 @@ public class DM300Sprite extends MobSprite {
 		superchargeSparks.pour(SparkParticle.STATIC, 0.05f);
 		superchargeSparks.on = false;
 
-		if (ch instanceof DM300 && ((DM300) ch).isSupercharged()){
+		if (ch instanceof Gager && ((Gager) ch).isSupercharged()){
 			updateChargeState(true);
 		}
 	}

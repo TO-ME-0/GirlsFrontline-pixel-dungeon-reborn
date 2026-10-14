@@ -32,8 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpB
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Hydra;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Jaeger;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerLock;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -83,8 +83,8 @@ public class AntiMagic extends Armor.Glyph {
 		RESISTS.add( WarpBeacon.class );
 		
 		RESISTS.add( DM100.LightningBolt.class );
-		RESISTS.add( Shaman.EarthenBolt.class );
-		RESISTS.add( Warlock.DarkBolt.class );
+		RESISTS.add( Jaeger.EarthenBolt.class );
+		RESISTS.add( JaegerLock.DarkBolt.class );
 		RESISTS.add( Hydra.Beam.class );
 		RESISTS.add( Eye.DeathGaze.class );
 		RESISTS.add( YogFist.BrightFist.LightBeam.class );

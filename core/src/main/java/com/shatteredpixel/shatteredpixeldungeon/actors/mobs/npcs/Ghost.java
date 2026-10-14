@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeons;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FetidRat;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollTrickster;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.JaegerTrickster;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GreatCrab;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -188,7 +188,7 @@ public class Ghost extends NPC {
 					txt_quest = new STAR15_Plot_L1();
 					break;
 				case 2:
-					questBoss = new GnollTrickster();
+					questBoss = new JaegerTrickster();
 					txt_quest = new STAR15_Plot_L2();
 					break;
 				case 3:
