@@ -2227,11 +2227,13 @@ public class Hero extends Char {
 			GameScene.flash(0x80FFFF40);
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 			GLog.w(Card.EnumString(FinalCard.HS2000.Webley, "fail"));
+			HP = 1;
 			PotionOfHealing.cure(this);
 			HP = HT / 4;
 			Buff.affect(this, HS2000_Shield.class).incShield(HT);
 			Buff.affect(this, IntensifySkill.Intensify.class, 20F);
 			CardSelector.INSTANCE().destroyCard(FinalCard.HS2000.Webley);
+			return;
 		}
 
 		Ankh ankh = null;
@@ -2265,6 +2267,7 @@ public class Hero extends Char {
 
 			if (ankh.isBlessed()) {
 
+				HP = 1;
 				PotionOfHealing.cure(this);
 				this.HP = HT / 4;
 				Buff.prolong(this, AnkhInvulnerability.class, AnkhInvulnerability.DURATION);
@@ -2283,6 +2286,7 @@ public class Hero extends Char {
 						return;
 					}
 				}
+				return;
 			} else {
 
 				//this is hacky, basically we want to declare that a wndResurrect exists before
