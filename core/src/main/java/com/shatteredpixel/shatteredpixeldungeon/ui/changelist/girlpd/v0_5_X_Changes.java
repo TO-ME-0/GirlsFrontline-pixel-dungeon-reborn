@@ -54,7 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.AgentSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.AlchemistSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CrabSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.BruteSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CyclopsSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DM300Sprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ElpheltSprite;
@@ -827,8 +827,8 @@ public class v0_5_X_Changes {
 		changes.hardlight( CharSprite.NEGATIVE );
 		changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton(new CrabSprite(),
-                new CrabSprite().attack, true,
+        changes.addButton(new ChangeButton(new BruteSprite(),
+                new BruteSprite().attack, true,
                 0xFF8800,
                 "烈焰精英",
             "_-_ 削弱了_烈焰精英_类敌人的点燃能力，烈焰精英将不能点燃站在水面上的单位。\n"+
@@ -1145,7 +1145,7 @@ public class v0_5_X_Changes {
 		changes.hardlight( CharSprite.WARNING );
 		changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton(new CrabSprite(), new CrabSprite().run,
+        changes.addButton(new ChangeButton(new BruteSprite(), new BruteSprite().run,
                 true,
                 0x0000FF,
                 "索敌精英",

@@ -33,10 +33,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.AlbinoSprite;
 import com.watabou.utils.Random;
 
-public class Scarecrow extends Crab {
+public class Scarecrow extends Brute {
 
     {
         spriteClass = AlbinoSprite.class;
+        faction = Faction.NONE; //稻草人保持中立，不参与阵营互斗
 
         HP = HT = 80;
         defenseSkill = 3;

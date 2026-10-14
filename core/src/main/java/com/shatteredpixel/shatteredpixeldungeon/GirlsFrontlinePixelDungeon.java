@@ -63,6 +63,16 @@ public class GirlsFrontlinePixelDungeon extends Game {
 				"com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements" );
 		//元素合并至韧性。
 
+		//怪物正名后的旧存档类名兼容（旧 Crab 残兽 → 新 Brute 残兽，类文件改名但内容相同）
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab" );
+		//旧胡蜂（旧类名 Brute）的狂暴 buff → 新 Vespid.VespidRage
+		//注意：旧胡蜂本体的类名 Brute 与新残兽重名，无法做别名迁移，旧关卡存档中的胡蜂会被读成残兽（不会崩溃）
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Vespid.VespidRage.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute$BruteRage" );
+
 	}
 	public static void reportException( Throwable tr ) {
 		Game.GameMode = Dungeon.GameMode;

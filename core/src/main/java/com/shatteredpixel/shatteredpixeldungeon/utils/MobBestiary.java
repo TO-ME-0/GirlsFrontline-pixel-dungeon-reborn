@@ -30,9 +30,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bandit;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bat;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Vespid;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CausticSlime;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Cyclops;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
@@ -200,7 +200,7 @@ public enum MobBestiary {
     static {
 
         SEWER.addEntities(
-                Snake.class, Rat.class, Gnoll.class, Crab.class, Swarm.class);
+                Snake.class, Rat.class, Gnoll.class, Brute.class, Swarm.class);
 
         PRISON.addEntities(Golyat.class,GolyatFactory.class,Thief.class,
                 Shaman.RedShaman.class,
@@ -208,7 +208,7 @@ public enum MobBestiary {
                 Shaman.PurpleShaman.class,
                 Mg5.class,Elemental.NewbornFireElemental.class);
 
-        CAVES.addEntities(Bat.class,Brute.class,
+        CAVES.addEntities(Bat.class,Vespid.class,
                 Spinner.class,Nemeum.class);
 
         CITYS.addEntities(Elemental.FireElemental.class,Elemental.FrostElemental.class,Elemental.ShockElemental.class,

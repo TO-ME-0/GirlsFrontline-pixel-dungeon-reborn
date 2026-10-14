@@ -38,10 +38,11 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
-public class GreatCrab extends Crab {
+public class GreatCrab extends Brute {
 
 	{
 		spriteClass = GreatCrabSprite.class;
+		faction = Faction.NONE; //圣盾保持中立，不参与阵营互斗
 
 		HP = HT = 25;
 		defenseSkill = 0; //see damage()

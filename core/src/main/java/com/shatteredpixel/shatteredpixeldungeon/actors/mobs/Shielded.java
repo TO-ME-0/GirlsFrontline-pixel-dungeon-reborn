@@ -24,7 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ShieldedSprite;
 import com.watabou.utils.Random;
 
-public class Shielded extends Brute {
+public class Shielded extends Vespid {
 
 	{
 		spriteClass = ShieldedSprite.class;

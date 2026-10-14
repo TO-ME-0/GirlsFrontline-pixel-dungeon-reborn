@@ -19,41 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
+package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CrabSprite;
-import com.watabou.utils.Random;
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.watabou.noosa.TextureFilm;
 
-public class Crab extends Mob {
+public class VespidSprite extends MobSprite {
+	
+	public VespidSprite() {
+		super();
+		
+		texture( Assets.Sprites.VESPID );
 
-	{
-		spriteClass = CrabSprite.class;
-		
-		HP = HT = 15;
-		defenseSkill = 5;
-		baseSpeed = 2f;
-		
-		EXP = 4;
-		maxLvl = 9;
-		
-		loot = new MysteryMeat();
-		lootChance = 0.167f;
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( 1, 7 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 12;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 4);
+		TextureFilm frames = new TextureFilm( texture, 20, 21 );
+
+		idle = new Animation( 5, true );
+		idle.frames( frames, 0 );
+
+		run = new Animation( 15, true );
+		run.frames( frames,  4, 5, 6, 7, 8, 9 );
+
+		attack = new Animation( 18, false );
+		attack.frames( frames, 1, 2, 3, 2 );
+
+		die = new Animation( 12, false );
+		die.frames( frames, 10, 11, 12 );
+
+		play( idle );
 	}
 }

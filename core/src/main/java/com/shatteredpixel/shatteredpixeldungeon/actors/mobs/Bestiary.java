@@ -150,9 +150,9 @@ public enum Bestiary {
 
     static {
 
-        REGIONAL.addEntities(Rat.class, Snake.class, Gnoll.class, Crab.class, Swarm.class,
+        REGIONAL.addEntities(Rat.class, Snake.class, Gnoll.class, Brute.class, Swarm.class,
                 Golyat.class, Thief.class, Shaman.RedShaman.class, Shaman.BlueShaman.class, Shaman.PurpleShaman.class, Mg5.class, GolyatFactory.class, GolyatFactory.FactoryGolyat.class,
-                Bat.class, Brute.class, Spinner.class, Nemeum.class,
+                Bat.class, Vespid.class, Spinner.class, Nemeum.class,
                 Ghoul.class, Elemental.FireElemental.class, Elemental.FrostElemental.class, Elemental.ShockElemental.class, Warlock.class, Monk.class, Golem.class,
                 Guard.class, Dragun.class, Jupiter.class,
                 Cyclops.class, Hydra.class, Succubus.class,
@@ -381,7 +381,7 @@ public enum Bestiary {
         swapMob.put(Necromancer.class, SpectralNecromancer.class);
 
         //11-15
-        swapMob.put(Brute.class, ArmoredBrute.class);
+        swapMob.put(Vespid.class, ArmoredBrute.class);
         swapMob.put(DM200.class, DM201.class);
 
         //16-20
@@ -446,7 +446,7 @@ public enum Bestiary {
             case 3:
                 add(list, 2, Rat.class);
                 add(list, 4, Gnoll.class);
-                add(list, 1, Crab.class);
+                add(list, 1, Brute.class);
                 add(list, 1, Swarm.class);
                 break;
 
@@ -454,7 +454,7 @@ public enum Bestiary {
             case 5:
                 add(list, 1, Rat.class);
                 add(list, 2, Gnoll.class);
-                add(list, 3, Crab.class);
+                add(list, 3, Brute.class);
                 add(list, 1, Swarm.class);
                 break;
 
@@ -495,19 +495,19 @@ public enum Bestiary {
 
             case 11:
                 add(list, 5, Bat.class);
-                add(list, 1, Brute.class);
+                add(list, 1, Vespid.class);
                 break;
 
             case 12:
                 add(list, 4, Bat.class);
-                add(list, 4, Brute.class);
+                add(list, 4, Vespid.class);
                 add(list, 2, Spinner.class);
                 add(list, 1, Nemeum.class);
                 break;
 
             case 13:
                 add(list, 2, Bat.class);
-                add(list, 3, Brute.class);
+                add(list, 3, Vespid.class);
                 add(list, 2, Spinner.class);
                 add(list, 2, Nemeum.class);
                 break;
@@ -515,7 +515,7 @@ public enum Bestiary {
             case 14:
             case 15:
                 add(list, 1, Bat.class);
-                add(list, 3, Brute.class);
+                add(list, 3, Vespid.class);
                 add(list, 2, Spinner.class);
                 add(list, 3, Nemeum.class);
                 break;

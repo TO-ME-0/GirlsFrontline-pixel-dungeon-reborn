@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ShieldedSprite;
 import com.watabou.utils.Random;
 
-public class ArmoredBrute extends Brute {
+public class ArmoredBrute extends Vespid {
 
 	{
 		spriteClass = ShieldedSprite.class;
@@ -66,7 +66,7 @@ public class ArmoredBrute extends Brute {
 	}
 	
 	//similar to regular brute rate, but deteriorates much slower. 60 turns to death total.
-	public static class ArmoredRage extends Brute.BruteRage {
+	public static class ArmoredRage extends Vespid.VespidRage {
 		
 		@Override
 		public boolean act() {

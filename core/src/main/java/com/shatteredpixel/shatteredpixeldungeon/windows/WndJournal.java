@@ -1396,6 +1396,10 @@ public class WndJournal extends WndTabbed {
 					if (seen) {
 						title = Messages.titleCase(mob.name());
 						desc = mob.description();
+						//标注敌对阵营（帕拉蒂斯/正规军/铁血工造），无阵营的怪物不显示
+						if (mob.faction != Mob.Faction.NONE) {
+							desc += Messages.get(CatalogTab.class, "faction_" + mob.faction.name().toLowerCase(Locale.ROOT));
+						}
 						if (Bestiary.encounterCount(entityCls) > 0) {
 							desc += "\n\n" + Messages.get(CatalogTab.class, "enemy_count", Bestiary.encounterCount(entityCls));
 						}

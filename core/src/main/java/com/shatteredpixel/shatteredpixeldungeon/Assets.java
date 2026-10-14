@@ -22,9 +22,8 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 public class Assets {
-	//unsed 未使用
-	public static final String ELID         = "elid.png";
-	public static final String TOW 			= "tow.png";
+	//未启用生成的怪物
+	public static final String ELID         = "sprites/elid.png";
 
 	public static class Effects {
 		public static final String EFFECTS      = "effects/effects.png";
@@ -270,28 +269,14 @@ public class Assets {
 		public static final String ITEMS        = "interfaces/items.png";
 		public static final String ITEM_ICONS   = "interfaces/item_icons.png";
 
-		// ===== sprites/ (direct children) =====            
-		
-		// TODO  破碎中待删除的贴图        因为我不知道有哪些还在被引用 所以没删掉。看到的话请帮忙清理一下这些！！感谢！
-		
-		public static final String PET      = "sprites/pet.png";
+		// ===== sprites/ (direct children) =====
+		//2026-10-14 已清理零引用的孤儿常量与对应贴图（crab/gnoll/monk/golem/king/dm300/statue/tengu/shaman/pet/goo/warlock/yog）
+
 		public static final String AMULET   = "sprites/amulet.png";
-		public static final String DM300      = "sprites/dm300.png";
 		public static final String WRAITH     = "sprites/wraith.png";
-		public static final String KING       = "sprites/king.png";
-		public static final String GNOLL      = "sprites/gnoll.png";
-		public static final String CRAB       = "sprites/crab.png";
-		public static final String GOO        = "sprites/goo.png";
 		public static final String SKELETON   = "sprites/skeleton.png";
-		public static final String SHAMAN     = "sprites/shaman.png";
-		public static final String TENGU      = "sprites/tengu.png";
-		public static final String MONK       = "sprites/monk.png";
-		public static final String WARLOCK    = "sprites/warlock.png";
-		public static final String GOLEM      = "sprites/golem.png";
-		public static final String STATUE     = "sprites/statue.png";
 		public static final String SCORPIO    = "sprites/scorpio.png";
 		public static final String FISTS      = "sprites/yog_fists.png";
-		public static final String YOG        = "sprites/yog.png";
 		public static final String RATKING    = "sprites/ratking.png";
 		public static final String SLIME      = "sprites/slime.png";
 		public static final String NECRO      = "sprites/necromancer.png";
@@ -311,7 +296,6 @@ public class Assets {
 		public static final String ALCHEMIST	= "sprites/boss/Alchemist.png";
 		public static final String EXCU			= "sprites/boss/excutioner.png";
 		public static final String MASTAR_HEAD	= "sprites/boss/master_head.png";
-		public static final String DISTORY		= "sprites/boss/disloli.png";
 		public static final String URO			= "sprites/boss/uro.png";
 		public static final String GAGER		= "sprites/boss/gager.png";
 
@@ -319,7 +303,6 @@ public class Assets {
 		public static final String WARRIOR  		= "sprites/char/warrior.png";
 		public static final String MAGE     		= "sprites/char/mage.png";
 		public static final String ROGUE    		= "sprites/char/rogue.png";
-		public static final String HUNTRESS 		= "sprites/char/falcon.png";
 		public static final String TYPE561  		= "sprites/char/type56.png";
 		public static final String GSH18    		= "sprites/char/gsh18.png";
 		public static final String HK416    		= "sprites/char/hk416.png";
