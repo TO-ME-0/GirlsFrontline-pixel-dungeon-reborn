@@ -19,6 +19,7 @@ public class Kentauros extends Mob {
 
 	{
 		spriteClass = KentaurosSprite.class;
+		faction = Faction.REGULAR_ARMY;
 
 		HP = HT = 125;
 		defenseSkill = 26;

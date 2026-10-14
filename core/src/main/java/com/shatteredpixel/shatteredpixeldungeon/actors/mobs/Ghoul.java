@@ -45,6 +45,7 @@ public class Ghoul extends Mob {
 	
 	{
 		spriteClass = GhoulSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 45;
 		defenseSkill = 20;

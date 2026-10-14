@@ -49,6 +49,7 @@ public class Guard extends Mob {
 
 	{
 		spriteClass = GuardSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 
 		HP = HT = 300;
 		EXP = 15;

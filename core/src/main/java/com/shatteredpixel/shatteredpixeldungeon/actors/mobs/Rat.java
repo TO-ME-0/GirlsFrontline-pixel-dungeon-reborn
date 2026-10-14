@@ -32,6 +32,7 @@ public class Rat extends Mob {
 
 	{
 		spriteClass = RatSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 8;
 		defenseSkill = 2;

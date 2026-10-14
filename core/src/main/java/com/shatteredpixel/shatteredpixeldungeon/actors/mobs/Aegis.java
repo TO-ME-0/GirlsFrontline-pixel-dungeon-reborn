@@ -40,6 +40,7 @@ public class Aegis extends Mob {
 
     {
         spriteClass = AegisSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
         HP = HT = 300;
         EXP = 15;

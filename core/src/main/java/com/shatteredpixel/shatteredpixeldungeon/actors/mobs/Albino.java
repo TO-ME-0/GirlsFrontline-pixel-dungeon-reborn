@@ -32,6 +32,7 @@ public class Albino extends Rat {
 
 	{
 		spriteClass = AlbinoSprite.class;
+		faction = Faction.NONE;
 		
 		HP = HT = 15;
 		EXP = 2;

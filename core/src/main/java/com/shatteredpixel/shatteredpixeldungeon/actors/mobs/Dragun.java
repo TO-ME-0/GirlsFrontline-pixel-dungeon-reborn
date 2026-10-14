@@ -30,6 +30,7 @@ public class Dragun extends Mob {
 
     {
         spriteClass = DragunSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
         HP = HT = 20;
         EXP = 16;

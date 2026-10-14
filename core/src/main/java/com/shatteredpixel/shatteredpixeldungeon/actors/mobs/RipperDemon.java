@@ -45,6 +45,7 @@ public class RipperDemon extends Mob {
 
 	{
 		spriteClass = RipperSprite.class;
+		faction = Faction.REGULAR_ARMY;
 
 		HP = HT = 60;
 		defenseSkill = 22;

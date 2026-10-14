@@ -45,6 +45,7 @@ public class Eye extends Mob {
 	
 	{
 		spriteClass = EyeSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 100;
 		defenseSkill = 20;

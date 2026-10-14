@@ -18,6 +18,7 @@ public class RatXMAS extends Rat{
     public RatXMAS() {
         this.PASSIVE = new Passive();
         spriteClass = RatXMASSprite.class;
+        faction = Faction.NONE;
         state=PASSIVE;
         lootChance = 0f;
         EXP = 2;

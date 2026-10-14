@@ -38,6 +38,7 @@ public class Monk extends Mob {
 	
 	{
 		spriteClass = MonkSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 70;
 		defenseSkill = 30;

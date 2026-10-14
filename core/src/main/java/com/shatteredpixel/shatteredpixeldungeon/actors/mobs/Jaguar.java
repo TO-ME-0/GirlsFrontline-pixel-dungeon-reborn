@@ -25,6 +25,7 @@ public class Jaguar extends Mob {
 
     {
         spriteClass = JaguarSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
 
         HP = HT = 40;

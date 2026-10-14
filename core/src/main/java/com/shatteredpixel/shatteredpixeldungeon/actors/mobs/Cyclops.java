@@ -35,6 +35,7 @@ public class Cyclops extends Mob {
 
     {
         spriteClass = CyclopsSprite.class;
+        faction = Faction.REGULAR_ARMY;
 
         HP = HT = 120;
         EXP = 17;

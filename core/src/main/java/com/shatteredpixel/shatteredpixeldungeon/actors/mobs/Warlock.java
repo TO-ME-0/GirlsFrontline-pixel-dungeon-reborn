@@ -44,6 +44,7 @@ public class Warlock extends Mob implements Callback {
 	
 	{
 		spriteClass = WarlockSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 70;
 		defenseSkill = 18;

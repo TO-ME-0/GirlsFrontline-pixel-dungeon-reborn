@@ -218,6 +218,7 @@ public class SentryRoom extends SpecialRoom {
 
 		{
 			spriteClass = SentrySprite.class;
+			faction = Faction.PARA_DEUS;
 
 			properties.add(Property.IMMOVABLE);
 		}

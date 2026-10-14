@@ -44,6 +44,7 @@ public class Hydra extends Mob {
 
     {
         spriteClass = HydraSprite.class;
+        faction = Faction.REGULAR_ARMY;
 
         HP = HT = 200;
         EXP = 19;

@@ -39,6 +39,7 @@ public class Golyat extends Mob {
 
     {
         spriteClass = GolyatSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
         HP = HT = 25;
         defenseSkill = 9;

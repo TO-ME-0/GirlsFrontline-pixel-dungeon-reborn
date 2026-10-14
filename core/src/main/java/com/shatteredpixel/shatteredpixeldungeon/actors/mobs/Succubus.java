@@ -52,6 +52,7 @@ public class Succubus extends Mob {
 	
 	{
 		spriteClass = SuccubusSprite.class;
+		faction = Faction.REGULAR_ARMY;
 		
 		HP = HT = 80;
 		defenseSkill = 25;

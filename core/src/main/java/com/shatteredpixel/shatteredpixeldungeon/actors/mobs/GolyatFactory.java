@@ -46,6 +46,7 @@ public class GolyatFactory extends Mob {
 	
 	{
 		spriteClass = GolyatFactorySprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 40;
 		defenseSkill = 14;

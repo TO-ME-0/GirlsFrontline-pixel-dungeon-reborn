@@ -22,6 +22,7 @@ public class Nemeum extends Mob {
 
     {
         spriteClass = NemeumSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
         HP = HT = 40;
         EXP = 9;

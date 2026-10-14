@@ -41,6 +41,7 @@ public class Golem extends Mob {
 	
 	{
 		spriteClass = GolemSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 150;
 		defenseSkill = 15;

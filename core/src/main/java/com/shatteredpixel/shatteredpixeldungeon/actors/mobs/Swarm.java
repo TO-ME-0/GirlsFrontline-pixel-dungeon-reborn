@@ -43,6 +43,7 @@ public class Swarm extends Mob {
 
 	{
 		spriteClass = SwarmSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 50;
 		defenseSkill = 5;

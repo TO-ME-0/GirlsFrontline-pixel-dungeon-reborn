@@ -45,6 +45,7 @@ public class Jupiter extends Mob {
 
     {
         spriteClass = JupiterSprite.class;
+        faction = Faction.SANGVIS_FERRI;
 
         HP = HT = 150;
         defenseSkill = 5;

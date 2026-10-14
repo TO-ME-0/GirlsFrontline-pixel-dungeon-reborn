@@ -116,6 +116,15 @@ public abstract class Mob extends Char {
 	public AiState state = SLEEPING;
 	
 	public Class<? extends CharSprite> spriteClass;
+
+	//敌对阵营：同一阵营互不攻击，不同阵营相遇时会互相攻击；NONE 表示中立（保持原版只打玩家的行为）
+	public enum Faction{
+		NONE,
+		PARA_DEUS,      //帕拉蒂斯
+		REGULAR_ARMY,   //正规军
+		SANGVIS_FERRI   //铁血工造
+	}
+	public Faction faction = Faction.NONE;
 	
 	public int target = -1;
 	
@@ -127,12 +136,17 @@ public abstract class Mob extends Char {
 	public boolean enemySeen;
 	protected boolean alerted = false;
 
+	//玩家方是否参与过对该怪的伤害输出（直接攻击/盟友/法杖/职业技能/物品道具）；
+	// 全程未参与时，死亡不结算经验、不计入击杀、图鉴不记录（阵营互斗击杀不给玩家白送收益）
+	private boolean heroDamaged = false;
+
 	protected static final float TIME_TO_WAKE_UP = 1f;
 	
 	private static final String STATE	= "state";
 	private static final String SEEN	= "seen";
 	private static final String TARGET	= "target";
 	private static final String MAX_LVL	= "max_lvl";
+	private static final String HERO_DAMAGED = "hero_damaged";
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		
@@ -142,6 +156,7 @@ public abstract class Mob extends Char {
 		bundle.put( SEEN, enemySeen );
 		bundle.put( TARGET, target );
 		bundle.put( MAX_LVL, maxLvl );
+		bundle.put( HERO_DAMAGED, heroDamaged );
 	}
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
@@ -155,6 +170,7 @@ public abstract class Mob extends Char {
 		target = bundle.getInt( TARGET );
 
 		if (bundle.contains(MAX_LVL)) maxLvl = bundle.getInt(MAX_LVL);
+		if (bundle.contains(HERO_DAMAGED)) heroDamaged = bundle.getBoolean(HERO_DAMAGED);
 	}
 	protected void storeState( Bundle bundle ){
 		if (state == SLEEPING)
@@ -329,6 +345,15 @@ public abstract class Mob extends Char {
 				for (Mob mob : Dungeon.level.mobs)
 					if (mob.alignment == Alignment.ALLY && fieldOfView[mob.pos] && mob.invisible <= 0)
 						enemies.add(mob);
+
+				//阵营互斗：属于某一阵营的怪物，会把不同阵营的怪物也视为敌人
+				if (faction != Faction.NONE) {
+					for (Mob mob : Dungeon.level.mobs)
+						if (mob != this && mob.faction != Faction.NONE && mob.faction != faction
+								&& mob.isAlive() && mob.alignment == Alignment.ENEMY
+								&& fieldOfView[mob.pos] && mob.invisible <= 0)
+							enemies.add(mob);
+				}
 
 				//and look for the hero
 				if (fieldOfView[Dungeon.hero().pos] && Dungeon.hero().invisible <= 0) {
@@ -684,6 +709,17 @@ public abstract class Mob extends Char {
 	@Override
 	public void damage( int dmg, Object src ) {
 
+		//记录玩家方参与：英雄直接攻击、盟友（召唤物/镜像等）、法杖、职业技能、物品道具（炸弹/卷轴/魂弓箭矢等）
+		if (dmg > 0 && !heroDamaged) {
+			if (src instanceof Hero
+					|| (src instanceof Char && ((Char) src).alignment == Alignment.ALLY)
+					|| src instanceof Wand
+					|| src instanceof ArmorAbility
+					|| src instanceof Item) {
+				heroDamaged = true;
+			}
+		}
+
 		if (!isInvulnerable(src.getClass())) {
 			if (state == SLEEPING) {
 				state = WANDERING;
@@ -716,7 +752,8 @@ public abstract class Mob extends Char {
 		
 		if (Dungeon.hero().isAlive()) {
 			
-			if (alignment == Alignment.ENEMY) {
+			//只有玩家方参与过输出的敌怪死亡才结算：经验、击杀统计、图鉴记录
+			if (alignment == Alignment.ENEMY && heroDamaged) {
 				Statistics.enemiesSlain++;
 				Badges.validateMonstersSlain();
 				Statistics.qualifiedForNoKilling = false;

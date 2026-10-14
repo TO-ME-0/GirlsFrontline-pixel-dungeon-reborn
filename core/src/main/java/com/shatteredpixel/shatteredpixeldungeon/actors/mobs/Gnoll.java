@@ -30,6 +30,7 @@ public class Gnoll extends Mob {
 	
 	{
 		spriteClass = GnollSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 12;
 		defenseSkill = 4;

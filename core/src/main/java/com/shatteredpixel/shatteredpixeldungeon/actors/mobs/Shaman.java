@@ -41,6 +41,7 @@ import com.watabou.utils.Random;
 public abstract class Shaman extends Mob {
 	
 	{
+		faction = Faction.SANGVIS_FERRI;
 		HP = HT = 20;
 		defenseSkill = 8;
 		

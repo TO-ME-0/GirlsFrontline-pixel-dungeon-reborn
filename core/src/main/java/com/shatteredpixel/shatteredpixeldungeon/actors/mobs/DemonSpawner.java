@@ -47,6 +47,7 @@ public class DemonSpawner extends Mob {
 
 	{
 		spriteClass = SpawnerSprite.class;
+		faction = Faction.REGULAR_ARMY;
 
 		HP = HT = 120;
 		defenseSkill = 0;

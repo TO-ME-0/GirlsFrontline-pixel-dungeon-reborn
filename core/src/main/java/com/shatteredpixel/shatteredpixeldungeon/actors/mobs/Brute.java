@@ -39,6 +39,7 @@ public class Brute extends Mob {
 	
 	{
 		spriteClass = BruteSprite.class;
+		faction = Faction.SANGVIS_FERRI;
 		
 		HP = HT = 40;
 		defenseSkill = 15;
