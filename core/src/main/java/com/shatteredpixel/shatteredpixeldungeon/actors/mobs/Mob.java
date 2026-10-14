@@ -76,6 +76,7 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -711,11 +712,12 @@ public abstract class Mob extends Char {
 
 		//记录玩家方参与：英雄直接攻击、盟友（召唤物/镜像等）、法杖、职业技能、物品道具（炸弹/卷轴/魂弓箭矢等）
 		if (dmg > 0 && !heroDamaged) {
-			if (src instanceof Hero
-					|| (src instanceof Char && ((Char) src).alignment == Alignment.ALLY)
+			if (src instanceof Char && (((Char) src).alignment == Alignment.ALLY || ((Char) src).alignment == Alignment.NEUTRAL)
 					|| src instanceof Wand
 					|| src instanceof ArmorAbility
-					|| src instanceof Item) {
+					|| src instanceof Item
+					|| src instanceof Buff
+					|| src instanceof Trap) {
 				heroDamaged = true;
 			}
 		}
