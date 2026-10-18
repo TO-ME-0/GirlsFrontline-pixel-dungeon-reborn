@@ -262,9 +262,8 @@ public class MobPlacer extends TestItem{
         private ArrayList<IconButton> mobButtons = new ArrayList<>();
         private RenderedTextBlock selectedMob;
         private RenderedTextBlock groupLabel;
-        private ArrayList<CheckBox> eliteOptions = new ArrayList<>(7);
-        private RedButton modifyHealth;
-        private CheckBox overrideResultButton;
+        private RedButton btnHealth;
+        private RedButton btnBuffs;
 
         public WndSetMob(){
             super();
@@ -316,104 +315,58 @@ public class MobPlacer extends TestItem{
             PixelScene.align(groupLabel);
             add(groupLabel);
 
-            float pos = 110;
-            int column = 0;
-            for (int i = 0; i < 7 && column < 4; ++i) {
-                CheckBox cb = new CheckBox(M.L(MobPlacer.class, "elite_name" + i),7);
-                cb.active = true;
-                cb.checked((elite_op & (1<<i))>0);
-                add(cb);
-                eliteOptions.add(cb);
-
-                float Radius = 3.8f;
-
-                if (column == 0) {
-                    cb.setRect((WIDTH/Radius - GAP)/Radius * column, pos, (WIDTH/Radius - GAP), 16);
-                } else if (column == 1) {
-                    cb.setRect((WIDTH/Radius - GAP)/Radius * column+28, pos, (WIDTH/Radius - GAP), 16);
-                } else if (column == 2) {
-                    cb.setRect((WIDTH/Radius - GAP)/Radius * column+55, pos, (WIDTH/Radius - GAP), 16);
-                } else {
-                    cb.setRect((WIDTH/Radius - GAP)/Radius * column+82, pos, (WIDTH/Radius - GAP), 16);
-                    column = -1; // 重置column的值，使其在下一次循环时为0（即第一列）
-                    pos += 16 + GAP; // 换行
-                }
-
-                if(i==6){
-                    cb.setRect((WIDTH/Radius - GAP)/Radius * 2+81, 90, (WIDTH/3f - GAP), 16);
-                }
-
-                modifyHealth = new RedButton(Messages.get(MobPlacer.class, "modify_health"), 7) {
-                    @Override
-                    protected void onClick() {
-                        Game.runOnRenderThread(() ->GameScene.show(new WndTextNumberInput(
-                                Messages.get(MobPlacer.class, "custom_title"),
-                                Messages.get(MobPlacer.class, "health_desc"),
-                                Integer.toString(HT),
-                                6, false, Messages.get(MobPlacer.class, "confirm"),
-                                Messages.get(MobPlacer.class, "cancel"),false) {
-                            @Override
-                            public void onSelect(boolean check, String text) {
-                                if ( check && text.matches("\\d+") ) {
-                                    int value = Integer.parseInt( text );
-                                    if( value >= 0 ) {
-                                        HT = Math.min( value, 666666 );
-                                    }
-                                }
+            //修改血量按钮（已整合覆盖开关）：输入大于0的数值即覆盖怪物血量，输入0取消覆盖
+            btnHealth = new RedButton("", 7) {
+                @Override
+                protected void onClick() {
+                    Game.runOnRenderThread(() -> GameScene.show(new WndTextNumberInput(
+                            Messages.get(MobPlacer.class, "custom_title"),
+                            Messages.get(MobPlacer.class, "health_desc"),
+                            Integer.toString(HT),
+                            6, false, Messages.get(MobPlacer.class, "confirm"),
+                            Messages.get(MobPlacer.class, "cancel"), false) {
+                        @Override
+                        public void onSelect(boolean check, String text) {
+                            if (check && text.matches("\\d+")) {
+                                int value = Integer.parseInt(text);
+                                HT = Math.min(value, 666666);
+                                //输入0视为关闭血量覆盖
+                                shouldOverride = HT > 0;
+                                updateHealthBtnText();
                             }
-                        }));
-                    }
-                };
-                modifyHealth.setRect((WIDTH/3f)/6f-8, 90, (WIDTH/3f - GAP), 16);
-                modifyHealth.enable( shouldOverride );
-                modifyHealth.active = shouldOverride;
-                add(modifyHealth);
-
-                overrideResultButton = new CheckBox(Messages.get(MobPlacer.class, "override")) {
-                    @Override
-                    public void checked(boolean value) {
-                        if (checked != value) {
-                            checked = value;
-                            icon.copy( Icons.get( checked ? Icons.CHECKED : Icons.UNCHECKED ) );
-                            shouldOverride = checked;
-                            modifyHealth.enable( shouldOverride );
-                            modifyHealth.active = shouldOverride;
                         }
-                    }
-                };
-                overrideResultButton.setRect(modifyHealth.right() + GAP, 90, (WIDTH/3f - GAP), 16);
-                overrideResultButton.checked( shouldOverride );
-                add(overrideResultButton);
+                    }));
+                }
+            };
+            add(btnHealth);
+            updateHealthBtnText();
 
-
-
-                column++;
-            }
+            //怪物增益按钮：打开子窗口集中勾选精英词条，两种分页模式通用
+            btnBuffs = new RedButton(M.L(MobPlacer.class, "select_buffs"), 7) {
+                @Override
+                protected void onClick() {
+                    Game.runOnRenderThread(() -> GameScene.show(new WndSelectBuffs()));
+                }
+            };
+            add(btnBuffs);
 
             applyMode();
         }
 
-        //切换模式后重建分页：同步页数、钳制索引、按模式显隐精英控件并刷新图标
+        //血量按钮文本同步：覆盖开启时显示当前数值
+        private void updateHealthBtnText(){
+            btnHealth.text(Messages.get(MobPlacer.class, "modify_health") + (shouldOverride ? "(" + HT + ")" : ""));
+        }
+
+        //切换模式后重建分页：同步页数、钳制索引并刷新图标
         private void applyMode(){
             maxPage = currentData().size();
             mobTier = Math.min(Math.max(mobTier, 1), maxPage);
             mobIndex = Math.min(mobIndex, maxMobIndex(mobTier) - 1);
             if (mobIndex < 0) mobIndex = 0;
-            boolean fm = factionMode;
-            for (CheckBox cb : eliteOptions) cb.visible = !fm;
-            modifyHealth.visible = !fm;
-            overrideResultButton.visible = !fm;
             refreshImage();
             updateSelectedMob();
             layout();
-        }
-
-        private void updateEliteSettings(){
-            int el = 0;
-            for(int i=0;i<7;++i){
-                el += eliteOptions.get(i).checked() ? (1<<i) : 0;
-            }
-            elite_op = el;
         }
 
         private void updateSelectedMob(){
@@ -425,6 +378,11 @@ public class MobPlacer extends TestItem{
             selectedPage.text(sb.toString());
             selectedPage.maxWidth(WIDTH / 2);
             selectedPage.setPos((WIDTH - selectedPage.width())/2, 5);
+            //分组标题跟随翻页刷新
+            String key = groupTitleKey();
+            groupLabel.text(key.isEmpty() ? "" : M.L(MobPlacer.class, key));
+            groupLabel.maxWidth(WIDTH);
+            groupLabel.setPos((WIDTH - groupLabel.width())/2, 21);
             updateMobText();
         }
 
@@ -437,27 +395,20 @@ public class MobPlacer extends TestItem{
         }
 
         private void layout(){
-            selectedPage.maxWidth(WIDTH / 2);
-            selectedPage.setPos((WIDTH - selectedPage.width())/2, 5);
-            String key = groupTitleKey();
-            groupLabel.text(key.isEmpty() ? "" : M.L(MobPlacer.class, key));
-            groupLabel.maxWidth(WIDTH);
-            groupLabel.setPos((WIDTH - groupLabel.width())/2, 21);
-            if (factionMode){
-                selectedMob.maxWidth(WIDTH - GAP * 2);
-                selectedMob.setPos(GAP, HEIGHT - 14);
-                resize(WIDTH, HEIGHT);
-            } else {
-                selectedMob.maxWidth(WIDTH);
-                selectedMob.setPos(eliteOptions.get(5).right(), 132);
-                resize(WIDTH, (int)eliteOptions.get(5).bottom() + 2);
-            }
+            selectedMob.maxWidth(WIDTH - GAP * 2);
+            selectedMob.setPos(GAP, HEIGHT - 34);
+            //底部两个功能按钮：修改血量 + 怪物增益
+            float btnW = (WIDTH - GAP * 3) / 2f;
+            btnHealth.setRect(GAP, HEIGHT - 18, btnW, 16);
+            btnBuffs.setRect(btnHealth.right() + GAP, HEIGHT - 18, btnW, 16);
+            resize(WIDTH, HEIGHT);
         }
 
         private void createMobImage() {
             int maxNum = maxMobIndex(mobTier);
             int columns = Math.min(maxNum, 7);
 
+            //每页最多ICONS_PER_PAGE个图标，翻页查看全部，不使用滚动容器
             float left = (WIDTH - (GAP + BTN_SIZE) * columns + GAP) / 2f;
             float top = 30f;
 
@@ -501,6 +452,7 @@ public class MobPlacer extends TestItem{
             for(int i=0, len = mobButtons.size();i<len;++i){
                 mobButtons.get(i).destroy();
             }
+            mobButtons.clear();
         }
 
         private void refreshImage(){
@@ -510,8 +462,44 @@ public class MobPlacer extends TestItem{
 
         @Override
         public void onBackPressed() {
-            updateEliteSettings();
             super.onBackPressed();
+        }
+    }
+
+    //怪物增益选择子窗口：集中勾选精英词条，勾选状态实时写回 elite_op
+    private class WndSelectBuffs extends Window {
+
+        private static final int WIN_W = 120;
+
+        public WndSelectBuffs(){
+            super();
+            int gap = 2;
+            RenderedTextBlock title = PixelScene.renderTextBlock(M.L(MobPlacer.class, "select_buffs"), 9);
+            title.hardlight(0xFFFF44);
+            PixelScene.align(title);
+            title.setPos((WIN_W - title.width())/2, gap);
+            add(title);
+
+            float pos = title.bottom() + gap;
+            for (int i = 0; i < 7; i++){
+                final int bit = 1 << i;
+                CheckBox cb = new CheckBox(M.L(MobPlacer.class, "elite_name" + i), 7){
+                    @Override
+                    public void checked(boolean value) {
+                        if (checked != value){
+                            checked = value;
+                            icon.copy(Icons.get(checked ? Icons.CHECKED : Icons.UNCHECKED));
+                            //勾选状态实时写回对应位
+                            elite_op = checked ? (elite_op | bit) : (elite_op & ~bit);
+                        }
+                    }
+                };
+                cb.checked((elite_op & bit) > 0);
+                cb.setRect(gap, pos, WIN_W - gap * 2, 16);
+                add(cb);
+                pos += 16 + gap;
+            }
+            resize(WIN_W, (int)pos);
         }
     }
 
@@ -550,6 +538,11 @@ public class MobPlacer extends TestItem{
     private static final int GROUP_MINES    = 4; //矿洞任务敌人
     private static final int GROUP_COUNT    = 5;
 
+    //每页最多容纳的图标数（5行×7列），超出自动拆成多页，避免使用滚动容器
+    private static final int ICONS_PER_PAGE = 35;
+    //factionData页码 → 所属分组（用于显示分组标题）
+    private static List<Integer> factionPageGroup = new ArrayList<>();
+
     //图鉴之外的Boss与休眠单位（实例化探针时若类不可用会被自动跳过）
     private static final Class<?>[] EXTRA_MOBS = {
             Excutioner.class, Uro.class, Elphelt.class, Pylon.class, Gager.class, Disloli.class, YogDzewa.class,
@@ -574,9 +567,10 @@ public class MobPlacer extends TestItem{
     }
 
     private static void initFactionData(){
-        factionData = new LinkedHashMap<>();
+        //先按分组收集，最后再统一拆分成分页
+        List<List<Class<? extends Mob>>> raw = new ArrayList<>();
         for (int i = 0; i < GROUP_COUNT; i++){
-            factionData.put(i, new ArrayList<>());
+            raw.add(new ArrayList<>());
         }
 
         //全集：图鉴已有单位 + Boss + 休眠单位
@@ -607,13 +601,13 @@ public class MobPlacer extends TestItem{
                 //按阵营归档
                 switch (probe.faction){
                     case SANGVIS_FERRI:
-                        factionData.get(GROUP_SANGVIS).add((Class<? extends Mob>) cls);
+                        raw.get(GROUP_SANGVIS).add((Class<? extends Mob>) cls);
                         break;
                     case REGULAR_ARMY:
-                        factionData.get(GROUP_ARMY).add((Class<? extends Mob>) cls);
+                        raw.get(GROUP_ARMY).add((Class<? extends Mob>) cls);
                         break;
                     case PARA_DEUS:
-                        factionData.get(GROUP_PARADEUS).add((Class<? extends Mob>) cls);
+                        raw.get(GROUP_PARADEUS).add((Class<? extends Mob>) cls);
                         break;
                     default:
                         break;
@@ -621,23 +615,42 @@ public class MobPlacer extends TestItem{
                 //不在生成表中的非Boss、且经典模式图鉴里没有的单位，归入休眠页
                 if (!spawned.contains(cls)
                         && !cataloged.contains(cls)){
-                    factionData.get(GROUP_DORMANT).add((Class<? extends Mob>) cls);
+                    raw.get(GROUP_DORMANT).add((Class<? extends Mob>) cls);
                 }
             } catch (Exception ignored) {
                 //某个类实例化失败时跳过，保证其余单位不受影响
             }
         }
 
-        //矿洞任务敌人单独一页
-        factionData.get(GROUP_MINES).add(GnollGuard.class);
-        factionData.get(GROUP_MINES).add(GnollSapper.class);
-        factionData.get(GROUP_MINES).add(GnollGeomancer.class);
+        //矿洞任务敌人单独一组
+        raw.get(GROUP_MINES).add(GnollGuard.class);
+        raw.get(GROUP_MINES).add(GnollSapper.class);
+        raw.get(GROUP_MINES).add(GnollGeomancer.class);
+
+        //每组按每页ICONS_PER_PAGE个拆分为连续页，并记录每页所属分组
+        factionData = new LinkedHashMap<>();
+        factionPageGroup = new ArrayList<>();
+        int page = 0;
+        for (int g = 0; g < GROUP_COUNT; g++){
+            List<Class<? extends Mob>> group = raw.get(g);
+            if (group.isEmpty()){
+                factionData.put(page, new ArrayList<>());
+                factionPageGroup.add(g);
+                page++;
+                continue;
+            }
+            for (int start = 0; start < group.size(); start += ICONS_PER_PAGE){
+                factionData.put(page, new ArrayList<>(group.subList(start, Math.min(start + ICONS_PER_PAGE, group.size()))));
+                factionPageGroup.add(g);
+                page++;
+            }
+        }
     }
 
     //当前分组页的标题键名
     private String groupTitleKey(){
-        if (!factionMode) return "";
-        switch (mobTier - 1){
+        if (!factionMode || factionPageGroup.isEmpty() || mobTier - 1 >= factionPageGroup.size()) return "";
+        switch (factionPageGroup.get(mobTier - 1)){
             case GROUP_SANGVIS:  return "group_sangvis";
             case GROUP_ARMY:     return "group_army";
             case GROUP_PARADEUS: return "group_paradeus";
