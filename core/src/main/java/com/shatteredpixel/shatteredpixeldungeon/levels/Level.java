@@ -161,6 +161,9 @@ public abstract class Level implements Bundlable {
 
 	public boolean[] openSpace;
     public boolean[] sharedVision;
+
+	//单向行走禁止方向，按格记录，位序 NW,N,NE,W,E,SW,S,SE
+	public int[] oneWay;
 	
 	public Feeling feeling = Feeling.NONE;
 	
@@ -194,6 +197,7 @@ public abstract class Level implements Bundlable {
 	private static final String WIDTH       = "width";
 	private static final String HEIGHT      = "height";
 	private static final String MAP			= "map";
+	private static final String ONE_WAY		= "oneWay";
 	private static final String VISITED		= "visited";
 	private static final String MAPPED		= "mapped";
 	private static final String ENTRANCE	= "entrance";
@@ -402,6 +406,10 @@ public abstract class Level implements Bundlable {
 		
 		map		= bundle.getIntArray( MAP );
 
+		if (bundle.contains( ONE_WAY )) {
+			oneWay = bundle.getIntArray( ONE_WAY );
+		}
+
 		visited	= bundle.getBooleanArray( VISITED );
 		mapped	= bundle.getBooleanArray( MAPPED );
 		
@@ -498,6 +506,9 @@ public abstract class Level implements Bundlable {
 		bundle.put(WIDTH, width );
 		bundle.put(HEIGHT, height );
 		bundle.put(MAP, map );
+		if (oneWay != null) {
+			bundle.put(ONE_WAY, oneWay );
+		}
 		bundle.put(VISITED, visited );
 		bundle.put(MAPPED, mapped );
 		bundle.put(ENTRANCE, entrance );

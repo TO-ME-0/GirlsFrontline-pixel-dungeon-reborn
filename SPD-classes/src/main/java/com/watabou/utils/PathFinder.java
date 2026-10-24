@@ -48,6 +48,26 @@ public class PathFinder {
 	private PathFinder() {
 	}
 
+	//单向行走方向掩码，位序与 NEIGHBOURS8 一致：NW,N,NE,W,E,SW,S,SE
+	//对应 dir 数组顺序
+	private static final int[] DIR_BITS = {
+			1<<3, 1<<4, 1<<1,
+			1<<6,     	1<<0,
+			1<<2, 1<<5, 1<<7
+	};
+	//对应 dirLR 数组顺序
+	private static final int[] DIRLR_BITS = {
+			1<<0, 1<<3, 1<<5,
+			1<<1,     	1<<6,
+			1<<2, 1<<4, 1<<7
+	};
+	//反向扩散时实际移动方向为 -dirLR[i]
+	private static final int[] DIRLR_OPP_BITS = {
+			1<<7, 1<<4, 1<<2,
+			1<<6,     	1<<1,
+			1<<5, 1<<3, 1<<0
+	};
+
 	//distance 查询结果（buildDistanceMap 后读取）
 	public static int[] distance() {
 		return cur().distance;
@@ -139,12 +159,18 @@ public class PathFinder {
 	private int[] CIRCLE8;
 
 	public static LinkedList<Integer> find( int from, int to, boolean[] passable ) {
-		return cur().find_(from, to, passable);
+		return find( from, to, passable, null );
 	}
 
-	private LinkedList<Integer> find_( int from, int to, boolean[] passable ) {
+	public static LinkedList<Integer> find( int from, int to, boolean[] passable, int[] oneWay ) {
+		PathFinder p = cur();
+		if (oneWay != null && oneWay.length != p.size) oneWay = null;
+		return p.find_( from, to, passable, oneWay );
+	}
 
-		if (!buildDistanceMap( from, to, passable )) {
+	private LinkedList<Integer> find_( int from, int to, boolean[] passable, int[] oneWay ) {
+
+		if (!buildDistanceMap( from, to, passable, oneWay )) {
 			return null;
 		}
 
@@ -158,6 +184,9 @@ public class PathFinder {
 			int mins = s;
 
 			for (int i=0; i < dir.length; i++) {
+
+				//单向禁止：当前格不能走该方向
+				if (oneWay != null && (oneWay[s] & DIR_BITS[i]) != 0) continue;
 
 				int n = s + dir[i];
 
@@ -175,12 +204,18 @@ public class PathFinder {
 	}
 
 	public static int getStep( int from, int to, boolean[] passable ) {
-		return cur().getStep_(from, to, passable);
+		return getStep( from, to, passable, null );
 	}
 
-	private int getStep_( int from, int to, boolean[] passable ) {
+	public static int getStep( int from, int to, boolean[] passable, int[] oneWay ) {
+		PathFinder p = cur();
+		if (oneWay != null && oneWay.length != p.size) oneWay = null;
+		return p.getStep_( from, to, passable, oneWay );
+	}
 
-		if (!buildDistanceMap( from, to, passable )) {
+	private int getStep_( int from, int to, boolean[] passable, int[] oneWay ) {
+
+		if (!buildDistanceMap( from, to, passable, oneWay )) {
 			return -1;
 		}
 
@@ -192,6 +227,9 @@ public class PathFinder {
 
 		for (int i=0; i < dir.length; i++) {
 
+			//单向禁止：当前格不能走该方向
+			if (oneWay != null && (oneWay[from] & DIR_BITS[i]) != 0) continue;
+
 			if ((stepD = distance[step = from + dir[i]]) < minD) {
 				minD = stepD;
 				best = step;
@@ -202,16 +240,22 @@ public class PathFinder {
 	}
 
 	public static int getStepBack( int cur, int from, boolean[] passable ) {
-		return cur().getStepBack_(cur, from, passable);
+		return getStepBack( cur, from, passable, null );
 	}
 
-	private int getStepBack_( int cur, int from, boolean[] passable ) {
+	public static int getStepBack( int cur, int from, boolean[] passable, int[] oneWay ) {
+		PathFinder p = cur();
+		if (oneWay != null && oneWay.length != p.size) oneWay = null;
+		return p.getStepBack_( cur, from, passable, oneWay );
+	}
 
-		int d = buildEscapeDistanceMap( cur, from, 5, passable );
+	private int getStepBack_( int cur, int from, boolean[] passable, int[] oneWay ) {
+
+		int d = buildEscapeDistanceMap( cur, from, 5, passable, oneWay );
 		for (int i=0; i < size; i++) {
 			goals[i] = distance[i] == d;
 		}
-		if (!buildDistanceMap( cur, goals, passable )) {
+		if (!buildDistanceMap( cur, goals, passable, oneWay )) {
 			return -1;
 		}
 
@@ -222,6 +266,9 @@ public class PathFinder {
 		int mins = s;
 
 		for (int i=0; i < dir.length; i++) {
+
+			//单向禁止：当前格不能走该方向
+			if (oneWay != null && (oneWay[s] & DIR_BITS[i]) != 0) continue;
 
 			int n = s + dir[i];
 			int thisD = distance[n];
@@ -319,7 +366,7 @@ public class PathFinder {
 		return 0;
 	}
 
-	private boolean buildDistanceMap( int from, int to, boolean[] passable ) {
+	private boolean buildDistanceMap( int from, int to, boolean[] passable, int[] oneWay ) {
 
 		if (from == to) {
 			return false;
@@ -351,7 +398,11 @@ public class PathFinder {
 			for (int i = start; i < dirLR.length - end; i++) {
 
 				int n = step + dirLR[i];
-				if (n == from || (n >= 0 && n < size && passable[n] && (distance[n] > nextDistance))) {
+				if (n < 0 || n >= size) continue;
+				//单向禁止：反向扩散的实际移动方向是 n→step
+				if (oneWay != null && (oneWay[n] & DIRLR_OPP_BITS[i]) != 0) continue;
+
+				if (n == from || (passable[n] && (distance[n] > nextDistance))) {
 					// Add to queue
 					queue[tail++] = n;
 					distance[n] = nextDistance;
@@ -363,7 +414,7 @@ public class PathFinder {
 		return pathFound;
 	}
 
-	private boolean buildDistanceMap( int from, boolean[] to, boolean[] passable ) {
+	private boolean buildDistanceMap( int from, boolean[] to, boolean[] passable, int[] oneWay ) {
 
 		if (to[from]) {
 			return false;
@@ -399,7 +450,11 @@ public class PathFinder {
 			for (int i = start; i < dirLR.length - end; i++) {
 
 				int n = step + dirLR[i];
-				if (n == from || (n >= 0 && n < size && passable[n] && (distance[n] > nextDistance))) {
+				if (n < 0 || n >= size) continue;
+				//单向禁止：反向扩散的实际移动方向是 n→step
+				if (oneWay != null && (oneWay[n] & DIRLR_OPP_BITS[i]) != 0) continue;
+
+				if (n == from || (passable[n] && (distance[n] > nextDistance))) {
 					// Add to queue
 					queue[tail++] = n;
 					distance[n] = nextDistance;
@@ -411,7 +466,7 @@ public class PathFinder {
 		return pathFound;
 	}
 
-	private int buildEscapeDistanceMap( int cur, int from, int lookAhead, boolean[] passable ) {
+	private int buildEscapeDistanceMap( int cur, int from, int lookAhead, boolean[] passable, int[] oneWay ) {
 
 		System.arraycopy(maxVal, 0, distance, 0, maxVal.length);
 
@@ -447,7 +502,11 @@ public class PathFinder {
 			for (int i = start; i < dirLR.length - end; i++) {
 
 				int n = step + dirLR[i];
-				if (n >= 0 && n < size && passable[n] && distance[n] > nextDistance) {
+				if (n < 0 || n >= size) continue;
+				//单向禁止：正向扩散的实际移动方向是 step→n
+				if (oneWay != null && (oneWay[step] & DIRLR_BITS[i]) != 0) continue;
+
+				if (passable[n] && distance[n] > nextDistance) {
 					// Add to queue
 					queue[tail++] = n;
 					distance[n] = nextDistance;

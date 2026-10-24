@@ -80,6 +80,7 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonWallsTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.FogOfWar;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.GridTileMap;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.OneWayTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.RaisedTerrainTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.TerrainFeaturesTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
@@ -159,6 +160,10 @@ public class GameScene extends PixelScene {
 	private TerrainFeaturesTilemap terrainFeatures;
 	private RaisedTerrainTilemap raisedTerrain;
 	private DungeonWallsTilemap walls;
+	private OneWayTilemap oneWayArrows;
+
+	//单向行走箭头贴图尚未接入，先短路；补齐 environment/one_way.png 后改为 true
+	private static boolean oneWayArrowsEnabled = false;
 	private FogOfWar fog;
 	private HeroSprite hero;
 
@@ -253,6 +258,8 @@ public class GameScene extends PixelScene {
 		terrainFeatures = new TerrainFeaturesTilemap(Dungeon.level.plants, Dungeon.level.traps);
 		terrain.add(terrainFeatures);
 
+		addOneWayArrows(terrain);
+
 		levelVisuals = Dungeon.level.addVisuals();
 
 		floorEmitters = new Group();
@@ -342,6 +349,8 @@ public class GameScene extends PixelScene {
 
 		terrainFeatures = new TerrainFeaturesTilemap(Dungeon.level.plants, Dungeon.level.traps);
 		terrain.add(terrainFeatures);
+
+		addOneWayArrows(terrain);
 		
 		levelVisuals = Dungeon.level.addVisuals();
 		add(levelVisuals);
@@ -1022,6 +1031,12 @@ public class GameScene extends PixelScene {
 	public void addCustomWall( CustomTilemap visual){
 		customWalls.add( visual.create() );
 	}
+
+	private void addOneWayArrows(Group parent) {
+		if (!oneWayArrowsEnabled) return;
+		oneWayArrows = new OneWayTilemap();
+		parent.add(oneWayArrows);
+	}
 	
 	private void addHeapSprite( Heap heap ) {
 		ItemSprite sprite = heap.sprite = (ItemSprite)heaps.recycle( ItemSprite.class );
@@ -1246,6 +1261,9 @@ public class GameScene extends PixelScene {
 			scene.terrainFeatures.updateMap();
 			scene.raisedTerrain.updateMap();
 			scene.walls.updateMap();
+			if (scene.oneWayArrows != null) {
+				scene.oneWayArrows.refresh();
+			}
 			updateFog();
 		}
 	}
@@ -1257,6 +1275,9 @@ public class GameScene extends PixelScene {
 			scene.terrainFeatures.updateMapCell( cell );
 			scene.raisedTerrain.updateMapCell( cell );
 			scene.walls.updateMapCell( cell );
+			if (scene.oneWayArrows != null) {
+				scene.oneWayArrows.refresh();
+			}
 			//update adjacent cells too
 			updateFog( cell, 1 );
 		}
