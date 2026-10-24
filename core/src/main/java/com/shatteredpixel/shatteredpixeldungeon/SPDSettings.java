@@ -74,6 +74,18 @@ public class SPDSettings extends GameSettings {
 		return getBoolean( KEY_P90_UNLOCKED, false );
 	}
 
+	//储存仓库生成开关：已永久解锁的 P90 是否加入局内生成池（默认开启；仅解锁后生效）
+
+	public static final String KEY_P90_SPAWN = "warehouse_p90_spawn";
+
+	public static void p90Spawn( boolean value ) {
+		put( KEY_P90_SPAWN, value );
+	}
+
+	public static boolean p90Spawn() {
+		return getBoolean( KEY_P90_SPAWN, true );
+	}
+
 	//机密商店永久解锁：女猎手“超级小爱”转职（跨存档保留；未解锁时隼无法在转职界面看到 SUPER_AI 按钮）
 
 	public static final String KEY_SUPER_AI_UNLOCKED = "shop_unlocked_super_ai";

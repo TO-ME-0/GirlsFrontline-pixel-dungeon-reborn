@@ -10,6 +10,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.MailArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ScaleArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.X1Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.X2Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.X3Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.X4Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.*;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -75,6 +79,15 @@ public class TestArmor extends TestGenerator {
                 return new ScaleArmor();
             case 4:
                 return new PlateArmor();
+            //X系列试验外骨骼
+            case 5:
+                return new X1Armor();
+            case 6:
+                return new X2Armor();
+            case 7:
+                return new X3Armor();
+            case 8:
+                return new X4Armor();
             case 0:
             default:
                 return new ClothArmor();
@@ -313,7 +326,12 @@ public class TestArmor extends TestGenerator {
                     LeatherArmor.class,
                     MailArmor.class,
                     ScaleArmor.class,
-                    PlateArmor.class
+                    PlateArmor.class,
+                    //X系列试验外骨骼
+                    X1Armor.class,
+                    X2Armor.class,
+                    X3Armor.class,
+                    X4Armor.class
             };
         }
 

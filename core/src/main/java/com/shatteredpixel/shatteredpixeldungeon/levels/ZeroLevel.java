@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.Teleporter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.Trigger;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndComputer;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBlackMarket;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndWarehouse;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndStartGame;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSelectGameInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -67,6 +68,11 @@ public class ZeroLevel extends Level {
     // 定义了机密商店桌子的位置（左下角：从下往上第3行的第2、3格）
     private static final int blackMarketTablePos0 = 9 * WIDTH + 1;
     private static final int blackMarketTablePos1 = 9 * WIDTH + 2;
+
+    // 定义了储存仓库货架的位置（第4排第4~8格，共5格，作为一整个整体进行交互）
+    private static final int[] WAREHOUSE_POSITIONS = {
+            3 * WIDTH + 3, 3 * WIDTH + 4, 3 * WIDTH + 5, 3 * WIDTH + 6, 3 * WIDTH + 7
+    };
 
     // 定义地形常量，用于构建硬编码地图
     private static final int W = Terrain.WALL;      // 墙
@@ -161,6 +167,27 @@ public class ZeroLevel extends Level {
         protected Window getWindow() {
             //机密商店风格全屏窗口，见 windows.WndBlackMarket
             return new WndBlackMarket();
+        }
+    }
+
+    // 储存仓库触发器 - 用于打开储存仓库窗口
+    public static class WarehouseTriger extends WindowTrigger {
+        // 五格货架作为一整个整体：与任意一格相邻即可交互，与电脑一致
+        @Override
+        public boolean canInteract(Char ch) {
+            if (Dungeon.hero() != ch) return false;
+            for (int p : WAREHOUSE_POSITIONS) {
+                if (Dungeon.level.adjacent(p, ch.pos)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected Window getWindow() {
+            //储存仓库窗口（道具存储+生成开关），见 windows.WndWarehouse
+            return new WndWarehouse();
         }
     }
 
@@ -312,6 +339,11 @@ public class ZeroLevel extends Level {
         placeTrigger(new BlackMarketTriger().create(blackMarketTablePos0));
         placeTrigger(new BlackMarketTriger().create(blackMarketTablePos1));
 
+        // 放置储存仓库触发器（第4排5格货架，相邻点击打开储存仓库窗口）
+        for (int p : WAREHOUSE_POSITIONS) {
+            placeTrigger(new WarehouseTriger().create(p));
+        }
+
         // 添加向下的楼梯触发器
         placeTrigger(new Teleporter().create(toZeroLevelSub, ZeroLevelSub.toForwardCamp, 1000));
 
@@ -367,6 +399,11 @@ public class ZeroLevel extends Level {
                     || cell == blackMarketTablePos1) {
                 return Messages.get(this, "black_market_table.name");
             }
+            for (int p : WAREHOUSE_POSITIONS) {
+                if (cell == p) {
+                    return Messages.get(this, "warehouse.name");
+                }
+            }
 
             return super.name(tileX, tileY);
         }
@@ -387,6 +424,11 @@ public class ZeroLevel extends Level {
             } else if (cell == blackMarketTablePos0
                     || cell == blackMarketTablePos1) {
                 return Messages.get(this, "black_market_table.desc");
+            }
+            for (int p : WAREHOUSE_POSITIONS) {
+                if (cell == p) {
+                    return Messages.get(this, "warehouse.desc");
+                }
             }
 
             return super.desc(tileX, tileY);
@@ -474,6 +516,9 @@ public class ZeroLevel extends Level {
         // 机密商店桌子（两格宽，水平中心为第2格）
         group.add(new InteractableLabel(2f * DungeonTilemap.SIZE, 9 * DungeonTilemap.SIZE,
                 Messages.get(this, "label_blackmarket")));
+        // 储存仓库货架（5格宽，水平中心为第6格）
+        group.add(new InteractableLabel(5.5f * DungeonTilemap.SIZE, 3 * DungeonTilemap.SIZE,
+                Messages.get(this, "label_warehouse")));
         // 通往神秘据点的传送点
         group.add(new InteractableLabel(13.5f * DungeonTilemap.SIZE, 10 * DungeonTilemap.SIZE,
                 Messages.get(this, "label_sub_base")));

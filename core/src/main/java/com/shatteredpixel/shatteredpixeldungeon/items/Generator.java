@@ -885,7 +885,7 @@ public class Generator {
 	public static Armor randomArmor(int floorSet) {
 
 		floorSet = (int)GameMath.gate(0, floorSet, floorSetTierProbs.length-1);
-		
+
 		Armor a = (Armor)Reflection.newInstance(Category.ARMOR.classes[Random.chances(floorSetTierProbs[floorSet])]);
 		a.random();
 		return a;
@@ -911,7 +911,8 @@ public class Generator {
 	 * 都读取 WEP_T5.probs，故只需在此一处放开/屏蔽 P90。
 	 */
 	public static void refreshUnlockables() {
-		Category.WEP_T5.probs()[P90_INDEX] = SPDSettings.p90Unlocked() ? P90_UNLOCKED_PROB : 0;
+		//需同时在机密商店永久解锁并在0层储存仓库开启生成开关
+		Category.WEP_T5.probs()[P90_INDEX] = (SPDSettings.p90Unlocked() && SPDSettings.p90Spawn()) ? P90_UNLOCKED_PROB : 0;
 	}
 
 	public static MeleeWeapon randomWeapon(){

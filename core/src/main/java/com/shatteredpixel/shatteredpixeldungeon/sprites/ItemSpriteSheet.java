@@ -383,7 +383,12 @@ public class ItemSpriteSheet {
 	public static final int ARMOR_ROGUE     = ARMOR+7;
 	public static final int ARMOR_HUNTRESS  = ARMOR+8;
 	public static final int ARMOR_TYPE561   = ARMOR+9;
-	public static final int ARMOR_GSH18      = ARMOR+10;
+	public static final int ARMOR_GSH18     = ARMOR+10;
+	public static final int ARMOR_X1   		= ARMOR+14;
+	public static final int ARMOR_X2   		= ARMOR+15;
+	public static final int ARMOR_X3   		= ARMOR+16;
+	public static final int ARMOR_X4   		= ARMOR+17;
+	public static final int ARMOR_X5   		= ARMOR+18;
 	static{
 		assignItemRect(ARMOR_CLOTH,     15, 12);
 		assignItemRect(ARMOR_LEATHER,   14, 13);
@@ -396,6 +401,11 @@ public class ItemSpriteSheet {
 		assignItemRect(ARMOR_HUNTRESS,  16, 16);
 		assignItemRect(ARMOR_TYPE561,   16, 16);
 		assignItemRect(ARMOR_GSH18,      16, 16);
+		//X系列外骨骼占位贴图（后续重新绘制）
+		assignItemRect(ARMOR_X1,        16, 16);
+		assignItemRect(ARMOR_X2,        16, 16);
+		assignItemRect(ARMOR_X3,        16, 16);
+		assignItemRect(ARMOR_X4,        16, 16);
 	}
 
 	     //16 free slots

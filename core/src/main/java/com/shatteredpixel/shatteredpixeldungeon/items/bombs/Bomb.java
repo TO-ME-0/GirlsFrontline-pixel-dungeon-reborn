@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.bombs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -109,6 +110,8 @@ public class Bomb extends Item {
 
 	@Override
 	protected void onThrow( int cell ) {
+		//单局内投出任意一种手雷即达成HK416解锁条件
+		Badges.validateHK416Unlock();
 		if (!Dungeon.level.pit[ cell ] && lightingFuse) {
 			Actor.addDelayed(fuse = new Fuse().ignite(this), 2);
 		}

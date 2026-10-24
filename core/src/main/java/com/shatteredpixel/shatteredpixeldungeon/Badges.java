@@ -858,6 +858,13 @@ public class Badges {
 			displayBadge(Badge.UNLOCK_GSH18);
 		}
 	}
+
+	//单局内使用任意一种手雷即可解锁HK416
+	public static void validateHK416Unlock(){
+		if (!isUnlocked(Badge.UNLOCK_HK416)){
+			displayBadge(Badge.UNLOCK_HK416);
+		}
+	}
     public static void AllEquipmentDegrade(){
         displayBadge(Badge.Degrade_Equipment);
     }

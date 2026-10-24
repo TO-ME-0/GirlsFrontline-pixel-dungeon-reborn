@@ -85,6 +85,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAf
 import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.CardCalculator;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.XArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
@@ -534,6 +535,8 @@ public abstract class Char extends Actor {
 		}
 
 		float defRoll = Random.Float( defStat );
+		//X系列外骨骼：闪避额外判定若干次，取对防守方最有利的结果（实现见 XArmor）
+		defRoll = XArmor.extraEvasionRolls(defender, defRoll, defStat);
 		if (defender.buff(Bless.class) != null) defRoll *= 1.25f;
 		if (defender.buff(  Hex.class) != null) defRoll *= 0.8f;
 		for (ChampionEnemy buff : defender.buffs(ChampionEnemy.class)){

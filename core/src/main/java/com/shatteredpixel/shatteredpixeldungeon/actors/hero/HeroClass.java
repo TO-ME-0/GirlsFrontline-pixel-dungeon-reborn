@@ -664,8 +664,6 @@ public enum HeroClass {
 	}
 	
 	public boolean isUnlocked(){
-		//HK416正在全力制作中，暂不可解锁
-		if (this == HK416) return false;
 		//always unlock on debug builds
 		if (DeviceCompat.isDebug()) return true;
 		
@@ -684,8 +682,8 @@ public enum HeroClass {
 			case GSH18:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_GSH18);
 			case HK416:
-				//正在全力制作中，暂不可解锁
-				return false;
+				//单局内使用任意一种手雷解锁
+				return Badges.isUnlocked(Badges.Badge.UNLOCK_HK416);
 			case Dandelion:
 				//返程（完美结局）解锁
 				return Badges.isUnlocked(Badges.Badge.HAPPY_END);
