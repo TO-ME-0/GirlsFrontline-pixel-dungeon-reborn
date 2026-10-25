@@ -623,18 +623,24 @@ public class Notes {
 
 	private static ArrayList<Record> records;
 
+	//自动鉴定知识库：类级保存，不挂物品实例
+	public static IdentifyKnowledge knowledge;
+
 	public static void reset() {
 		records = new ArrayList<>();
+		knowledge = new IdentifyKnowledge();
 	}
 
 	private static final String RECORDS	        = "records";
 	private static final String NEXT_CUSTOM_ID	= "next_custom_id";
+	private static final String KNOWLEDGE	    = "knowledge";
 
 	protected static int nextCustomID = 0;
 
 	public static void storeInBundle( Bundle bundle ) {
 		bundle.put( RECORDS, records );
 		bundle.put( NEXT_CUSTOM_ID, nextCustomID );
+		if (knowledge != null) bundle.put( KNOWLEDGE, knowledge );
 	}
 
 	public static void restoreFromBundle( Bundle bundle ) {
@@ -643,6 +649,12 @@ public class Notes {
 		for (Bundlable rec : bundle.getCollection( RECORDS ) ) {
 			records.add( (Record) rec );
 		}
+		//旧档缺 knowledge 键时新建空库
+		knowledge = bundle.contains( KNOWLEDGE )
+				? (IdentifyKnowledge) bundle.get( KNOWLEDGE )
+				: new IdentifyKnowledge();
+		//读档后把正面猜测补回展示缓存
+		com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify.restoreGuessCache();
 	}
 
 	public static boolean add( Landmark landmark ) {

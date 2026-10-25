@@ -30,12 +30,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SuccubusSprite;
 import com.watabou.noosa.audio.Sample;
@@ -170,7 +172,11 @@ public class Succubus extends Mob {
 			loot = (Class<? extends Scroll>) Random.oneOf(Generator.Category.SCROLL.classes);
 		} while (loot == ScrollOfIdentify.class || loot == ScrollOfUpgrade.class);
 
-		return Reflection.newInstance(loot);
+		Item item = Reflection.newInstance(loot);
+		//魅魔掉落排除了鉴定与升级：NOT 级线索，看见掉落物即激活
+		AutoIdentify.tag(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+				new Class[]{ScrollOfIdentify.class, ScrollOfUpgrade.class}, "魅魔掉落的卷轴，必不是鉴定或升级。");
+		return item;
 	}
 
 	{

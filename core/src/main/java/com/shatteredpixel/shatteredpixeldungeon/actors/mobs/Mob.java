@@ -55,6 +55,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Wound;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.CardSelector;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
@@ -73,6 +74,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
@@ -907,25 +909,35 @@ public abstract class Mob extends Char {
 		Item item;
 		if (loot instanceof Generator.Category) {
 
+			//随机池掉落不登记线索
 			item = Generator.random( (Generator.Category)loot );
 
 		} else if (loot instanceof Class<?>) {
 			//奇异水晶饰品：怪物掉落消耗品时概率升级为奇异消耗品（实现见 ExoticCrystals）
 			if (ExoticPotion.regToExo.containsKey(loot)){
 				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
-					return Generator.random(ExoticPotion.regToExo.get(loot));
+					item = Generator.random(ExoticPotion.regToExo.get(loot));
+					//指定类掉落（含异变）：实例级线索，看见掉落物即激活
+					AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+					return item;
 				}
 			} else if (ExoticScroll.regToExo.containsKey(loot)){
 				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
-					return Generator.random(ExoticScroll.regToExo.get(loot));
+					item = Generator.random(ExoticScroll.regToExo.get(loot));
+					AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+					return item;
 				}
 			}
 
 			item = Generator.random( (Class<? extends Item>)loot );
+			//指定类掉落：实例级线索，看见掉落物即激活
+			AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 
 		} else {
 
 			item = (Item)loot;
+			//指定实例掉落：实例级线索，看见掉落物即激活
+			AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 
 		}
 		return item;

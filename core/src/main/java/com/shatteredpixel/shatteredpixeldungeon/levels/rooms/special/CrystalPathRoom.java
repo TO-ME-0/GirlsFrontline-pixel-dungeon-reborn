@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -36,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutat
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfMetamorphosis;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -160,10 +162,14 @@ public class CrystalPathRoom extends SpecialRoom {
                         //异晶簇饰品：概率将经验药水升级为神启药水（实现见 ExoticCrystals）
                         item = Random.Float() < ExoticCrystals.consumableExoticChance()
                                 ? new PotionOfDivineInspiration() : new PotionOfExperience();
+                        //水晶路奖励位：经验药水（含异变）实例级线索，看见即激活
+                        AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的经验药水。");
                     } else {
                         //异晶簇饰品：概率将蜕变卷轴升级为超维卷轴（实现见 ExoticCrystals）
                         item = Random.Float() < ExoticCrystals.consumableExoticChance()
                                 ? new ScrollOfMetamorphosis() : new ScrollOfTransmutation();
+                        //水晶路奖励位：蜕变卷轴（含异变）实例级线索，看见即激活
+                        AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的蜕变卷轴。");
                     }
                     break;
             }
@@ -294,21 +300,33 @@ public class CrystalPathRoom extends SpecialRoom {
         Scroll s = Random.Float() < ExoticCrystals.consumableExoticChance()
                 ? new ScrollOfMetamorphosis() : new ScrollOfTransmutation();
         boolean isEXP = Random.Int(2) == 0;
+        //保底奖励是否真正放入本层（未放置的实例不登记线索）
+        boolean pPlaced = false;
+        boolean sPlaced = false;
         if(p.isKnown() && s.isKnown()){
             potions.set(2, p);
+            pPlaced = true;
             scrolls.set(2, s);
+            sPlaced = true;
         }
         else {
             if ( isEXP ) {
                 if (s.isKnown() && !(scrolls.get(2) instanceof ScrollOfTransmutation))
                     scrolls.remove(2);
                 potions.set(2, p);
+                pPlaced = true;
             } else {
                 if (p.isKnown() && !(potions.get(2) instanceof PotionOfExperience))
                     potions.remove(2);
                 scrolls.set(2, s);
+                sPlaced = true;
             }
         }
+        //水晶路保底奖励位：经验药水/蜕变卷轴（含异变）实例级线索，看见即激活
+        if (pPlaced)
+            AutoIdentify.tagSingle(p, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的经验药水。");
+        if (sPlaced)
+            AutoIdentify.tagSingle(s, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的蜕变卷轴。");
         if ((p.isKnown() && s.isKnown()) || (!p.isKnown() && !s.isKnown())) {
             Painter.set(level, prize1, Terrain.PEDESTAL);
             Painter.set(level, prize2, Terrain.PEDESTAL);

@@ -31,10 +31,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -113,7 +115,10 @@ public class Guard extends Mob {
         if (Random.Int(3) < 1 && Random.Int(9) >= Dungeon.LimitedDrops.GUARD_HP.count() ){
             //照搬的术士Warlock
             Dungeon.LimitedDrops.GUARD_HP.used();
-            return new PotionOfHealing();
+            PotionOfHealing item = new PotionOfHealing();
+            //铁血卫士固定分支必掉治疗：实例级线索，看见掉落物即激活
+            AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "铁血卫士固定掉落的治疗药水。");
+            return item;
         } else {
             Item i = Generator.random(Generator.Category.POTION);
             int healingTried = 0;
@@ -132,6 +137,9 @@ public class Guard extends Mob {
                 }
             }
 
+            //铁血卫士随机分支排除了治疗：NOT 级线索，看见掉落物即激活
+            AutoIdentify.tag(i, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+                    new Class[]{PotionOfHealing.class}, "铁血卫士随机掉落的药水，必不是治疗。");
             return i;
         }
 

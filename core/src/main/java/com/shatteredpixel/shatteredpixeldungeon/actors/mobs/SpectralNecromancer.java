@@ -28,7 +28,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SpectralNecromancerSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
@@ -66,7 +68,10 @@ public class SpectralNecromancer extends Necromancer {
 		do {
 			ofs = PathFinder.NEIGHBOURS8()[Random.Int(8)];
 		} while (Dungeon.level.solid[pos + ofs] && !Dungeon.level.passable[pos + ofs]);
-		Dungeon.level.drop( new ScrollOfRemoveCurse(), pos + ofs ).sprite.drop( pos );
+		ScrollOfRemoveCurse item = new ScrollOfRemoveCurse();
+		//幽灵死灵必掉祛邪卷轴：实例级线索，看见掉落物即激活
+		AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "幽灵死灵法师必掉的祛邪卷轴。");
+		Dungeon.level.drop( item, pos + ofs ).sprite.drop( pos );
 	}
 
 	@Override

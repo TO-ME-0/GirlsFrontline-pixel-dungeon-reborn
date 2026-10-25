@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -157,6 +158,9 @@ public class WndTradeItem extends WndInfoItem {
 
 						if (!item.doPickUp(hero)) {
 							Dungeon.level.drop(item, heap.pos).sprite.drop();
+						} else {
+							//自动鉴定：偷窃成功只记账，不激活线索
+							AutoIdentify.onPickUp(item);
 						}
 					} else {
 						for (Mob mob : Dungeon.level.mobs) {
@@ -281,6 +285,9 @@ public class WndTradeItem extends WndInfoItem {
 		item.sold = false;
 		if (!item.doPickUp( Dungeon.hero() )) {
 			Dungeon.level.drop( item, heap.pos ).sprite.drop();
+		} else {
+			//自动鉴定：购买成功只记账，不激活线索
+			AutoIdentify.onPickUp(item);
 		}
 	}
 }

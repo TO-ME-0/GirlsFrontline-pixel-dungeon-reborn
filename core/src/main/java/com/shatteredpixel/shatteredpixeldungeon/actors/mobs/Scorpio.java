@@ -26,11 +26,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ScorpioSprite;
 import com.watabou.utils.Random;
@@ -109,7 +111,11 @@ public class Scorpio extends Mob {
 			loot = (Class<? extends Potion>) Random.oneOf(Generator.Category.POTION.classes);
 		} while (loot == PotionOfHealing.class || loot == PotionOfStrength.class);
 
-		return Reflection.newInstance(loot);
+		Item item = Reflection.newInstance(loot);
+		//天蝎掉落排除了治疗与力量：NOT 级线索，看见掉落物即激活
+		AutoIdentify.tag(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+				new Class[]{PotionOfHealing.class, PotionOfStrength.class}, "天蝎掉落的药水，必不是治疗或力量。");
+		return item;
 	}
 	
 }

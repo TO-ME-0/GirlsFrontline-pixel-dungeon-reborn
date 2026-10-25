@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -88,6 +90,10 @@ public class PoolRoom extends SpecialRoom {
 		Painter.set( level, pos, Terrain.PEDESTAL );
 		
 		level.addItemToSpawn( new PotionOfInvisibility() );
+		//解谜房池子事实：本层池子固定加入一瓶隐身药水，看见房间内部即激活
+		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+				new Class[]{PotionOfInvisibility.class}, 1, 1, left, top, right, bottom,
+				IdentifyKnowledge.Origin.ROOM, "水池房固定放置的隐身药水。");
 		
 		for (int i=0; i < NPIRANHAS; i++) {
 			Piranha piranha = Piranha.random();

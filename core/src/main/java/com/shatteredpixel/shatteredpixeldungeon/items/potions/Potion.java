@@ -49,7 +49,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfSna
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfStormClouds;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
 import com.shatteredpixel.shatteredpixeldungeon.items.ColorItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Blindweed;
@@ -147,6 +150,8 @@ public class Potion extends Item implements ColorItem {
 	@SuppressWarnings("unchecked")
 	public static void initColors() {
 		handler = new ItemStatusHandler<>( (Class<? extends Potion>[])Generator.Category.POTION.classes, colors );
+		//颜色重掷后，旧颜色标签上的药水知识全部失效
+		AutoIdentify.onLabelsRegenerated(IdentifyKnowledge.Category.POTION);
 	}
 	
 	public static void save( Bundle bundle ) {
@@ -365,12 +370,18 @@ public class Potion extends Item implements ColorItem {
     public void setIgnore(){
         if (!(this instanceof Brew||this instanceof Elixir)) {
             if (isKnown()) {
+                //已真鉴定：原逻辑，让 handler 忽略该类
                 if (this instanceof ExoticPotion)
                     handler.ignore((Potion) ScrollOfTransmutation.changeItem(this));
                 else
                     handler.ignore(this);
 				Dungeon.guessType.remove(getClass());
+            } else if (isGuess()) {
+                //已猜未鉴定：撤销正面猜测并加入 vetoed，颜色与知识保留
+                Dungeon.guessType.remove(guessKey());
+                if (Notes.knowledge != null) Notes.knowledge.revokeGuess(AutoIdentify.keyOf(this));
             } else {
+                //真未鉴定：重掷颜色（initColors 内部会清空该类别知识）
                 initColors();
             }
             updateQuickslot();
@@ -391,12 +402,20 @@ public class Potion extends Item implements ColorItem {
 	public String name() {
 		if (isKnown() || Dungeon.isGameMode(WndStartGame.GameMode.IDENTIFY))
 			return super.name();
+		//自动推断命中时显示“? 真名”，与瞄准镜的猜中显示一致
+		if (showGuess())
+			return "? " + super.name();
 		return Messages.get(this, color);
 	}
 
     @Override
     public String info() {
         String note = NoteGet();
+        //已推断：显示真实描述并附推断依据（来源与楼层）
+        if (!isKnown() && showGuess()){
+            String ev = AutoIdentify.guessEvidence(this);
+            return note + super.info() + (ev.isEmpty() ? "" : "\n\n" + ev);
+        }
         return isKnown() ?
                 super.info() :
                 note+Messages.get(this, "unknown_desc");
@@ -418,6 +437,30 @@ public class Potion extends Item implements ColorItem {
 	
 	public static HashSet<Class<? extends Potion>> getUnknown() {
 		return handler.unknown();
+	}
+
+	//—— 自动鉴定知识系统的静态访问器（handler 为 protected，其他包不可直接读）——
+
+	@Override
+	public String guessLabel() {
+		return color;
+	}
+
+	public static HashSet<Class<? extends Potion>> unknownClasses() {
+		return handler.unknown();
+	}
+
+	//未注册的类（如酿造/药剂/占位符）返回 null
+	public static String labelOf(Class<? extends Potion> cls) {
+		return handler == null ? null : handler.label(cls);
+	}
+
+	public static boolean isKnownClass(Class<? extends Potion> cls) {
+		return handler != null && handler.isKnown(cls);
+	}
+
+	public static boolean contains(Potion p) {
+		return handler != null && handler.contains(p);
 	}
 	
 	public static boolean allKnown() {

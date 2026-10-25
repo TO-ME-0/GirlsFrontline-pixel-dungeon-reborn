@@ -23,6 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -111,6 +113,10 @@ public class TrapsRoom extends SpecialRoom {
 		}
 		
 		level.addItemToSpawn( new PotionOfLevitation() );
+		//解谜房池子事实：本层池子固定加入一瓶浮空药水，看见房间内部即激活
+		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+				new Class[]{PotionOfLevitation.class}, 1, 1, left, top, right, bottom,
+				IdentifyKnowledge.Origin.ROOM, "陷阱房固定放置的浮空药水。");
 	}
 	
 	private static Item prize( Level level ) {

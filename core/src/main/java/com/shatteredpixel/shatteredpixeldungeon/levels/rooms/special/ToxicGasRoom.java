@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -106,6 +108,10 @@ public class ToxicGasRoom extends SpecialRoom {
 		}
 
 		level.addItemToSpawn(new PotionOfPurity());
+		//解谜房池子事实：本层池子固定加入一瓶净化药水，看见房间内部即激活
+		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+				new Class[]{PotionOfPurity.class}, 1, 1, left, top, right, bottom,
+				IdentifyKnowledge.Origin.ROOM, "毒气房固定放置的净化药水。");
 
 		entrance().set( Door.Type.UNLOCKED );
 

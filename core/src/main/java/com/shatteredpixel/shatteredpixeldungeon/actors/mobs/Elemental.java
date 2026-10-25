@@ -365,6 +365,7 @@ public abstract class Elemental extends Mob {
 			return Notes.Landmark.Elemental_SWAP;
 		}
 		private Item loot(){
+			//混沌元素必掉蜕变卷轴：实例级线索由 Mob 通用掉落钩子登记
 			Item item = new ScrollOfTransmutation();
 			if (Dungeon.mobRan >= 100)
 				return item;

@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.ColorItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
@@ -92,6 +93,13 @@ public class ExoticPotion extends Potion {
 	@Override
 	public boolean isKnown() {
 		return anonymous || (handler != null && handler.isKnown( exoToReg.get(this.getClass()) ));
+	}
+
+	@Override
+	//猜测知识挂在普通药水类上：异变与普通共用同一颜色标签
+	public Class<? extends ColorItem> guessKey() {
+		Class<? extends Potion> reg = exoToReg.get(getClass());
+		return reg != null ? reg : getClass();
 	}
 	
 	@Override

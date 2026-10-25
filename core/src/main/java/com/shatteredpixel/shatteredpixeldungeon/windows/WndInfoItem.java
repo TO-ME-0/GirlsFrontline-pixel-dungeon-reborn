@@ -21,9 +21,12 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -105,49 +108,9 @@ public class WndInfoItem extends Window {
         else
             layoutFields(titlebar, txtInfo);
 	}
-    private void layoutFields(IconTitle title, RenderedTextBlock info){
-        int width = WIDTH_MIN;
 
-        info.maxWidth(width);
-
-        //window can go out of the screen on landscape, so widen it as appropriate
-        while (PixelScene.landscape()
-                && info.height() > 100
-                && width < WIDTH_MAX){
-            width += 20;
-            info.maxWidth(width);
-        }
-
-        title.setRect( 0, 0, width, 0 );
-        add( title );
-
-        info.setPos(title.left(), title.bottom() + GAP);
-        add( info );
-
-        resize( width, (int)(info.bottom() + 2) );
-    }
-	private void fillFields( Item item ) {
-        this.item = item;
-		
-		int color = TITLE_COLOR;
-		if (item.levelKnown && item.level() > 0) {
-			color = ItemSlot.UPGRADED;
-		} else if (item.levelKnown && item.level() < 0) {
-			color = ItemSlot.DEGRADED;
-		}
-
-		IconTitle titlebar = new IconTitle( item );
-		titlebar.color( color );
-		
-		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
-        noteButton = new ItemNote(item, this);
-        noteButton.enable(item.canNote);
-        noteButton.visible=item.canNote;
-		
-		layoutFields(titlebar, txtInfo, noteButton);
-	}
-
-	private void layoutFields(IconTitle title, RenderedTextBlock info, IconButton noteButton){
+	//统一布局：右上角依次排开 0~2 个按钮（每个 16px）
+	private void layoutFields(IconTitle title, RenderedTextBlock info, IconButton... buttons){
 		int width = WIDTH_MIN;
 
 		info.maxWidth(width);
@@ -160,16 +123,101 @@ public class WndInfoItem extends Window {
 			info.maxWidth(width);
 		}
 
-		title.setRect( 0, 0, width-16, 0 );
+		int btnCount = 0;
+		for (IconButton b : buttons) {
+			if (b != null) btnCount++;
+		}
+
+		title.setRect( 0, 0, width - 16*btnCount, 0 );
 		add( title );
 
 		info.setPos(title.left(), title.bottom() + GAP);
 		add( info );
 
-        noteButton.setRect(width-16,0,16,16);
-        add(noteButton);
+		int btnX = width - 16*btnCount;
+		for (IconButton b : buttons) {
+			if (b == null) continue;
+			b.setRect(btnX, 0, 16, 16);
+			add(b);
+			btnX += 16;
+		}
 
 		resize( width, (int)(info.bottom() + 2) );
+	}
+	private void fillFields( Item item ) {
+        this.item = item;
+
+		int color = TITLE_COLOR;
+		if (item.levelKnown && item.level() > 0) {
+			color = ItemSlot.UPGRADED;
+		} else if (item.levelKnown && item.level() < 0) {
+			color = ItemSlot.DEGRADED;
+		}
+
+		IconTitle titlebar = new IconTitle( item );
+		titlebar.color( color );
+
+		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
+        noteButton = new ItemNote(item, this);
+        noteButton.enable(item.canNote);
+        noteButton.visible=item.canNote;
+
+		//猜测按钮：仅“未鉴定 + 可推断 + 在背包内”时显示
+		IconButton guessButton = null;
+		if (!item.isIdentified()
+				&& AutoIdentify.canGuess(item)
+				&& Dungeon.hero() != null
+				&& Dungeon.hero().belongings.contains(item)) {
+			guessButton = new GuessButton(item);
+		}
+
+		layoutFields(titlebar, txtInfo, noteButton, guessButton);
+	}
+
+	//猜测按钮：点击后对该物品的标签做约束求解
+	public class GuessButton extends IconButton {
+		private final Item item;
+
+		public GuessButton(Item item){
+			super(Icons.INFO.get());
+			this.item = item;
+		}
+
+		@Override
+		protected void onClick() {
+			IdentifyKnowledge.SolveOutcome out = AutoIdentify.guess(item);
+			if (out == null) return;
+			if (out.status == IdentifyKnowledge.Status.POSITIVE){
+				//正面命中：刷新窗口，名称与描述变为“? 真名”
+				WndInfoItem.this.hide();
+				GameScene.show(new WndInfoItem(item));
+			} else {
+				//排除/证据不足：展示仍可能的类与已排除的类
+				StringBuilder sb = new StringBuilder();
+				if (!out.possibleClasses.isEmpty()){
+					sb.append("仍可能：").append(classNames(out.possibleClasses));
+				}
+				if (!out.excludedClasses.isEmpty()){
+					if (sb.length() > 0) sb.append('\n');
+					sb.append("已排除：").append(classNames(out.excludedClasses));
+				}
+				if (out.cause != null && !out.cause.isEmpty()){
+					if (sb.length() > 0) sb.append('\n');
+					sb.append(out.cause);
+				}
+				if (sb.length() == 0) sb.append("证据不足，无法推断。");
+				GameScene.show(new WndTitledMessage(Icons.get(Icons.INFO), item.name(), sb.toString()));
+			}
+		}
+
+		private String classNames(java.util.LinkedHashSet<Class<? extends Item>> set){
+			StringBuilder sb = new StringBuilder();
+			for (Class<? extends Item> c : set){
+				if (sb.length() > 0) sb.append("、");
+				sb.append(Messages.get(c, "name"));
+			}
+			return sb.toString();
+		}
 	}
     public static class ItemNote extends IconButton {
         Item item;

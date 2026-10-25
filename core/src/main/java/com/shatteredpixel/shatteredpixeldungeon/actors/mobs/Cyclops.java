@@ -23,9 +23,11 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CyclopsSprite;
@@ -99,6 +101,9 @@ public class Cyclops extends Mob {
                 }
             }
 
+            //独眼巨人掉落排除了治疗：NOT 级线索，看见掉落物即激活
+            AutoIdentify.tag(i, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+                    new Class[]{PotionOfHealing.class}, "独眼巨人掉落的药水，必不是治疗。");
             return i;
         
     }

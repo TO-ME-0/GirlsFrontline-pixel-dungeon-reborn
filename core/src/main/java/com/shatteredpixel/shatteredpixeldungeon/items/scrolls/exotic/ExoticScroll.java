@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic;
 
+import com.shatteredpixel.shatteredpixeldungeon.items.ColorItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
@@ -88,6 +89,13 @@ public abstract class ExoticScroll extends Scroll {
 	@Override
 	public boolean isKnown() {
 		return anonymous || (handler != null && handler.isKnown( exoToReg.get(this.getClass()) ));
+	}
+
+	@Override
+	//猜测知识挂在普通卷轴类上：异变与普通共用同一符文标签
+	public Class<? extends ColorItem> guessKey() {
+		Class<? extends Scroll> reg = exoToReg.get(getClass());
+		return reg != null ? reg : getClass();
 	}
 	
 	@Override

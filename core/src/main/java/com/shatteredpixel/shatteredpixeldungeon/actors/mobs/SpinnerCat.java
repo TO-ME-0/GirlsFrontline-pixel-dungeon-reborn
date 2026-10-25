@@ -4,9 +4,11 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ConfusionGas;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfMetamorphosis;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -54,11 +56,15 @@ public class SpinnerCat extends Spinner {
 
 		if(Random.Int(10)==1){
 			ScrollOfTransmutation scrollOfTransmutation = new ScrollOfTransmutation();
+			//纺命猫概率掉蜕变卷轴：实例级线索，看见掉落物即激活
+			AutoIdentify.tagSingle(scrollOfTransmutation, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "纺命猫掉落的蜕变卷轴。");
 			Dungeon.level.drop(scrollOfTransmutation, pos).sprite.drop();
 		}
 		
 		if(Random.Int(20)==1){
 			ScrollOfMetamorphosis scrollOfMetamorphosis = new ScrollOfMetamorphosis();
+			//纺命猫概率掉超维卷轴：实例级线索，异变类自动映射回蜕变类
+			AutoIdentify.tagSingle(scrollOfMetamorphosis, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "纺命猫掉落的超维卷轴。");
 			Dungeon.level.drop(scrollOfMetamorphosis, pos).sprite.drop();
 		}
 	}

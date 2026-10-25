@@ -33,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -166,6 +168,10 @@ public class SentryRoom extends SpecialRoom {
 		level.drop( prize( level ), level.pointToCell(treasurePos) ).setType(Heap.Type.CHEST).setRoom(Heap.Room.Sentry);
 
 		level.addItemToSpawn(new PotionOfHaste());
+		//解谜房池子事实：本层池子固定加入一瓶加速药水，看见房间内部即激活
+		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+				new Class[]{PotionOfHaste.class}, 1, 1, left, top, right, bottom,
+				IdentifyKnowledge.Origin.ROOM, "哨戒房固定放置的加速药水。");
 
 		entrance.set( Door.Type.REGULAR );
 	}

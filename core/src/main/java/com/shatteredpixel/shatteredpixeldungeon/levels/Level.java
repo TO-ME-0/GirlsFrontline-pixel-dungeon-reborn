@@ -58,6 +58,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.WindParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -77,6 +78,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundia
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrapMechanism;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.HighGrass;
@@ -235,10 +237,24 @@ public abstract class Level implements Bundlable {
 			if (Dungeon.posNeeded()) {
 				addItemToSpawn( new PotionOfStrength() );
 				Dungeon.LimitedDrops.STRENGTH_POTIONS.used();
+				//章节配额：章内第1-2层与第3-4层各恰好产出一瓶力量药水；配额规则已知，立即激活
+				int posBase = (levelId / 5) * 5;
+				int posFirst = levelId % 5 <= 2 ? posBase + 1 : posBase + 3;
+				AutoIdentify.tagFloor(new int[]{posFirst, posFirst + 1}, IdentifyKnowledge.Category.POTION,
+						new Class[]{PotionOfStrength.class}, 1, 1,
+						IdentifyKnowledge.Origin.RUN, "章节固定配额的力量药水：每对相邻楼层中恰好一瓶。");
 			}
 			if (Dungeon.souNeeded()) {
 				addItemToSpawn( new ScrollOfUpgrade() );
 				Dungeon.LimitedDrops.UPGRADE_SCROLLS.used();
+				//章节配额：每章固定产出升级卷轴（本张在本章楼层中至少一张）；配额规则已知，立即激活
+				int souChapter = levelId / 5;
+				int[] souFloors = souChapter == 0
+						? new int[]{1, 2, 3, 4}
+						: new int[]{souChapter * 5, souChapter * 5 + 1, souChapter * 5 + 2, souChapter * 5 + 3, souChapter * 5 + 4};
+				AutoIdentify.tagFloor(souFloors, IdentifyKnowledge.Category.SCROLL,
+						new Class[]{ScrollOfUpgrade.class}, 1, -1,
+						IdentifyKnowledge.Origin.RUN, "章节固定配额的升级卷轴：本章楼层中至少一张。");
 			}
 			if (Dungeon.asNeeded()) {
 				addItemToSpawn( new Stylus() );
@@ -992,7 +1008,12 @@ public abstract class Level implements Bundlable {
 		if (Dungeon.level != null && GirlsFrontlinePixelDungeon.scene() instanceof GameScene) {
 			pressCell( cell );
 		}
-		
+
+		//自动鉴定：落点已在英雄视野内，视为立即看见（被扔进深渊的堆不在 heaps 中，跳过）
+		if (Dungeon.level == this && heaps.get(cell) == heap && heroFOV[cell]) {
+			AutoIdentify.onSeen(heap.peek());
+		}
+
 		return heap;
 	}
 	
@@ -1471,8 +1492,13 @@ public abstract class Level implements Bundlable {
 
 		if (c == Dungeon.hero()) {
 			for (Heap heap : heaps.valueList())
-				if (!heap.seen && fieldOfView[heap.pos])
+				if (!heap.seen && fieldOfView[heap.pos]) {
 					heap.seen = true;
+					//自动鉴定：堆进入视野，记账并激活相关线索
+					AutoIdentify.onSeen(heap.peek());
+				}
+			//自动鉴定：解谜房类楼层线索的房间激活与 poolComplete 锁存
+			AutoIdentify.onRoomSeen(this, fieldOfView);
 		}
 
 	}

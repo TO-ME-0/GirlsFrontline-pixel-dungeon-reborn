@@ -25,8 +25,10 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.AcidicSprite;
 
 public class Acidic extends Scorpio {
@@ -55,6 +57,9 @@ public class Acidic extends Scorpio {
 
 	@Override
 	public Item createLoot() {
-		return new PotionOfExperience();
+		PotionOfExperience item = new PotionOfExperience();
+		//酸性变异蝎必掉经验药水：实例级线索，看见掉落物即激活
+		AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "酸性变异蝎必掉的经验药水。");
+		return item;
 	}
 }

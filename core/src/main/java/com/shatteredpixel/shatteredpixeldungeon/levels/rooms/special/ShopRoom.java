@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Honeypot;
@@ -63,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAugmentation
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.TippedDart;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -75,7 +77,16 @@ import java.util.HashMap;
 public class ShopRoom extends SpecialRoom {
 
 	private ArrayList<Item> itemsToSpawn;
-	
+
+	//固定补给商品实例：generateItems 时记录，placeItems 落地时补登记实例级线索
+	//（room 尺寸计算阶段拿不到 levelId，不能在 generateItems 里直接登记）
+	private final ArrayList<Item> fixedStock = new ArrayList<>();
+
+	private void addFixedStock( ArrayList<Item> items, Item item ) {
+		fixedStock.add( item );
+		items.add( item );
+	}
+
 	@Override
 	public int minWidth() {
 		return Math.max(7, (int)(Math.sqrt(itemCount())+3));
@@ -157,6 +168,10 @@ public class ShopRoom extends SpecialRoom {
 			}
 
 			level.drop( item, cell ).type = Heap.Type.FOR_SALE;
+			if (fixedStock.contains(item)) {
+				//商店固定库存：实例级线索，看见货架即激活
+				AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
+			}
 		}
 
 	}
@@ -171,13 +186,17 @@ public class ShopRoom extends SpecialRoom {
                     continue;
                 }
                 level.drop(i,j).type = Heap.Type.FOR_SALE;
+                if (fixedStock.contains(i)) {
+                    //商店固定库存：实例级线索，看见货架即激活
+                    AutoIdentify.tagSingle(i, level.levelId, IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
+                }
                 break;
             }
         }
 
     }
 	
-	protected static ArrayList<Item> generateItems() {
+	protected ArrayList<Item> generateItems() {
 
 		ArrayList<Item> itemsToSpawn = new ArrayList<>();
 
@@ -268,21 +287,21 @@ public class ShopRoom extends SpecialRoom {
 		itemsToSpawn.add(ChooseBag(Dungeon.hero().belongings));
 
 
-		itemsToSpawn.add( new PotionOfHealing() );
+		addFixedStock( itemsToSpawn, new PotionOfHealing() );
 		itemsToSpawn.add( Generator.randomUsingDefaults( Generator.Category.POTION ) );
 		itemsToSpawn.add( Generator.randomUsingDefaults( Generator.Category.POTION ) );
         if (Dungeon.cur().depth == 25) {
             if (Random.Int(2) == 0) {
                 if (Random.Int(2) == 0) {
-                    itemsToSpawn.add(new PotionOfExperience());
+                    addFixedStock( itemsToSpawn, new PotionOfExperience() );
                 } else {
-                    itemsToSpawn.add(new ScrollOfTransmutation());
+                    addFixedStock( itemsToSpawn, new ScrollOfTransmutation() );
                 }
             }
         }
-		itemsToSpawn.add( new ScrollOfIdentify() );
-		itemsToSpawn.add( new ScrollOfRemoveCurse() );
-		itemsToSpawn.add( new ScrollOfMagicMapping() );
+		addFixedStock( itemsToSpawn, new ScrollOfIdentify() );
+		addFixedStock( itemsToSpawn, new ScrollOfRemoveCurse() );
+		addFixedStock( itemsToSpawn, new ScrollOfMagicMapping() );
 
 		for (int i=0; i < 2; i++)
 			itemsToSpawn.add( Random.Int(2) == 0 ?
