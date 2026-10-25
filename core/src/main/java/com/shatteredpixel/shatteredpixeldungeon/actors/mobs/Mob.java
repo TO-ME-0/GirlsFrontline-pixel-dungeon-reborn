@@ -447,7 +447,8 @@ public abstract class Mob extends Char {
 
 			if (Actor.findChar( target ) == null
 					&& (Dungeon.level.passable[target] || (flying && Dungeon.level.avoid[target]))
-					&& (!Char.hasProp(this, Char.Property.LARGE) || Dungeon.level.openSpace[target])) {
+					&& (!Char.hasProp(this, Char.Property.LARGE) || Dungeon.level.openSpace[target])
+					&& Dungeon.level.canStep( pos, target )) {
 				step = target;
 			}
 
@@ -496,6 +497,14 @@ public abstract class Mob extends Char {
 					newPath = true;
 				}
 
+				//路径缩短/延长/拼接产生的新末端转移需校验单向，非法则重算
+				if (!newPath && !path.isEmpty() && path.getLast() == target) {
+					int prev = path.size() >= 2 ? path.get(path.size() - 2) : pos;
+					if (!Dungeon.level.canStep( prev, target )) {
+						newPath = true;
+					}
+				}
+
 			}
 
 			//checks if the next cell along the current path can be stepped into
@@ -504,7 +513,8 @@ public abstract class Mob extends Char {
 				if (!Dungeon.level.passable[nextCell]
 						|| (!flying && Dungeon.level.avoid[nextCell])
 						|| (Char.hasProp(this, Char.Property.LARGE) && !Dungeon.level.openSpace[nextCell])
-						|| Actor.findChar(nextCell) != null) {
+						|| Actor.findChar(nextCell) != null
+						|| !Dungeon.level.canStep( pos, nextCell )) {
 
 					newPath = true;
 					//If the next cell on the path can't be moved into, see if there is another cell that could replace it
@@ -514,7 +524,9 @@ public abstract class Mob extends Char {
 								if (Dungeon.level.passable[nextCell+i]
 										&& (flying || !Dungeon.level.avoid[nextCell+i])
 										&& (!Char.hasProp(this, Char.Property.LARGE) || Dungeon.level.openSpace[nextCell+i])
-										&& Actor.findChar(nextCell+i) == null){
+										&& Actor.findChar(nextCell+i) == null
+										&& Dungeon.level.canStep( pos, nextCell+i )
+										&& Dungeon.level.canStep( nextCell+i, path.getFirst() )){
 									path.addFirst(nextCell+i);
 									newPath = false;
 									break;

@@ -242,6 +242,11 @@ public abstract class Char extends Actor {
 			return true;
 		}
 
+		//交换位置要求两个方向都允许离开
+		if (!Dungeon.level.canStep( pos, c.pos ) || !Dungeon.level.canStep( c.pos, pos )){
+			return true;
+		}
+
 		moveSprite( pos, c.pos );
 		move( c.pos );
 
@@ -929,6 +934,16 @@ public abstract class Char extends Actor {
 
 	//travelling may be false when a character is moving instantaneously, such as via teleportation
 	public void move( int step, boolean travelling ) {
+
+		//单向兜底：相邻步进（含击退/拉扯）必须允许离开当前格；
+		//传送等非相邻落点天然豁免，SuperAiFlight 冲刺视为飞行同样豁免
+		if (travelling && Dungeon.level.adjacent( step, pos )) {
+			SuperAiFlight flight = buff( SuperAiFlight.class );
+			boolean dashing = flight != null && flight.isDashing();
+			if (!dashing && !Dungeon.level.canStep( pos, step )) {
+				return;
+			}
+		}
 
 		if (travelling && Dungeon.level.adjacent( step, pos ) && buff( Vertigo.class ) != null) {
 			sprite.interruptMotion();

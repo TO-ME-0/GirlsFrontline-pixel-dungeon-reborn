@@ -1099,14 +1099,16 @@ public class Dungeon {
 			}
 		}
 
-		return PathFinder.find( ch.pos, to, passable );
+		return PathFinder.find( ch.pos, to, passable, Dungeon.level.oneWay );
 
 	}
-	
+
 	public static int findStep(Char ch, int to, boolean[] pass, boolean[] visible, boolean chars ) {
 
 		if (Dungeon.level.adjacent( ch.pos, to )) {
-			return Actor.findChar( to ) == null && (pass[to] || Dungeon.level.avoid[to]) ? to : -1;
+			//相邻快路径绕过 PathFinder，需单独校验单向
+			return Actor.findChar( to ) == null && (pass[to] || Dungeon.level.avoid[to])
+					&& Dungeon.level.canStep( ch.pos, to ) ? to : -1;
 		}
 
 		setupPassable();
@@ -1132,7 +1134,7 @@ public class Dungeon {
 			}
 		}
 		
-		return PathFinder.getStep( ch.pos, to, passable );
+		return PathFinder.getStep( ch.pos, to, passable, Dungeon.level.oneWay );
 
 	}
 	
@@ -1154,10 +1156,10 @@ public class Dungeon {
 		passable[ch.pos] = true;
 
 		//only consider chars impassable if our retreat path runs into them
-		int step = PathFinder.getStepBack( ch.pos, from, passable );
+		int step = PathFinder.getStepBack( ch.pos, from, passable, Dungeon.level.oneWay );
 		while (step != -1 && Actor.findChar(step) != null){
 			passable[step] = false;
-			step = PathFinder.getStepBack( ch.pos, from, passable );
+			step = PathFinder.getStepBack( ch.pos, from, passable, Dungeon.level.oneWay );
 		}
 		return step;
 		

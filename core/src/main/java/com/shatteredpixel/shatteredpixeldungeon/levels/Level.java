@@ -924,6 +924,11 @@ public abstract class Level implements Bundlable {
         level.breakable[cell]		= (flags & Terrain.BREAKABLE) != 0;
         level.special[cell]		    = (flags & Terrain.SPECIAL) != 0;
 
+		//地形变为不可通行时清理该格的单向位，避免残留过期数据
+		if (!level.passable[cell] && level.oneWay != null && level.oneWay.length == level.length()){
+			level.oneWay[cell] = 0;
+		}
+
 		for (int i : PathFinder.NEIGHBOURS9()){
 			i = cell + i;
 			if (level.solid[i]){
@@ -1482,6 +1487,26 @@ public abstract class Level implements Bundlable {
 
 	public boolean adjacent( int a, int b ) {
 		return distance( a, b ) == 1;
+	}
+
+	//3x3 邻位索引对应的单向位值，位序 NW,N,NE,W,E,SW,S,SE（中心位不使用）
+	private static final int[] ONE_WAY_BITS = {1, 2, 4, 8, 0, 16, 32, 64, 128};
+
+	//单向行走校验：from 格是否允许向相邻的 to 格离开。
+	//无数据、长度不符或非相邻格时一律放行（非相邻的移动如传送不在此管辖）。
+	public boolean canStep( int from, int to ) {
+		if (oneWay == null || oneWay.length != length()) return true;
+		int dx = (to % width()) - (from % width());
+		int dy = (to / width()) - (from / width());
+		if (dx < -1 || dx > 1 || dy < -1 || dy > 1 || (dx == 0 && dy == 0)) return true;
+		return (oneWay[from] & ONE_WAY_BITS[(dy + 1) * 3 + (dx + 1)]) == 0;
+	}
+
+	//确保单向数组已按当前关卡尺寸分配，供调试/生成方写入
+	public void ensureOneWay() {
+		if (oneWay == null || oneWay.length != length()) {
+			oneWay = new int[length()];
+		}
 	}
 
 	//uses pythagorean theorum for true distance, as if there was no movement grid

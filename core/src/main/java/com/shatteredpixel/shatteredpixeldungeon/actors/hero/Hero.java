@@ -1867,7 +1867,10 @@ public class Hero extends Char {
 					return false;
 				}
 				if (Dungeon.level.passable[target] || Dungeon.level.avoid[target]) {
-					step = target;
+					//相邻直走需校验单向
+					if (Dungeon.level.canStep( pos, target )) {
+						step = target;
+					}
 				}
 				if (walkingToVisibleTrapInFog
 						&& Dungeon.level.traps.get(target) != null
@@ -1884,7 +1887,8 @@ public class Hero extends Char {
 			else if (path.getLast() != target)
 				newPath = true;
 			else {
-				if (!Dungeon.level.passable[path.get(0)] || Actor.findChar(path.get(0)) != null) {
+				if (!Dungeon.level.passable[path.get(0)] || Actor.findChar(path.get(0)) != null
+						|| !Dungeon.level.canStep( pos, path.get(0) )) {
 					newPath = true;
 				}
 			}

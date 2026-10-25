@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTileSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOneWay;
 import com.watabou.noosa.Image;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,7 @@ public class MapEditor extends TestItem {
     public int chosen;
     public RenderedTextBlock name;
     private static final String AC_SET = "set";
+    private static final String AC_ONEWAY = "oneway";
     private final ArrayList<Integer> X;
 
     public MapEditor() {
@@ -33,6 +35,7 @@ public class MapEditor extends TestItem {
         ArrayList<String> actions = super.actions(hero);
         actions.add("put");
         actions.add("set");
+        actions.add(AC_ONEWAY);
         return actions;
     }
 
@@ -58,6 +61,22 @@ public class MapEditor extends TestItem {
 
         if (action.equals("set")) {
             GameScene.show(new SettingsWindow());
+        }
+
+        //单向行走编辑：选一格后打开方向开关面板
+        if (action.equals(AC_ONEWAY)) {
+            GameScene.selectCell(new CellSelector.Listener() {
+                public void onSelect(Integer cell) {
+                    if (cell != null) {
+                        GameScene.show(new WndOneWay(cell));
+                    }
+                    MapEditor.curUser.next();
+                }
+
+                public String prompt() {
+                    return M.L(MapEditor.class, "prompt_one_way", new Object[0]);
+                }
+            });
         }
 
     }
