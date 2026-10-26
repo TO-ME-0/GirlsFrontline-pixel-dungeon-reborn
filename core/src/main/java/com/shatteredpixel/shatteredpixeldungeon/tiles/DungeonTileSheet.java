@@ -139,6 +139,10 @@ public class DungeonTileSheet {
 		//矿洞装饰紧贴深渊时按地面处理（3.3.8 移植）
 		chasmStitcheable.put( Terrain.MINE_CRYSTAL, CHASM_FLOOR );
 		chasmStitcheable.put( Terrain.MINE_BOULDER, CHASM_FLOOR );
+		//4.0 架构补丁：金库自定义装饰地形紧贴深渊时按地面处理
+		chasmStitcheable.put( Terrain.CUSTOM_DECO,      CHASM_FLOOR );
+		chasmStitcheable.put( Terrain.CUSTOM_DECO_EMPTY,CHASM_FLOOR );
+		chasmStitcheable.put( Terrain.REGION_DECO,      CHASM_FLOOR );
 
 		//special floor
 		chasmStitcheable.put( Terrain.EMPTY_SP,     CHASM_FLOOR_SP );
@@ -398,6 +402,12 @@ public class DungeonTileSheet {
 		directVisuals.put(Terrain.LOCKED_EXIT,      LOCKED_EXIT);
 		directVisuals.put(Terrain.UNLOCKED_EXIT,    UNLOCKED_EXIT);
 		directVisuals.put(Terrain.WELL,             WELL);
+
+		//4.0 架构补丁：自定义装饰地形底层渲染为地板，真正的画面由 customTerrain 贴图覆盖；
+		//REGION_DECO 暂无专属贴图区域，暂以特殊地板占位，接入时再换正式视觉
+		directVisuals.put(Terrain.CUSTOM_DECO,      directVisuals.get(Terrain.EMPTY));
+		directVisuals.put(Terrain.CUSTOM_DECO_EMPTY,directVisuals.get(Terrain.EMPTY));
+		directVisuals.put(Terrain.REGION_DECO,      directVisuals.get(Terrain.EMPTY_SP));
 
 	}
 

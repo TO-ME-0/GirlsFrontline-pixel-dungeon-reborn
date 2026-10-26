@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.CardSelector;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DarkGold;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
@@ -517,7 +518,14 @@ public class Blacksmith extends NPC {
 			return rooms;
 		}
 
+		//任务奖励预生成：以独立子种子在存档创建（init）时定型奖励，不消耗主随机流，
+		//查种器因此在 init 阶段即可读取奖励内容提前剪枝；
+		//已生成则直接返回，spawn/旧存档迁移路径不会双 roll
 		public void generateRewards(){
+			if (smithRewards != null) return;
+			//子种子异或常量（ASCII "SMITH"），保证与其他任务的奖励流互不相同
+			Random.pushGenerator( Dungeon.cur().seed ^ 0x534D495448L );
+			try {
 			smithRewards = new ArrayList<>();
 			smithRewards.add(Generator.randomWeapon(3));
 			smithRewards.add(Generator.randomWeapon(3));
@@ -562,6 +570,9 @@ public class Blacksmith extends NPC {
 				smithEnchant = null;
 				smithGlyph = null;
 			}
+			} finally {
+				Random.popGenerator();
+			}
 
 		}
 
@@ -583,6 +594,8 @@ public class Blacksmith extends NPC {
 
 		public void beatBoss(){
 			bossBeaten = true;
+			//击败 Boss：抽卡冷却 -2000 回合（仅当前间隔生效）
+			CardSelector.INSTANCE().coolDown(2000);
 		}
 
 		public boolean bossBeaten(){
@@ -615,6 +628,10 @@ public class Blacksmith extends NPC {
 			if (favor >= 2500){
 				freePickaxe = true;
 			}
+
+			//铁匠任务完成：抽卡冷却 -1000 回合（仅当前间隔生效；种子搜索时跳过）
+			if (!Dungeons.cur().isSearch)
+				CardSelector.INSTANCE().coolDown(1000);
 		}
 
 		public boolean rewardsAvailable(){

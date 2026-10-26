@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
@@ -398,7 +399,7 @@ public abstract class SeedFinder implements Runnable {
                         || tryMatch(Ghost.Quest.cur().weapon, itemsFound)) && ++foundCount == n)
                     return true;
             }
-            if (!wandmakerSeen && Wandmaker.Quest.cur().wand1 != null) {
+            if (!wandmakerSeen && Wandmaker.Quest.cur().spawned) {
                 wandmakerSeen = true;
                 Item w1 = Wandmaker.Quest.cur().wand1;
                 Item w2 = Wandmaker.Quest.cur().wand2;
@@ -407,7 +408,7 @@ public abstract class SeedFinder implements Runnable {
                 if ((tryMatch(w1, itemsFound) || tryMatch(w2, itemsFound)) && ++foundCount == n)
                     return true;
             }
-            if (!impSeen && Imp.Quest.cur().reward != null) {
+            if (!impSeen && Imp.Quest.cur().spawned) {
                 impSeen = true;
                 if (ring != null && !ring.matches(Imp.Quest.cur().reward))
                     return false;
@@ -489,6 +490,7 @@ public abstract class SeedFinder implements Runnable {
         ArrayList<FloorData> floorDataList = lastFloors;
         int depth = 1;
         int levelSub = 0;
+        boolean smithSeen = false;
         SeedFinding = true;
         while (depth <= floor) {
             Level l = Dungeons.cur().newLevel(depth, levelSub);
@@ -528,8 +530,8 @@ public abstract class SeedFinder implements Runnable {
                 for (Item item : h.items)
                     fd.heapItems.add(new HeapItem(item, h));
 
-            // 鬼魂任务奖励
-            if (Ghost.Quest.cur().armor != null) {
+            // 鬼魂任务奖励（奖励自 init 已预生成，以 spawned 判定出现层；complete 后置空保证只收一次）
+            if (Ghost.Quest.cur().spawned && Ghost.Quest.cur().armor != null) {
                 ArrayList<Item> rewards = new ArrayList<>();
                 rewards.add(Ghost.Quest.cur().armor);
                 rewards.add(Ghost.Quest.cur().weapon);
@@ -537,7 +539,7 @@ public abstract class SeedFinder implements Runnable {
                 fd.ghostRewards = rewards;
             }
             // 工匠任务奖励（type 在 complete 前捕获）
-            if (Wandmaker.Quest.cur().wand1 != null) {
+            if (Wandmaker.Quest.cur().spawned && Wandmaker.Quest.cur().wand1 != null) {
                 ArrayList<Item> rewards = new ArrayList<>();
                 rewards.add(Wandmaker.Quest.cur().wand1);
                 rewards.add(Wandmaker.Quest.cur().wand2);
@@ -546,11 +548,16 @@ public abstract class SeedFinder implements Runnable {
                 fd.wandmakerRewards = rewards;
             }
             // 小恶魔任务奖励
-            if (Imp.Quest.cur().reward != null) {
+            if (Imp.Quest.cur().spawned && Imp.Quest.cur().reward != null) {
                 ArrayList<Item> rewards = new ArrayList<>();
                 rewards.add(Imp.Quest.cur().reward);
                 Imp.Quest.cur().complete();
                 fd.impRewards = rewards;
+            }
+            // 铁匠 2000 积分开炉奖励（仅 log 展示，不参与 testSeed 匹配；不置空故用 smithSeen 防重）
+            if (!smithSeen && Blacksmith.Quest.cur().spawned) {
+                smithSeen = true;
+                fd.smithRewards = Blacksmith.Quest.cur().smithRewards;
             }
 
             floorDataList.add(fd);
@@ -570,6 +577,9 @@ public abstract class SeedFinder implements Runnable {
 
             if (fd.impRewards != null)
                 for (Item i : fd.impRewards) i.identify();
+
+            if (fd.smithRewards != null)
+                for (Item i : fd.smithRewards) i.identify();
         }
 
         // Phase 3: 生成文本（逐层文本同时存入 fd.text，供场景 Tab 结果窗使用）
@@ -607,6 +617,9 @@ public abstract class SeedFinder implements Runnable {
             }
             if (fd.impRewards != null) {
                 addTextQuest("[ " + Messages.get(SeedFinder.class, "imp_reward") + " ]", fd.impRewards, builder);
+            }
+            if (fd.smithRewards != null) {
+                addTextQuest("[ " + Messages.get(SeedFinder.class, "blacksmith_smith_reward") + " ]", fd.smithRewards, builder);
             }
 
             // 分类地面物品
@@ -708,6 +721,7 @@ public abstract class SeedFinder implements Runnable {
         int wandmakerType = 0;
         ArrayList<Item> impRewards = null;
         boolean impSelect;
+        ArrayList<Item> smithRewards = null;
 
         FloorData(int depth, String title) {
             this.depth = depth;

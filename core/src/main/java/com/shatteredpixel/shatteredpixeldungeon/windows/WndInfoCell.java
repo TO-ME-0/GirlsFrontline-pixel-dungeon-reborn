@@ -58,6 +58,17 @@ public class WndInfoCell extends Window {
 				}
 			}
 		}
+		//4.0 架构补丁：customTiles 未命中时回退查地形层自定义贴图
+		if (customImage == null){
+			for (CustomTilemap i : Dungeon.level.customTerrain){
+				if ((x >= i.tileX && x < i.tileX+i.tileW) &&
+						(y >= i.tileY && y < i.tileY+i.tileH)){
+					if ((customImage = i.image(x - i.tileX, y - i.tileY)) != null) {
+						break;
+					}
+				}
+			}
+		}
 
 		if (customImage != null){
 			return customImage;
@@ -89,6 +100,20 @@ public class WndInfoCell extends Window {
 				}
 			}
 		}
+		//4.0 架构补丁：customTiles 未命中时回退查地形层自定义贴图
+		if (customTile == null){
+			for (CustomTilemap i : Dungeon.level.customTerrain){
+				if ((x >= i.tileX && x < i.tileX+i.tileW) &&
+						(y >= i.tileY && y < i.tileY+i.tileH)){
+					if (i.image(x - i.tileX, y - i.tileY) != null) {
+						x -= i.tileX;
+						y -= i.tileY;
+						customTile = i;
+						break;
+					}
+				}
+			}
+		}
 
 		if (customTile != null && customTile.name(x, y) != null){
 			return customTile.name(x, y);
@@ -112,6 +137,20 @@ public class WndInfoCell extends Window {
 					y -= i.tileY;
 					customTile = i;
 					break;
+				}
+			}
+		}
+		//4.0 架构补丁：customTiles 未命中时回退查地形层自定义贴图
+		if (customTile == null){
+			for (CustomTilemap i : Dungeon.level.customTerrain){
+				if ((x >= i.tileX && x < i.tileX+i.tileW) &&
+						(y >= i.tileY && y < i.tileY+i.tileH)){
+					if (i.image(x - i.tileX, y - i.tileY) != null) {
+						x -= i.tileX;
+						y -= i.tileY;
+						customTile = i;
+						break;
+					}
 				}
 			}
 		}

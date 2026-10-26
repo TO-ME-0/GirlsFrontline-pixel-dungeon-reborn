@@ -179,6 +179,8 @@ public class GameScene extends PixelScene {
 	private Group terrain;
 	private Group customTiles;
 	private Group levelVisuals;
+	//4.0 架构补丁：地形层自定义贴图组（渲染于地形特征之上、关卡视觉之下）
+	private Group customTerrain;
 	private Group customWalls;
 	private Group ripples;
 	private Group plants;
@@ -259,6 +261,10 @@ public class GameScene extends PixelScene {
 		terrain.add(terrainFeatures);
 
 		addOneWayArrows(terrain);
+
+		//4.0 架构补丁：地形层自定义贴图组（简化创建路径只建组不填充，与 customTiles 一致）
+		customTerrain = new Group();
+		terrain.add(customTerrain);
 
 		levelVisuals = Dungeon.level.addVisuals();
 
@@ -351,7 +357,14 @@ public class GameScene extends PixelScene {
 		terrain.add(terrainFeatures);
 
 		addOneWayArrows(terrain);
-		
+
+		//4.0 架构补丁：地形层自定义贴图组（如金库地毯/旗帜），渲染于地形特征之上
+		customTerrain = new Group();
+		terrain.add(customTerrain);
+		for( CustomTilemap visual : Dungeon.level.customTerrain){
+			addCustomTerrain(visual);
+		}
+
 		levelVisuals = Dungeon.level.addVisuals();
 		add(levelVisuals);
 
@@ -1026,6 +1039,11 @@ public class GameScene extends PixelScene {
 
 	public void addCustomTile( CustomTilemap visual){
 		customTiles.add( visual.create() );
+	}
+
+	//4.0 架构补丁：运行时往地形层塞自定义贴图（如房间生成后追加地毯）
+	public void addCustomTerrain( CustomTilemap visual){
+		customTerrain.add( visual.create() );
 	}
 
 	public void addCustomWall( CustomTilemap visual){

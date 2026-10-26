@@ -178,6 +178,13 @@ public class Dungeons {
         GamesInProgress.selectedClass.initHero( hero );
         Random.resetGenerators();
         Dungeon.resetGenerator();
+
+        //NPC 任务奖励预生成：各任务内部以独立子种子 push/pop，不消耗主随机流；
+        //查种器因此在 init 阶段即可读取奖励内容，对仅含 NPC 奖励道具的查询提前剪枝
+        Ghost.Quest.cur().genReward();
+        Wandmaker.Quest.cur().genReward();
+        Blacksmith.Quest.cur().generateRewards();
+        Imp.Quest.cur().genReward();
     }
 
     // === 复制自 Dungeon.newLevel(Level, int, int) ===

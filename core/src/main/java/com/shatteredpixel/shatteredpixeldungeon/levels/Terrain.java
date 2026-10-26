@@ -61,6 +61,10 @@ public class Terrain {
     //矿洞装饰地形（3.3.8 移植：晶洞水晶 / 豺狼矿洞巨石，实心阻挡）
     public static final int MINE_CRYSTAL    = 35;
     public static final int MINE_BOULDER    = 36;
+	// 4.0 架构补丁：金库自定义装饰地形（重新取值，避免与上面既有编号冲突）
+	public static final int CUSTOM_DECO_EMPTY = 37;	//不可被覆盖的空地，仅供自定义贴图使用
+	public static final int CUSTOM_DECO       = 38;	//不可见的装饰地形，与自定义贴图配合
+	public static final int REGION_DECO       = 39;	//区域装饰地形
 	
 	public static final int PASSABLE		= 0x001;
 	public static final int LOS_BLOCKING	= 0x002;
@@ -113,6 +117,10 @@ public class Terrain {
         flags[TRAP_GRASS]	= AVOID | SPECIAL | BREAKABLE ;
         flags[MINE_CRYSTAL]	= SOLID;
         flags[MINE_BOULDER]	= SOLID;
+		// 4.0 架构补丁：金库自定义装饰地形
+		flags[CUSTOM_DECO_EMPTY] = flags[EMPTY];
+		flags[CUSTOM_DECO]       = SOLID;
+		flags[REGION_DECO]       = flags[STATUE];
 	}
 
 	public static int discover( int terr ) {

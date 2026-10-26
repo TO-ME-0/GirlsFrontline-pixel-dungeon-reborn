@@ -72,6 +72,9 @@ public class Assets {
 		//矿洞关卡边界暗化叠加层（3.3.8 移植）
 		public static final String CAVES_QUEST      = "environment/custom_tiles/caves_quest.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
+		// 4.0 架构补丁：金库任务区域装饰图集（地毯/旗帜/屏障）
+		public static final String CITY_QUEST       = "environment/custom_tiles/city_quest.png";
+		public static final String CARPET           = "environment/custom_tiles/carpet.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 		public static final String FORWARD_CAMP     = "environment/custom_tiles/Forward_Camp.png";
 		public static final String FORWARD_CAMP_1   = "environment/custom_tiles/Forward_Camp-1.png";

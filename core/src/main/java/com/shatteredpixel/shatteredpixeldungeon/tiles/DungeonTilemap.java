@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.Tilemap;
@@ -93,18 +94,36 @@ public abstract class DungeonTilemap extends Tilemap {
 		int cell = (int)p.x + (int)p.y * Dungeon.level.width();
 
 		if (wallAssist
-				&& map != null
-				&& DungeonTileSheet.wallStitcheable(map[cell])){
+				&& isWallAssistable(cell)){
 
 			if (cell + mapWidth < size
 					&& p.y % 1 >= 0.75f
-					&& !DungeonTileSheet.wallStitcheable(map[cell + mapWidth])){
+					&& !isWallAssistable(cell + mapWidth)){
 				cell += mapWidth;
 			}
 
 		}
 
 		return cell;
+	}
+
+	//4.0 架构补丁：墙体辅助判定（点击墙类地块底部 1/4 时下移一格，便于点中墙后的地面）
+	private boolean isWallAssistable(int cell){
+		if (map == null || cell >= size){
+			return false;
+		}
+
+		if (DungeonTileSheet.wallStitcheable(map[cell])){
+			return true;
+		}
+
+		//洞穴区（10~15 层）的区域装饰视觉上近似墙体，也参与墙体辅助；reborn 暂无 REGION_DECO_ALT
+		int depth = Dungeon.cur().depth;
+		if (depth >= 10 && depth <= 15 && map[cell] == Terrain.REGION_DECO) {
+			return true;
+		}
+
+		return false;
 	}
 	
 	@Override

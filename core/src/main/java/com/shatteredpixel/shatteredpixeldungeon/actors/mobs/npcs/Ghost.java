@@ -317,22 +317,35 @@ public class Ghost extends NPC {
 		
 		public void spawn( SewerLevel level ) {
 			if (!spawned && Dungeon.cur().depth > 1 && Random.Int( 5 - Dungeon.cur().depth ) == 0) {
-				
+
 				Ghost ghost = new Ghost();
 				do {
 					ghost.pos = level.randomRespawnCell( ghost );
 				} while (ghost.pos == -1);
 				level.mobs.add( ghost );
-				
+
 				spawned = true;
 				//dungeon depth determines type of quest.
 				//depth2=fetid rat, 3=gnoll trickster, 4=great crab
 				type = Dungeon.cur().depth-1;
-				
+
 				given = false;
 				processed = false;
 				depth = Dungeon.cur().depth;
 
+				//奖励已在 init 预生成则直接使用，否则（旧存档/读档缺失）现场补生成
+				genReward();
+
+			}
+		}
+
+		//任务奖励预生成：以独立子种子在存档创建（init）时定型奖励，不消耗主随机流，
+		//查种器因此在 init 阶段即可读取奖励内容提前剪枝
+		public void genReward() {
+			if (weapon != null) return;
+			//子种子异或常量（ASCII "GHOST"），保证与其他任务的奖励流互不相同
+			Random.pushGenerator( Dungeon.cur().seed ^ 0x47484F5354L );
+			try {
 				//50%:tier2, 30%:tier3, 15%:tier4, 5%:tier5
 				switch (Random.chances(new float[]{0, 0, 10, 6, 3, 1})){
 					default:
@@ -373,7 +386,8 @@ public class Ghost extends NPC {
 					enchant = null;
 					glyph = null;
 				}
-
+			} finally {
+				Random.popGenerator();
 			}
 		}
 		

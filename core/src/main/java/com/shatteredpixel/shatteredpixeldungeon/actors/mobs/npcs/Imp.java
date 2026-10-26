@@ -224,12 +224,26 @@ public class Imp extends NPC {
 				}
 				
 				given = false;
-				
+
+				//奖励已在 init 预生成则直接使用，否则（旧存档/读档缺失）现场补生成
+				genReward();
+			}
+		}
+
+		//任务奖励预生成：以独立子种子在存档创建（init）时定型奖励，不消耗主随机流，
+		//查种器因此在 init 阶段即可读取奖励内容提前剪枝
+		public void genReward() {
+			if (reward != null) return;
+			//子种子异或常量（ASCII "IMP"），保证与其他任务的奖励流互不相同
+			Random.pushGenerator( Dungeon.cur().seed ^ 0x494D50L );
+			try {
 				do {
 					reward = (Ring)Generator.random( Generator.Category.RING );
 				} while (reward.cursed);
 				reward.upgrade( 2 );
 				reward.cursed = true;
+			} finally {
+				Random.popGenerator();
 			}
 		}
 		

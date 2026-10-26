@@ -283,6 +283,8 @@ public class Dungeon {
 
 	public static int version;
     public static int levelId;
+	// 4.0 架构补丁：支线层编号（0 为主层）。目前恒为 0，尚未接入任何支线生成逻辑
+	public static int branch;
 	public static long GameMode;
     public static String customSeedText = "";
 	public static void init(String seedCode){

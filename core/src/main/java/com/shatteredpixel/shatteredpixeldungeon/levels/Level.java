@@ -65,6 +65,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Stylus;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
+// 4.0 架构补丁：支线层传送点（仅数据容器，暂未接入任何生成流程）
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
@@ -183,6 +185,10 @@ public abstract class Level implements Bundlable {
 	public SparseArray<Trigger> triggers;
 	public HashSet<CustomTilemap> customTiles;
 	public HashSet<CustomTilemap> customWalls;
+	// 4.0 架构补丁：地形层之上绘制的自定义贴图（如金库旗帜）
+	public HashSet<CustomTilemap> customTerrain;
+	// 4.0 架构补丁：本层所有传送点（暂未接入生成流程，生成为空列表）
+	public ArrayList<LevelTransition> transitions;
 	public HashMap<Integer, ArrayList<Plant>> triggeredPlant = new HashMap<>();
 	
 	protected ArrayList<Item> itemsToSpawn = new ArrayList<>();
@@ -211,6 +217,10 @@ public abstract class Level implements Bundlable {
 	private static final String TRIGGERS    = "triggers";
 	private static final String CUSTOM_TILES= "customTiles";
 	private static final String CUSTOM_WALLS= "customWalls";
+	// 4.0 架构补丁：地形层自定义贴图存档键
+	private static final String CUSTOM_TERRAIN = "customTerrain";
+	// 4.0 架构补丁：传送点存档键
+	private static final String TRANSITIONS	= "transitions";
 	private static final String MOBS		= "mobs";
 	private static final String BLOBS		= "blobs";
 	private static final String FEELING		= "feeling";
@@ -326,7 +336,10 @@ public abstract class Level implements Bundlable {
 			triggers = new SparseArray<>();
 			customTiles = new HashSet<>();
 			customWalls = new HashSet<>();
+			customTerrain = new HashSet<>();
 			triggeredPlant = new HashMap<>();
+			// 4.0 架构补丁：传送点列表初始化
+			transitions = new ArrayList<>();
 			
 		} while (!build());
 		
@@ -419,6 +432,14 @@ public abstract class Level implements Bundlable {
 		triggers = new SparseArray<>();
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
+		customTerrain = new HashSet<>();
+		// 4.0 架构补丁：传送点列表（旧档无此键时为空）
+		transitions = new ArrayList<>();
+		if (bundle.contains(TRANSITIONS)){
+			for (Bundlable b : bundle.getCollection(TRANSITIONS)){
+				transitions.add((LevelTransition) b);
+			}
+		}
 		
 		map		= bundle.getIntArray( MAP );
 
@@ -470,6 +491,15 @@ public abstract class Level implements Bundlable {
 		for (Bundlable p : collection) {
 			CustomTilemap vis = (CustomTilemap)p;
 			customWalls.add(vis);
+		}
+
+		// 4.0 架构补丁：地形层自定义贴图（旧档无此键时为空）
+		if (bundle.contains( CUSTOM_TERRAIN )) {
+			collection = bundle.getCollection( CUSTOM_TERRAIN );
+			for (Bundlable p : collection) {
+				CustomTilemap vis = (CustomTilemap)p;
+				customTerrain.add(vis);
+			}
 		}
 		
 		collection = bundle.getCollection( MOBS );
@@ -536,6 +566,10 @@ public abstract class Level implements Bundlable {
 		bundle.put(TRIGGERS, triggers.valueList() );
 		bundle.put(CUSTOM_TILES, customTiles );
 		bundle.put(CUSTOM_WALLS, customWalls );
+		// 4.0 架构补丁：地形层自定义贴图存档
+		bundle.put(CUSTOM_TERRAIN, customTerrain );
+		// 4.0 架构补丁：传送点存档
+		bundle.put(TRANSITIONS, transitions );
 		bundle.put(MOBS, mobs );
 		bundle.put(BLOBS, blobs.values() );
 		bundle.put(FEELING, feeling );
