@@ -74,7 +74,7 @@ public class Striker extends Mob {
 	
 	@Override
 	public void rollToDropLoot() {
-		Imp.Quest.cur().process( this );
+		Imp.Quest.cur().oldProcess( this );
 		
 		super.rollToDropLoot();
 	}

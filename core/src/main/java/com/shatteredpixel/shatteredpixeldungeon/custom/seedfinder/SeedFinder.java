@@ -410,10 +410,17 @@ public abstract class SeedFinder implements Runnable {
             }
             if (!impSeen && Imp.Quest.cur().spawned) {
                 impSeen = true;
-                if (ring != null && !ring.matches(Imp.Quest.cur().reward))
-                    return false;
-                if (tryMatch(Imp.Quest.cur().reward, itemsFound) && ++foundCount == n)
-                    return true;
+                //新版任务：奖励为 rewardOptions 预生成列表（0=神器/替代戒指，1=戒指，2/3=武器，4=板甲，5=法杖）
+                if (ring != null) {
+                    boolean ringMatched = false;
+                    for (Item i : Imp.Quest.cur().rewardOptions)
+                        if (i != null && ring.matches(i)) { ringMatched = true; break; }
+                    if (!ringMatched)
+                        return false;
+                }
+                for (Item i : Imp.Quest.cur().rewardOptions)
+                    if (i != null && tryMatch(i, itemsFound) && ++foundCount == n)
+                        return true;
             }
 
         }
@@ -547,11 +554,12 @@ public abstract class SeedFinder implements Runnable {
                 Wandmaker.Quest.cur().complete();
                 fd.wandmakerRewards = rewards;
             }
-            // 小恶魔任务奖励
-            if (Imp.Quest.cur().spawned && Imp.Quest.cur().reward != null) {
+            // 小恶魔任务奖励（新版：rewardOptions 预生成列表，收取后清空保证只收一次）
+            if (Imp.Quest.cur().spawned && !Imp.Quest.cur().rewardOptions.isEmpty()) {
                 ArrayList<Item> rewards = new ArrayList<>();
-                rewards.add(Imp.Quest.cur().reward);
-                Imp.Quest.cur().complete();
+                for (Item i : Imp.Quest.cur().rewardOptions)
+                    if (i != null) rewards.add(i);
+                Imp.Quest.cur().rewardOptions.clear();
                 fd.impRewards = rewards;
             }
             // 铁匠 2000 积分开炉奖励（仅 log 展示，不参与 testSeed 匹配；不置空故用 smithSeen 防重）

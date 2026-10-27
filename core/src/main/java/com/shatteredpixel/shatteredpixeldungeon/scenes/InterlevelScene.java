@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.MineEntranceTrigger;
 import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.Trigger;
+import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.VaultEntranceTrigger;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
@@ -535,6 +536,15 @@ public class InterlevelScene extends PixelScene {
             //mod SparseArray 基于 gdx IntMap，无 size/valueAt，用 valueList() 迭代
             for (Trigger trigger : level.triggers.valueList()){
                 if (trigger instanceof MineEntranceTrigger){
+                    targetPos = trigger.pos;
+                    break;
+                }
+            }
+        } else if (targetPos == -4){
+            //从金库返回：落点为主层小恶魔房间里的金库传送点格（找不到则回退到楼层入口）
+            targetPos = level.entrance;
+            for (Trigger trigger : level.triggers.valueList()){
+                if (trigger instanceof VaultEntranceTrigger){
                     targetPos = trigger.pos;
                     break;
                 }

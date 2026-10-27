@@ -286,6 +286,11 @@ public class Assets {
 		public static final String DM200      = "sprites/dm200.png";
 		public static final String NINJA_LOG  = "sprites/ninja_log.png";
 
+		// ===== 小恶魔金库任务（4.0 移植） =====
+		public static final String VAULT_TOKENS_DOOR	= "sprites/vault_tokens_door.png";
+		public static final String VAULT_MIRROR			= "sprites/vault_mirror.png";
+		public static final String VAULT_BOSS_ELEMENTAL	= "sprites/vault_boss_elemental.png";
+
 		// ===== sprites/boss/ =====              		-地牢boss-
 		public static final String PYLON        = "sprites/boss/pylon.png";
 		public static final String TYPHOOTIN	= "sprites/boss/typhootin.png";

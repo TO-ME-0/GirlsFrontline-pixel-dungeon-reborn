@@ -579,7 +579,8 @@ public class debugBook extends TestItem {
         Buff.count(Dungeon.hero(), Elphelt.Finish.class,1);
         Blacksmith.Quest.cur().completed = true;
         Blacksmith.Quest.cur().spawned = true;
-        Imp.Quest.cur().complete();
+        //新版小恶魔任务以满分结算，同时满足商店解锁条件
+        Imp.Quest.cur().complete(4000);
         Imp.Quest.cur().spawned = true;
         GLog.p("NPC任务已全部完成。");
     }

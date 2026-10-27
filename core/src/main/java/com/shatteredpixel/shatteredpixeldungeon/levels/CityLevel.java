@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.CityPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.BlazingTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.CorrosionTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.CursingTrap;
@@ -50,6 +51,8 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.particles.PixelParticle;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
+
+import java.util.ArrayList;
 
 public class CityLevel extends RegularLevel {
 
@@ -112,12 +115,11 @@ public class CityLevel extends RegularLevel {
 	}
 	
 	@Override
-	protected void createMobs() {
-		Imp.Quest.cur().spawn( this );
-		
-		super.createMobs();
+	protected ArrayList<Room> initRooms() {
+		//新版小恶魔任务：以 9×9 特殊房间（含金库传送点）生成，替代旧的随机站位 NPC
+		return Imp.Quest.cur().spawn( super.initRooms() );
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {

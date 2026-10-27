@@ -82,6 +82,6 @@ public class WndImp extends Window {
 		
 		imp.flee();
 		
-		Imp.Quest.cur().complete();
+		Imp.Quest.cur().oldComplete();
 	}
 }

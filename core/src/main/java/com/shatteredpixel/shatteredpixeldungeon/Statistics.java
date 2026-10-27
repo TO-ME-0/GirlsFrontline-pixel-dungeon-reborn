@@ -42,6 +42,9 @@ public class Statistics {
 	public static int spawnersAlive;
 	
 	public static float duration;
+
+	//任务得分，目前仅索引3用于新版小恶魔金库夺宝任务（机关扣分会写负值）
+	public static int[] questScores = new int[4];
 	
 	public static boolean qualifiedForNoKilling = false;
 	public static boolean completedWithNoKilling = false;
@@ -66,6 +69,8 @@ public class Statistics {
 		spawnersAlive   = 0;
 		
 		duration	= 0;
+
+		questScores	= new int[4];
 		
 		qualifiedForNoKilling = false;
 		
@@ -90,6 +95,8 @@ public class Statistics {
 	
 	private static final String DURATION	= "duration";
 
+	private static final String QUEST_SCORES	= "quest_scores";
+
 	private static final String NO_KILLING_QUALIFIED	= "qualifiedForNoKilling";
 	
 	private static final String AMULET		= "amuletObtained";
@@ -111,6 +118,8 @@ public class Statistics {
 		bundle.put( SPAWNERS,	spawnersAlive );
 		
 		bundle.put( DURATION,	duration );
+
+		bundle.put( QUEST_SCORES, questScores );
 
 		bundle.put(NO_KILLING_QUALIFIED, qualifiedForNoKilling);
 		
@@ -134,6 +143,10 @@ public class Statistics {
 		spawnersAlive   = bundle.getInt( SPAWNERS );
 		
 		duration		= bundle.getFloat( DURATION );
+
+		questScores		= bundle.getIntArray( QUEST_SCORES );
+		//旧存档无此键时 getIntArray 返回 null，补为全零
+		if (questScores == null || questScores.length != 4) questScores = new int[4];
 
 		qualifiedForNoKilling = bundle.getBoolean( NO_KILLING_QUALIFIED );
 		

@@ -531,6 +531,35 @@ public class Armor extends EquipableItem {
 		return seal;
 	}
 
+	//拆卸印章但不返还印章物品：金库任务中带出的护甲与镜子绑定，印章自动消失（EscapeCrystal 调用）
+	//刻印处理与手动拆卸一致：有符文转移天赋时刻印回到印章（护甲失去），否则护甲保留刻印、印章清空
+	public BrokenSeal detachSeal(){
+		if (seal == null) return null;
+
+		Hero hero = Dungeon.hero();
+		if (hero != null && isEquipped(hero)) {
+			BrokenSeal.WarriorShield sealBuff = hero.buff(BrokenSeal.WarriorShield.class);
+			if (sealBuff != null) sealBuff.setArmor(null);
+		}
+
+		BrokenSeal detaching = seal;
+		seal = null;
+
+		if (detaching.level() > 0){
+			degrade();
+		}
+		if (detaching.getGlyph() != null){
+			boolean glyphCommonOrUncommon = Arrays.asList(Glyph.common).contains(detaching.getGlyph().getClass())
+					|| Arrays.asList(Glyph.uncommon).contains(detaching.getGlyph().getClass());
+			if (hero != null && WarriorTalent.sealKeepsGlyphOnDetach(hero, glyphCommonOrUncommon)){
+				inscribe(null);
+			} else {
+				detaching.setGlyph(null);
+			}
+		}
+		return detaching;
+	}
+
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (outside != null) {

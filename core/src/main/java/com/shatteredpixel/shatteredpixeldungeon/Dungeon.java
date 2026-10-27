@@ -79,6 +79,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RabbitBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Room404;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevelSub;
@@ -411,6 +412,9 @@ public class Dungeon {
             //铁匠任务矿洞子层：对应洞窟主层 11~14
             case 1011: case 1012: case 1013: case 1014:
                 level = new MiningLevel();break;
+            //小恶魔任务金库子层：对应城市主层 17~19
+            case 1017: case 1018: case 1019:
+                level = new VaultLevel();break;
             case 1025:
                 level = new LastShopLevel();break;
         }

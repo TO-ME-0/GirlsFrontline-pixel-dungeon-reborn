@@ -140,7 +140,18 @@ public class Belongings implements Iterable<Item> {
 	}
 
 	// ***
-	
+
+	//清空全部物品与装备：进入金库时由 EscapeCrystal 暂存背包后调用
+	public void clear(){
+		backpack.clear();
+		weapon = null;
+		armor = null;
+		artifact = null;
+		misc = null;
+		ring = null;
+		thrownWeapon = null;
+	}
+
 	private static final String WEAPON		= "weapon";
     private static final String ARMOR		= "armor";
     private static final String OLD_SECOND_ARMOR = "secondArmor";
