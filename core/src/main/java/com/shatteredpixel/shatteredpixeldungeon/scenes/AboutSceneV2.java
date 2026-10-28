@@ -103,6 +103,9 @@ public class AboutSceneV2 extends PixelScene {
 	private static final String RAPD_CONFIG_URL =
 			"https://gameupdate.insrv.mlpd.spldream.com/RAPD/RDGameUpdate.json";
 
+	//卡牌地牢王的友情链接（仅官网地址，点击直接用浏览器打开）
+	private static final String CARDKING_URL = "https://dms.spldream.com/";
+
 	//仓库地址超链接的暂存列表：文本行在内容构建期创建，
 	//热区须等滚动面板创建后再注册（指针事件按创建逆序分发，后注册者先响应）
 	private final ArrayList<RenderedTextBlock> repoLinkBlocks = new ArrayList<>();
@@ -565,6 +568,7 @@ public class AboutSceneV2 extends PixelScene {
 			pos = addLabel(pos, width, "辉梦服务器的其他像素地牢：");
 			pos = addFetchButton(pos, width, "魔绫地牢", MLPD_CONFIG_URL);
 			pos = addFetchButton(pos, width, "萝卜地牢", RAPD_CONFIG_URL);
+			pos = addUriButton(pos, width, "卡牌地牢王", CARDKING_URL);
 
 			resize(width, (int) pos + MARGIN);
 		}
@@ -633,6 +637,19 @@ public class AboutSceneV2 extends PixelScene {
 							});
 						}
 					});
+				}
+			};
+			btn.setRect(MARGIN, pos, width - MARGIN * 2, BUTTON_HEIGHT);
+			add(btn);
+			return btn.bottom() + MARGIN;
+		}
+
+		//直接打开外部网址的按钮：无更新配置 JSON，点击即用浏览器访问官网
+		private float addUriButton(float pos, int width, String label, final String url) {
+			StyledButton btn = new StyledButton(Chrome.Type.GREY_BUTTON, label) {
+				@Override
+				protected void onClick() {
+					Game.platform.openURI(url);
 				}
 			};
 			btn.setRect(MARGIN, pos, width - MARGIN * 2, BUTTON_HEIGHT);
