@@ -26,9 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeons;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Manti;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Striker;
+import com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder.Holder;
 import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.CardSelector;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -40,13 +38,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.AmbitiousImpRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.triggers.VaultEntranceTrigger;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.P7Sprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.dialog.quest.P7_Plot_L1;
-import com.shatteredpixel.shatteredpixeldungeon.ui.dialog.quest.P7_Plot_L2;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndDialog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndImp;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndQuest;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
@@ -54,7 +49,6 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public class Imp extends NPC {
 
@@ -76,7 +70,7 @@ public class Imp extends NPC {
 		}
 
 		//新版任务：分数足以解锁商店后，小恶魔在玩家看不见时溜走
-		if (Quest.cur().isCompleted() && !Quest.cur().oldQuest && Quest.cur().score > 2000
+		if (Quest.cur().isCompleted() && Quest.cur().score > 2000
 				&& fieldOfView != null && !fieldOfView[Dungeon.hero().pos]){
 			flee();
 		} else if (!Quest.cur().given && Dungeon.level.heroFOV[pos]) {
@@ -119,68 +113,43 @@ public class Imp extends NPC {
 			return true;
 		}
 
-		//旧版杀怪集令牌任务（仅旧存档存在，逻辑保持改版原样：P7 立绘剧情）
-		if (Quest.cur().oldQuest) {
-			if (Quest.cur().given) {
+		//新版金库夺宝任务：纯文本对话
+		if (!Quest.cur().given){
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					GameScene.show(new WndQuest(Imp.this, Messages.get(Imp.this, "quest_intro_1")) {
+						@Override
+						public void hide() {
+							super.hide();
 
-				DwarfToken tokens = Dungeon.hero().belongings.getItem( DwarfToken.class );
-				if (tokens != null && (tokens.quantity() >= 5 || (!Quest.cur().alternative && tokens.quantity() >= 4))) {
-					Game.runOnRenderThread(new Callback() {
-						@Override
-						public void call() {
-							GameScene.show( new WndImp( Imp.this, tokens ) );
-						}
-					});
-				} else {
-					Game.runOnRenderThread(new Callback() {
-						@Override
-						public void call() {
-							GameScene.show( (new WndDialog(Quest.cur().alternative ? new P7_Plot_L1.End() : new P7_Plot_L2.End()) ));
+							Quest.cur().given = true;
+							Quest.cur().completed = false;
+							Notes.add( Notes.Landmark.IMP );
+
+							tell(Messages.get(Imp.this, "quest_intro_2"));
 						}
 					});
 				}
+			});
+		} else if (!Quest.cur().isCompleted()) {
+			if (Quest.cur().oldQuest) {
+				//把旧任务状态转换为新版金库任务
+				if(Quest.cur().rewardOptions.isEmpty())
+					Quest.cur().migrateToNewQuest();
+				//旧版存档：所在层没有金库传送点，接取后再点小恶魔即确认进入金库
+				VaultEntranceTrigger.showEnterPrompt();
 			} else {
-				Game.runOnRenderThread(new Callback() {
-					@Override
-					public void call() {
-						GameScene.show( (new WndDialog(Quest.cur().alternative ? new P7_Plot_L1() : new P7_Plot_L2()) ));
-					}
-				});
-				Quest.cur().given = true;
-				Quest.cur().completed = false;
-				Notes.add( Notes.Landmark.IMP );
+				tell(Messages.get(Imp.this, "quest_in_progress"));
 			}
 		} else {
-			//新版金库夺宝任务：纯文本对话
-			if (!Quest.cur().given){
-				Game.runOnRenderThread(new Callback() {
-					@Override
-					public void call() {
-						GameScene.show(new WndQuest(Imp.this, Messages.get(Imp.this, "quest_intro_1")) {
-							@Override
-							public void hide() {
-								super.hide();
-
-								Quest.cur().given = true;
-								Quest.cur().completed = false;
-								Notes.add( Notes.Landmark.IMP );
-
-								tell(Messages.get(Imp.this, "quest_intro_2"));
-							}
-						});
-					}
-				});
-			} else if (!Quest.cur().isCompleted()) {
-				tell(Messages.get(Imp.this, "quest_in_progress"));
+			//按分数三档评价
+			if (Quest.cur().score <= 2000){
+				tell(Messages.get(Imp.this, "quest_completed_bad"));
+			} else if (Quest.cur().score < 4000){
+				tell(Messages.get(Imp.this, "quest_completed_good"));
 			} else {
-				//按分数三档评价
-				if (Quest.cur().score <= 2000){
-					tell(Messages.get(Imp.this, "quest_completed_bad"));
-				} else if (Quest.cur().score < 4000){
-					tell(Messages.get(Imp.this, "quest_completed_good"));
-				} else {
-					tell(Messages.get(Imp.this, "quest_completed_great"));
-				}
+				tell(Messages.get(Imp.this, "quest_completed_great"));
 			}
 		}
 
@@ -215,9 +184,9 @@ public class Imp extends NPC {
 
 		public boolean spawned;
 
-		//旧版（4.0 之前）杀怪任务的专有字段；旧存档读取时 oldQuest=true
+		//旧版（4.0 之前）任务存档：旧层没有金库房间/传送点，接取后与小恶魔对话进入金库；
+		//迁移只执行一次（见 migrateIfNeeded），迁移后本标记作为“旧档入口方式”继续保留
 		public boolean oldQuest = false;
-		public boolean alternative; //true= Striker, false = Manti
 
 		//新旧任务共用字段
 		public boolean given;
@@ -249,7 +218,6 @@ public class Imp extends NPC {
 		private static final String SPAWNED     = "spawned";
 
 		private static final String OLD_QUEST   = "old_quest";
-		private static final String ALTERNATIVE = "alternative";
 		private static final String REWARD      = "reward";
 
 		private static final String GIVEN       = "given";
@@ -266,10 +234,13 @@ public class Imp extends NPC {
 
 			node.put( SPAWNED, spawned );
 
+			//奖励已在 init 预生成，与 spawn 无关，未 spawn 时必须同样入档
+			//第 0 位用可序列化的 RingHolder 占位，读档后仍保留位置供 genArtifact 填写
+			node.put( REWARD_OPTIONS, rewardOptions );
+
 			if (spawned) {
-				//写入 old_quest 键以区分新旧任务（旧存档无此键，读取时默认为旧任务）
+				//写入 old_quest 键作为格式标记：新版存档一律 false，旧版存档无此键
 				node.put( OLD_QUEST, oldQuest );
-				node.put( ALTERNATIVE, alternative );
 
 				node.put( GIVEN, given );
 				node.put( COMPLETED, completed );
@@ -277,7 +248,6 @@ public class Imp extends NPC {
 
 				node.put( HAZRD_FREEBIES, hazardFreebies );
 				node.put( SCORE, score );
-				node.put( REWARD_OPTIONS, rewardOptions );
 				node.put( MIRROR_USED, mirrorUsed );
 			}
 
@@ -288,29 +258,55 @@ public class Imp extends NPC {
 
 			Bundle node = bundle.getBundle( NODE );
 
-			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
+			if (node.isNull()) {
+				reset();
+				return;
+			}
 
-				if (node.contains( OLD_QUEST )){
-					oldQuest = node.getBoolean( OLD_QUEST );
-				} else {
-					//旧存档没有 old_quest 键，一律视为旧版杀怪任务
-					oldQuest = true;
+			//奖励与 spawn 无关，未 spawn 时同样保留，不能走 reset 清掉
+			rewardOptions = node.contains( REWARD_OPTIONS )
+					? node.getArrayList( REWARD_OPTIONS, Item.class )
+					: new ArrayList<>();
+
+			spawned = node.getBoolean( SPAWNED );
+
+			if (!spawned){
+				//未 spawn：只清 transient 状态
+				oldQuest = false;
+				given = false;
+				completed = false;
+				reward = null;
+				hazardFreebies = 2;
+				mirrorUsed = false;
+				score = 0;
+				return;
+			}
+
+			//新版存档写有 old_quest 键；旧版存档没有该键，读取时视为旧版任务
+			oldQuest = !node.contains( OLD_QUEST ) || node.getBoolean( OLD_QUEST );
+
+			if (oldQuest){
+				//旧版任务只继承接取/完成状态；旧版奖励（诅咒戒指）作废，改由新版奖励池重新生成
+				given = node.getBoolean( GIVEN );
+				completed = node.getBoolean( COMPLETED );
+				reward = null;
+				hazardFreebies = 2;
+				mirrorUsed = false;
+				score = 0;
+				//旧版奖励作废，迁移时按新版流程重新生成
+				rewardOptions.clear();
+
+				if (completed){
+					//已完成的旧任务视为满分，保证商店仍按 earnedShop() 解锁；无需迁移，也没有金库入口需求
+					score = 4000;
+					oldQuest = false;
 				}
-				if (oldQuest){
-					alternative	= node.getBoolean( ALTERNATIVE );
-					score = 0;
-					rewardOptions.clear();
-					mirrorUsed = false;
-				} else {
-					alternative = false;
-					hazardFreebies = node.getInt( HAZRD_FREEBIES );
-					mirrorUsed = node.getBoolean( MIRROR_USED );
-					score = node.getInt( SCORE );
-					rewardOptions = new ArrayList<>((Collection<Item>) (Collection<?>) node.getCollection( REWARD_OPTIONS ));
-				}
+			} else {
+				hazardFreebies = node.getInt( HAZRD_FREEBIES );
+				mirrorUsed = node.getBoolean( MIRROR_USED );
+				score = node.getInt( SCORE );
 
 				reward = (Item)node.get( REWARD );
-
 				given = node.getBoolean( GIVEN );
 				completed = node.getBoolean( COMPLETED );
 			}
@@ -323,7 +319,6 @@ public class Imp extends NPC {
 				rooms.add(new AmbitiousImpRoom());
 				spawned = true;
 
-				oldQuest = false;
 				reward = null;
 				score = 0;
 
@@ -346,8 +341,9 @@ public class Imp extends NPC {
 			//子种子异或常量（ASCII "IMP4"），保证与其他任务的奖励流互不相同
 			Random.pushGenerator( Dungeon.cur().seed ^ 0x494D5034L );
 			try {
-				//0 位占位：神器项推迟到 spawn 由 genArtifact 填入
-				rewardOptions.add(null);
+				//0 位占位：神器项推迟到 spawn 由 genArtifact 填入；
+				//用可序列化的 RingHolder（而非 null）占位，未 spawn 的存档读回后位置不会丢失
+				rewardOptions.add(new Holder.RingHolder());
 
 				//戒指在 init 预生成；与神器同类的极小概率冲突在 genArtifact 中重 roll
 				//戒指延迟到击败 BOSS 后才鉴定
@@ -426,30 +422,27 @@ public class Imp extends NPC {
 			return given;
 		}
 
-		public boolean isOld(){
-			return oldQuest;
-		}
+		//旧版任务存档迁移：清除旧版令牌、作废旧版奖励，直接转入新版任务
+		//旧版存档没有 9×9 金库房间，故不补传送点：接取后改为与小恶魔对话进入金库（见 interact），
+		//出库由 EscapeCrystal 按进库时记下的入口格原路返回
+		public void migrateToNewQuest() {
 
-		//旧版任务的令牌掉落：仅旧存档有效；改版以 Striker/Manti 替代原版 Monk/Golem
-		public void oldProcess( Mob mob ) {
-			if (spawned && oldQuest && given && !completed && Dungeon.cur().depth != 20) {
-				if ((alternative && mob instanceof Striker) ||
-					(!alternative && mob instanceof Manti)) {
-
-					Dungeon.level.drop( new DwarfToken(), mob.pos ).sprite.drop();
-				}
+			DwarfToken tokens = Dungeon.hero().belongings.getItem( DwarfToken.class );
+			if (tokens != null){
+				tokens.detachAll( Dungeon.hero().belongings.backpack );
 			}
-		}
 
-		//旧版任务交付：固定记满分
-		public void oldComplete() {
+			//旧版进度作废，按新版流程重新接取
 			reward = null;
-			completed = true;
+			given = false;
+			completed = false;
+			score = 0;
+			hazardFreebies = 2;
+			mirrorUsed = false;
 
-			if (Dungeons.cur().isSearch) return;
-			Statistics.questScores[3] = 4000;
-			CardSelector.INSTANCE().coolDown(1000);
-			Notes.remove( Notes.Landmark.IMP );
+			//新版奖励按本档种子预生成
+			genReward();
+			genArtifact();
 		}
 
 		//新版任务结算：分数由 EscapeCrystal 计算后传入
@@ -467,9 +460,9 @@ public class Imp extends NPC {
 			return spawned && completed;
 		}
 
-		//商店解锁条件：旧任务完成，或新任务分数超过 2000
+		//商店解锁条件：分数超过 2000（旧任务完成迁移时按满分处理）
 		public boolean earnedShop() {
-			return completed && (oldQuest || score > 2000);
+			return completed && score > 2000;
 		}
 	}
 }

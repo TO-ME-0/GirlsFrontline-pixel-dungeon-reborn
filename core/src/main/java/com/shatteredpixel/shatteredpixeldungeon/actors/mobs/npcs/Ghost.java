@@ -270,6 +270,14 @@ public class Ghost extends NPC {
 			Bundle node = new Bundle();
 			
 			node.put( SPAWNED, spawned );
+
+			//奖励已在 init 预生成，与 spawn 无关，未 spawn 时必须同样入档
+			node.put( WEAPON, weapon );
+			node.put( ARMOR, armor );
+			if (enchant != null) {
+				node.put(ENCHANT, enchant);
+				node.put(GLYPH, glyph);
+			}
 			
 			if (spawned) {
 				
@@ -278,14 +286,6 @@ public class Ghost extends NPC {
 				node.put( GIVEN, given );
 				node.put( DEPTH, depth );
 				node.put( PROCESSED, processed );
-				
-				node.put( WEAPON, weapon );
-				node.put( ARMOR, armor );
-
-				if (enchant != null) {
-					node.put(ENCHANT, enchant);
-					node.put(GLYPH, glyph);
-				}
 			}
 			
 			bundle.put( NODE, node );
@@ -295,23 +295,35 @@ public class Ghost extends NPC {
 			
 			Bundle node = bundle.getBundle( NODE );
 
-			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
+			if (node.isNull()) {
+				reset();
+				return;
+			}
 
+			spawned = node.getBoolean( SPAWNED );
+
+			//奖励与 spawn 无关，未 spawn 时同样保留，不能走 reset 清掉
+			weapon	= (Weapon)node.get( WEAPON );
+			armor	= (Armor)node.get( ARMOR );
+			enchant = null;
+			glyph   = null;
+			if (node.contains(ENCHANT)) {
+				enchant = (Weapon.Enchantment) node.get(ENCHANT);
+				glyph   = (Armor.Glyph) node.get(GLYPH);
+			}
+
+			if (spawned) {
 				type = node.getInt(TYPE);
 				given	= node.getBoolean( GIVEN );
 				processed = node.getBoolean( PROCESSED );
 
 				depth	= node.getInt( DEPTH );
-				
-				weapon	= (Weapon)node.get( WEAPON );
-				armor	= (Armor)node.get( ARMOR );
-
-				if (node.contains(ENCHANT)) {
-					enchant = (Weapon.Enchantment) node.get(ENCHANT);
-					glyph   = (Armor.Glyph) node.get(GLYPH);
-				}
 			} else {
-				reset();
+				//未 spawn：只清 transient 状态
+				type = 0;
+				given = false;
+				processed = false;
+				depth = 0;
 			}
 		}
 		

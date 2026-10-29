@@ -84,12 +84,6 @@ public class EscapeCrystal extends Item {
 
 			if (Dungeon.level instanceof VaultLevel){
 
-				//v4.0.0 之前的存档仍处于金库测试区域
-				if (Imp.Quest.cur().isOld()){
-					leaveVault(null, 0);
-					return;
-				}
-
 				int score = 0;
 
 				//首先，如果英雄持有雕像，分数直接为满额的 4000
@@ -279,12 +273,13 @@ public class EscapeCrystal extends Item {
 		restoreHeroBelongings(Dungeon.hero(), preserve);
 		Dungeon.hero().updateHT(false);
 		detachAll(Dungeon.hero().belongings.backpack);
-		if (!Imp.Quest.cur().isOld()) Imp.Quest.cur().complete(score);
+		Imp.Quest.cur().complete(score);
 
-		//以 RETURN 模式返回主层：returnPos=-4 由 InterlevelScene.returnTo 解析为金库传送点格
+		//以 RETURN 模式返回主层
 		InterlevelScene.returnDepth = Dungeon.cur().depth;
 		InterlevelScene.returnBranch = 0;
-		InterlevelScene.returnPos = -4;
+		//落点就是进库时记下的入口格：新版是金库传送点格，旧档是小恶魔对话时英雄脚下的格子
+		InterlevelScene.returnPos = vaultEntryPos;
 		InterlevelScene.mode = InterlevelScene.Mode.RETURN;
 		Game.switchScene(InterlevelScene.class);
 	}
@@ -355,15 +350,22 @@ public class EscapeCrystal extends Item {
 
 	public static String STORED_ITEMS = "stored_items";
 
+	//进库时英雄所在格，出库按此原路返回（-1 为缺省：回退楼层入口）
+	public int vaultEntryPos = -1;
+
+	public static String VAULT_ENTRY_POS = "vault_entry_pos";
+
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
 		bundle.put(STORED_ITEMS, storedItems);
+		bundle.put(VAULT_ENTRY_POS, vaultEntryPos);
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
 		storedItems = bundle.getBundle(STORED_ITEMS);
+		vaultEntryPos = bundle.contains(VAULT_ENTRY_POS) ? bundle.getInt(VAULT_ENTRY_POS) : -1;
 	}
 }

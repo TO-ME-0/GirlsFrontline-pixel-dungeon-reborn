@@ -417,6 +417,15 @@ public class Blacksmith extends NPC {
 
 			node.put( SPAWNED, spawned );
 
+			//奖励已在 init 预生成，与 spawn 无关，未 spawn 时必须同样入档
+			if (smithRewards != null) {
+				node.put( SMITH_REWARDS, smithRewards );
+				if (smithEnchant != null) {
+					node.put(ENCHANT, smithEnchant);
+					node.put(GLYPH, smithGlyph);
+				}
+			}
+
 			if (spawned) {
 				node.put( TYPE, type );
 
@@ -432,14 +441,6 @@ public class Blacksmith extends NPC {
 				node.put( HARDENS, hardens );
 				node.put( UPGRADES, upgrades );
 				node.put( SMITHS, smiths );
-
-				if (smithRewards != null) {
-					node.put( SMITH_REWARDS, smithRewards );
-					if (smithEnchant != null) {
-						node.put(ENCHANT, smithEnchant);
-						node.put(GLYPH, smithGlyph);
-					}
-				}
 			}
 
 			bundle.put( NODE, node );
@@ -449,8 +450,40 @@ public class Blacksmith extends NPC {
 
 			Bundle node = bundle.getBundle( NODE );
 
-			if (node.isNull() || !(spawned = node.getBoolean( SPAWNED ))) {
+			if (node.isNull()) {
 				reset();
+				return;
+			}
+
+			spawned = node.getBoolean( SPAWNED );
+
+			//奖励已在 init 预生成，与 spawn 无关，未 spawn 时也必须读回
+			smithRewards = null;
+			smithEnchant = null;
+			smithGlyph = null;
+			if (node.contains( SMITH_REWARDS )){
+				smithRewards = new ArrayList<>((Collection<Item>) ((Collection<?>) node.getCollection(SMITH_REWARDS)));
+				if (node.contains(ENCHANT)) {
+					smithEnchant = (Weapon.Enchantment) node.get(ENCHANT);
+					smithGlyph   = (Armor.Glyph) node.get(GLYPH);
+				}
+			}
+
+			if (!spawned) {
+				//未 spawn：只清 transient 状态
+				type = 0;
+				given = false;
+				started = false;
+				bossBeaten = false;
+				completed = false;
+				favor = 0;
+				pickaxe = null;
+				freePickaxe = false;
+				reforges = 0;
+				hardens = 0;
+				upgrades = 0;
+				smiths = 0;
+				needMigration = false;
 				return;
 			}
 
@@ -468,7 +501,7 @@ public class Blacksmith extends NPC {
 					//未领取旧版奖励：转接新版任务，首次交互时执行迁移
 					type = Random.IntRange(1, 2);
 					given = false;
-					generateRewards();
+					//奖励推迟到 migrateToNewQuest：此处 Generator 牌堆状态尚未恢复
 					needMigration = true;
 				}
 				return;
@@ -482,23 +515,13 @@ public class Blacksmith extends NPC {
 			completed = node.getBoolean( COMPLETED );
 
 			favor = node.getInt( FAVOR );
-			if (node.contains(PICKAXE))
-				pickaxe = (Item) node.get(PICKAXE);
+			//已领取的镐不再写入，旧存档无此键时必须为空，避免复活免费镐
+			pickaxe = node.contains(PICKAXE) ? (Item) node.get(PICKAXE) : null;
 			freePickaxe = node.getBoolean(FREE_PICKAXE);
 			reforges = node.getInt( REFORGES );
 			hardens = node.getInt( HARDENS );
 			upgrades = node.getInt( UPGRADES );
 			smiths = node.getInt( SMITHS );
-
-			if (node.contains( SMITH_REWARDS )){
-				smithRewards = new ArrayList<>((Collection<Item>) ((Collection<?>) node.getCollection(SMITH_REWARDS)));
-				if (node.contains(ENCHANT)) {
-					smithEnchant = (Weapon.Enchantment) node.get(ENCHANT);
-					smithGlyph   = (Armor.Glyph) node.get(GLYPH);
-				}
-			} else {
-				smithRewards = null;
-			}
 
 		}
 
@@ -642,6 +665,10 @@ public class Blacksmith extends NPC {
 
 		//旧版任务存档迁移：清除背包暗金，在铁匠房补放矿洞入口（触发器+EXIT 地形+刷新地图）
 		public void migrateToNewQuest(){
+
+			//此时读档早已完成、Generator 牌堆状态已恢复，按本档种子生成奖励
+			generateRewards();
+
 			DarkGold gold = Dungeon.hero().belongings.getItem(DarkGold.class);
 			if (gold != null){
 				gold.detachAll(Dungeon.hero().belongings.backpack);

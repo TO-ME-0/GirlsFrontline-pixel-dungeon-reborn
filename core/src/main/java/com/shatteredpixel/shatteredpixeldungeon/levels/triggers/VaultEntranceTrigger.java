@@ -16,8 +16,9 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Callback;
 
 //金库入口：小恶魔房间中央传送点的触发器，替代 4.0 CityLevel.activateTransition 的 BRANCH_EXIT 门禁
-//门禁规则照搬 4.0：旧任务/已完成/未接任务/背包遗失状态时进入无效；
+//门禁规则照搬 4.0：已完成/未接任务/背包遗失状态时进入无效；
 //确认后暂存全部背包（存入逃脱水晶）、换上布衣并进入金库子层
+//旧版存档所在层没有本触发器，其入口改为与小恶魔对话（复用 showEnterPrompt）
 public class VaultEntranceTrigger extends Trigger {
 
 	@Override
@@ -29,11 +30,16 @@ public class VaultEntranceTrigger extends Trigger {
 		Imp.Quest quest = Imp.Quest.cur();
 
 		//与 4.0 一致：以下情况传送点沉默不生效（小恶魔就在旁边，会通过对话引导玩家）
-		if (quest.oldQuest || quest.isCompleted() || !quest.given
+		if (quest.isCompleted() || !quest.given
 				|| ch.buff(LostInventory.class) != null){
 			return;
 		}
 
+		showEnterPrompt();
+	}
+
+	//金库入口确认窗口：新版由传送点触发；旧版存档没有传送点，接取任务后由小恶魔对话调用
+	public static void showEnterPrompt(){
 		Game.runOnRenderThread(new Callback() {
 			@Override
 			public void call() {
@@ -69,6 +75,8 @@ public class VaultEntranceTrigger extends Trigger {
 		if (crystal.storedItems == null){
 			crystal.storeHeroBelongings(hero);
 		}
+		//记下入口格，出库时按此原路返回（旧档由小恶魔对话进入时记的是英雄脚下位置）
+		crystal.vaultEntryPos = hero.pos;
 		crystal.collect();
 		hero.belongings.armor = new ClothArmor();
 		hero.belongings.armor.identify(true);

@@ -224,6 +224,11 @@ public class Wandmaker extends NPC {
 			Bundle node = new Bundle();
 			
 			node.put( SPAWNED, spawned );
+
+			if (wand1 != null) {
+				node.put( WAND1, wand1 );
+				node.put( WAND2, wand2 );
+			}
 			
 			if (spawned) {
 				
@@ -231,8 +236,6 @@ public class Wandmaker extends NPC {
 				
 				node.put( GIVEN, given );
 				
-				node.put( WAND1, wand1 );
-				node.put( WAND2, wand2 );
 
 				if (type == 2){
 					node.put( RITUALPOS, CeremonialCandle.ritualPos );
@@ -246,22 +249,35 @@ public class Wandmaker extends NPC {
 		public void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
-			
-			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
+			if (node.isNull()) {
+				reset();
+				return;
+			}
+
+			//奖励已在 init 预生成，与 spawn 无关，未 spawn 时同样保留，不能走 reset 清掉
+			wand1 = null;
+			wand2 = null;
+			if (node.contains(WAND1)) {
+				wand1 = (Wand)node.get( WAND1 );
+				wand2 = (Wand)node.get( WAND2 );
+			}
+
+			spawned = node.getBoolean( SPAWNED );
+
+			if (spawned) {
 
 				type = node.getInt(TYPE);
 				
 				given = node.getBoolean( GIVEN );
-				
-				wand1 = (Wand)node.get( WAND1 );
-				wand2 = (Wand)node.get( WAND2 );
 
 				if (type == 2){
 					CeremonialCandle.ritualPos = node.getInt( RITUALPOS );
 				}
 
 			} else {
-				reset();
+				//未 spawn：只清 transient 状态
+				type = 0;
+				given = false;
 			}
 		}
 		
