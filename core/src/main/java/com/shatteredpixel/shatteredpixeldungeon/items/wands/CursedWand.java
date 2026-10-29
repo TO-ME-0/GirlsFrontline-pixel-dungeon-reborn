@@ -683,7 +683,8 @@ public class CursedWand {
 				int depth = 1+Random.chances(depths);
 
 				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-				InterlevelScene.returnLevel = depth;
+				InterlevelScene.returnDepth = depth;
+				InterlevelScene.returnBranch = 0;
 				InterlevelScene.returnPos = -1;
 				Game.switchScene(InterlevelScene.class);
 

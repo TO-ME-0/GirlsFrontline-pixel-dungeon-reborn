@@ -174,7 +174,7 @@ public class Succubus extends Mob {
 
 		Item item = Reflection.newInstance(loot);
 		//魅魔掉落排除了鉴定与升级：NOT 级线索，看见掉落物即激活
-		AutoIdentify.tag(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+		AutoIdentify.tag(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
 				new Class[]{ScrollOfIdentify.class, ScrollOfUpgrade.class}, "魅魔掉落的卷轴，必不是鉴定或升级。");
 		return item;
 	}

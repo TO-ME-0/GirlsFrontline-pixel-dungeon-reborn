@@ -909,11 +909,13 @@ public class WndJournal extends WndTabbed {
 					depth += "/" + j;
 
 				final int levelId = i + j * 1000;
-				if (levelId == Dungeon.levelId) {
+				final int floorDepth = i;
+				final int floorBranch = j;
+				if (levelId == Dungeon.curFloorCode()) {
 					grid.addHeader("_" + Messages.get(this, "floor_header", depth) + "_");
-				} else if (tpReady && teleportable(levelId)) {
+				} else if (tpReady && teleportable(floorDepth, floorBranch)) {
 					//携带升降器时可点击楼层文字直接前往
-					grid.addHeader(Messages.get(this, "floor_header", depth) + " »", () -> teleportToFloor(levelId));
+					grid.addHeader(Messages.get(this, "floor_header", depth) + " »", () -> teleportToFloor(floorDepth, floorBranch));
 				} else {
 					grid.addHeader(Messages.get(this, "floor_header", depth));
 				}
@@ -965,12 +967,12 @@ public class WndJournal extends WndTabbed {
 		}
 
 		//目标楼层必须存在存档文件，否则无法前往
-		private static boolean teleportable(int levelId) {
-			return FileUtils.fileExists(GamesInProgress.depthFile(GamesInProgress.curSlot, levelId, false));
+		private static boolean teleportable(int depth, int branch) {
+			return FileUtils.fileExists(GamesInProgress.depthFile(GamesInProgress.curSlot, depth, branch, false));
 		}
 
 		//通过升降器跳层，与升降器自带的跨层传送窗口走同一逻辑
-		private static void teleportToFloor(int levelId) {
+		private static void teleportToFloor(int depth, int branch) {
 			if (Dungeon.hero().buff(LockedFloor.class) != null) {
 				return;
 			}
@@ -979,7 +981,8 @@ public class WndJournal extends WndTabbed {
 			buff = Dungeon.hero().buff(Swiftthistle.TimeBubble.class);
 			if (buff != null) buff.detach();
 			InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-			InterlevelScene.returnLevel = levelId;
+			InterlevelScene.returnDepth = depth;
+			InterlevelScene.returnBranch = branch;
 			InterlevelScene.returnPos = -1;
 			Game.switchScene(InterlevelScene.class);
 		}

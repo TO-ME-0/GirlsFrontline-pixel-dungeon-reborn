@@ -135,7 +135,7 @@ public class LloydsBeacon extends Artifact {
 
 		if (action.equals(AC_SET) || action.equals(AC_RETURN)) {
 			
-			if (Dungeon.level.prevent || Dungeon.level.levelId % 1000 == 0) {
+			if (Dungeon.level.prevent || Dungeon.cur().branch == 0) {
 				hero.spend( LloydsBeacon.TIME_TO_USE );
 				GLog.w( Messages.get(this, "preventing") );
 				return;
@@ -170,7 +170,7 @@ public class LloydsBeacon extends Artifact {
 		}
         else if (action.equals(AC_SET)) {
 
-            returnLevelId = Dungeon.levelId;
+            returnLevelId = Dungeon.curFloorCode();
 			returnPos   = hero.pos;
 			hero.spend( LloydsBeacon.TIME_TO_USE );
 			hero.busy();
@@ -190,7 +190,7 @@ public class LloydsBeacon extends Artifact {
             cd = 50;
             float blind = 10;
             float weak  = 50;
-			if (returnLevelId == Dungeon.levelId) {
+			if (returnLevelId == Dungeon.curFloorCode()) {
                 PathFinder.buildDistanceMap(returnPos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));
                 if (PathFinder.distance()[hero.pos] == Integer.MAX_VALUE){
                     cd *= 4;
@@ -224,7 +224,8 @@ public class LloydsBeacon extends Artifact {
 				if (timeBubble != null) timeBubble.disarmPressedTraps();
 
 				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-				InterlevelScene.returnLevel = returnLevelId;
+				InterlevelScene.returnDepth = returnLevelId%1000;
+				InterlevelScene.returnBranch = returnLevelId/1000;
 				InterlevelScene.returnPos = returnPos;
 				Game.switchScene( InterlevelScene.class );
                 cd      *= 1.5F;

@@ -79,7 +79,8 @@ public class MineEntranceTrigger extends Trigger {
 	//进入矿洞子层：关卡 id 为 当前主层深度 +1000，落点 -1 由 switchLevel 解析为新层 entrance
 	private static void enterMine(){
 		InterlevelScene.accessPos = -1;
-		InterlevelScene.accessLevelId = 1000 + Dungeon.cur().depth;
+		InterlevelScene.accessDepth = Dungeon.cur().depth;
+		InterlevelScene.accessBranch = 1;
 		InterlevelScene.mode = InterlevelScene.Mode.ACCESS;
 		Game.switchScene(InterlevelScene.class);
 	}

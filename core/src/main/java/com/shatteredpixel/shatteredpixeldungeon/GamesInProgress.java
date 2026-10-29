@@ -65,10 +65,11 @@ public class GamesInProgress {
 		return gameFolder(slot) + "/" + GAME_FILE;
 	}
 
-    public static String depthFile( int slot, int levelId, boolean copy) {
+    public static String depthFile( int slot, int depth, int branch, boolean copy) {
+        int id = depth + 1000*branch;
         if (!copy)
-            return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE,levelId);
-        return gameFolder(slot) + "/" + Messages.format(COPY_FILE,levelId);
+            return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE,id);
+        return gameFolder(slot) + "/" + Messages.format(COPY_FILE,id);
     }
 	
 	public static int firstEmpty(){

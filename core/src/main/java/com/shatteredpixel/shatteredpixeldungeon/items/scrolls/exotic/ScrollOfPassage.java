@@ -55,13 +55,14 @@ public class ScrollOfPassage extends ExoticScroll {
 		if (timeBubble != null) timeBubble.disarmPressedTraps();
 
 		InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-        if (Dungeon.levelId % 1000 != Dungeon.levelId) {
-            InterlevelScene.returnLevel = Dungeon.cur().depth;
+        if (Dungeon.cur().branch != 0) {
+            InterlevelScene.returnDepth = Dungeon.cur().depth;
             //子层读大传回主层
         } else {
-            InterlevelScene.returnLevel = Math.max(1, (Dungeon.cur().depth - 1 - (Dungeon.cur().depth - 2) % 5));
+            InterlevelScene.returnDepth = Math.max(1, (Dungeon.cur().depth - 1 - (Dungeon.cur().depth - 2) % 5));
         }
         InterlevelScene.returnPos = -1;
+        InterlevelScene.returnBranch = 0;
 		Game.switchScene( InterlevelScene.class );
 	}
 }

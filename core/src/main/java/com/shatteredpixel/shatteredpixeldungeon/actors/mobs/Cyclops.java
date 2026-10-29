@@ -102,7 +102,7 @@ public class Cyclops extends Mob {
             }
 
             //独眼巨人掉落排除了治疗：NOT 级线索，看见掉落物即激活
-            AutoIdentify.tag(i, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+            AutoIdentify.tag(i, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
                     new Class[]{PotionOfHealing.class}, "独眼巨人掉落的药水，必不是治疗。");
             return i;
         

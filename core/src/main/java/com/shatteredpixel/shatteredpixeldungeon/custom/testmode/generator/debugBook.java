@@ -183,7 +183,7 @@ public class debugBook extends TestItem {
                 try {
                     Bundle bundle = new Bundle();
                     bundle.put( Dungeon.LEVEL, Dungeon.level );
-                    FileUtils.bundleToFile(GamesInProgress.depthFile(GamesInProgress.curSlot , Dungeon.level.levelId, true), bundle);
+                    FileUtils.bundleToFile(GamesInProgress.depthFile(GamesInProgress.curSlot , Dungeon.cur().depth, Dungeon.cur().branch, true), bundle);
                 } catch (Exception e) {
                     GirlsFrontlinePixelDungeon.reportException(e);
                 }
@@ -565,7 +565,8 @@ public class debugBook extends TestItem {
     private void resetLevel(){//mark
         defaultAction = AC_SetMode;
         GLog.p("已重置楼层。");
-        InterlevelScene.returnLevel = Dungeon.cur().depth;
+        InterlevelScene.returnDepth = Dungeon.cur().depth;
+        InterlevelScene.returnBranch = 0;
         InterlevelScene.mode = InterlevelScene.Mode.RESET;
         Game.switchScene( InterlevelScene.class );
     }

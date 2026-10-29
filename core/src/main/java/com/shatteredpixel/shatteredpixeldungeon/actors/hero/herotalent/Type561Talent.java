@@ -86,7 +86,7 @@ public final class Type561Talent {
 				((RedBook) workingItem).activate(hero);
 		}
 		else if (talent == Talent.Type56Two_Sight){
-			Buff.affect( hero, TalentSecondSight.class).Set(Dungeon.levelId, 0);
+			Buff.affect( hero, TalentSecondSight.class).Set(Dungeon.curFloorCode(), 0);
 			if (hero.pointsInTalent(Talent.Type56Two_Sight) == 1){
 				Dungeon.level.FirstSight = false;
 				Buff.affect(hero, MindVision.class, 3);
@@ -289,11 +289,11 @@ public final class Type561Talent {
 					Dungeon.level.FirstSight = false;
 					Buff.affect(Dungeon.hero(), MindVision.class, 3);
 					if (Dungeon.hero().pointsInTalent(Talent.Type56Two_Sight) == 2) {
-						Sec.Set(Dungeon.levelId, 25);
+						Sec.Set(Dungeon.curFloorCode(), 25);
 					}
 				}
 				if (Dungeon.hero().pointsInTalent(Talent.Type56Two_Sight) == 2
-						&& Sec.EndCD(Dungeon.levelId) && Dungeon.level.SecondSight) {
+						&& Sec.EndCD(Dungeon.curFloorCode()) && Dungeon.level.SecondSight) {
 					Dungeon.level.SecondSight = false;
 					Buff.affect(Dungeon.hero(), MindVision.class, 3);
 				}

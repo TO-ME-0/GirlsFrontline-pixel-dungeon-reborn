@@ -72,7 +72,7 @@ public class DemonSpawner extends Mob {
 	public Item createLoot() {
 		PotionOfHealing item = new PotionOfHealing();
 		//恶魔孵化器必掉治疗药水：实例级线索，看见掉落物即激活
-		AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "恶魔孵化器必掉的治疗药水。");
+		AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "恶魔孵化器必掉的治疗药水。");
 		return item;
 	}
 

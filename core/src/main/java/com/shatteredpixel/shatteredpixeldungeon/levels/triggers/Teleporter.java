@@ -40,7 +40,8 @@ public class Teleporter extends Trigger{
 	public void activate(Char ch){
 		if(Dungeon.hero()==ch){
 			InterlevelScene.accessPos=targetPos;
-            InterlevelScene.accessLevelId=targetLevelId;
+            InterlevelScene.accessDepth=targetLevelId%1000;
+            InterlevelScene.accessBranch=targetLevelId/1000;
 			InterlevelScene.mode=InterlevelScene.Mode.ACCESS;
 			Game.switchScene(InterlevelScene.class);
 		}

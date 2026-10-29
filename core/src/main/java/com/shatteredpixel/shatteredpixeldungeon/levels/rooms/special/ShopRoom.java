@@ -79,7 +79,6 @@ public class ShopRoom extends SpecialRoom {
 	private ArrayList<Item> itemsToSpawn;
 
 	//固定补给商品实例：generateItems 时记录，placeItems 落地时补登记实例级线索
-	//（room 尺寸计算阶段拿不到 levelId，不能在 generateItems 里直接登记）
 	private final ArrayList<Item> fixedStock = new ArrayList<>();
 
 	private void addFixedStock( ArrayList<Item> items, Item item ) {
@@ -170,7 +169,7 @@ public class ShopRoom extends SpecialRoom {
 			level.drop( item, cell ).type = Heap.Type.FOR_SALE;
 			if (fixedStock.contains(item)) {
 				//商店固定库存：实例级线索，看见货架即激活
-				AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
+				AutoIdentify.tagSingle(item, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
 			}
 		}
 
@@ -188,7 +187,7 @@ public class ShopRoom extends SpecialRoom {
                 level.drop(i,j).type = Heap.Type.FOR_SALE;
                 if (fixedStock.contains(i)) {
                     //商店固定库存：实例级线索，看见货架即激活
-                    AutoIdentify.tagSingle(i, level.levelId, IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
+                    AutoIdentify.tagSingle(i, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.SHOP, "商店固定补给的商品。");
                 }
                 break;
             }

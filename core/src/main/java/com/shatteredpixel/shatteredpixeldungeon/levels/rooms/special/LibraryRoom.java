@@ -59,7 +59,7 @@ public class LibraryRoom extends SpecialRoom {
 			if (i == 0) {
 				item = Random.Int(2) == 0 ? new ScrollOfIdentify() : new ScrollOfRemoveCurse();
 				//图书馆第一本必为鉴定或祛邪卷轴：实例级线索，看见书架上的道具即激活
-				AutoIdentify.tag(item, level.levelId, IdentifyKnowledge.Origin.ROOM,
+				AutoIdentify.tag(item, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.ROOM,
 						IdentifyKnowledge.Mode.ANY_OF,
 						new Class[]{ScrollOfIdentify.class, ScrollOfRemoveCurse.class},
 						"图书馆固定提供的鉴定或祛邪卷轴。");

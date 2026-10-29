@@ -57,14 +57,14 @@ public class SpinnerCat extends Spinner {
 		if(Random.Int(10)==1){
 			ScrollOfTransmutation scrollOfTransmutation = new ScrollOfTransmutation();
 			//纺命猫概率掉蜕变卷轴：实例级线索，看见掉落物即激活
-			AutoIdentify.tagSingle(scrollOfTransmutation, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "纺命猫掉落的蜕变卷轴。");
+			AutoIdentify.tagSingle(scrollOfTransmutation, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "纺命猫掉落的蜕变卷轴。");
 			Dungeon.level.drop(scrollOfTransmutation, pos).sprite.drop();
 		}
 		
 		if(Random.Int(20)==1){
 			ScrollOfMetamorphosis scrollOfMetamorphosis = new ScrollOfMetamorphosis();
 			//纺命猫概率掉超维卷轴：实例级线索，异变类自动映射回蜕变类
-			AutoIdentify.tagSingle(scrollOfMetamorphosis, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "纺命猫掉落的超维卷轴。");
+			AutoIdentify.tagSingle(scrollOfMetamorphosis, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "纺命猫掉落的超维卷轴。");
 			Dungeon.level.drop(scrollOfMetamorphosis, pos).sprite.drop();
 		}
 	}

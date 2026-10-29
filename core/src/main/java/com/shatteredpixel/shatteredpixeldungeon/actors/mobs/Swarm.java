@@ -30,8 +30,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SwarmSprite;
 import com.watabou.utils.Bundle;
@@ -147,6 +149,8 @@ public class Swarm extends Mob {
 	@Override
 	public Item createLoot(){
 		Dungeon.LimitedDrops.SWARM_HP.used();
-		return super.createLoot();
+		Item item = super.createLoot();
+        AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "固定掉落的治疗药水。");
+		return item;
 	}
 }

@@ -245,7 +245,7 @@ public class ChaoticCenser extends Trinket {
 		public void set( int targetCell, Class<?extends Blob> gasType, int gasQuantity){
 			this.targetCell = targetCell;
 
-			levelId = Dungeon.levelId;
+			levelId = Dungeon.curFloorCode();
 
 			this.gasType = gasType;
 			this.gasQuantity = gasQuantity;
@@ -254,7 +254,7 @@ public class ChaoticCenser extends Trinket {
 		@Override
 		public boolean act() {
 
-			if (levelId == Dungeon.levelId){
+			if (levelId == Dungeon.curFloorCode()){
 				GameScene.add(Blob.seed(targetCell, gasQuantity, gasType));
 
 				//corrosion starts at the same level as potion of corrosive gas

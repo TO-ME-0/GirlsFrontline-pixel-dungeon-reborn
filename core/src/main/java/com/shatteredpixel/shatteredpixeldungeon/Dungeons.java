@@ -39,7 +39,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
-import com.watabou.noosa.Game;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -77,8 +76,7 @@ public class Dungeons {
     public Hero hero;
     public Level level;
     public int depth;
-    public int levelId;
-    public int CreateId;
+    public int branch;
     public long seed;
     public final int[] limitedDrops = new int[LimitedDrops.values().length];
 
@@ -120,8 +118,7 @@ public class Dungeons {
 
     public void reset() {
         depth = 0;
-        CreateId = 0;
-        levelId = 0;
+        branch = 0;
 
         //从 Category 的静态模板克隆每局独立的生成概率数组
         genCategoryProbs = new LinkedHashMap<>();
@@ -163,7 +160,7 @@ public class Dungeons {
         Random.resetGenerators();
 
         depth = 0;
-        CreateId = 0;
+        branch = 0;
 
         LimitedDrops.reset();
 
@@ -188,184 +185,24 @@ public class Dungeons {
         Imp.Quest.cur().genReward();
     }
 
-    // === 复制自 Dungeon.newLevel(Level, int, int) ===
-    // 注意：内部仍调用 level.create(levelDepth, id)，而 create 内部会读写 Dungeon 的静态字段
-    // 这是本阶段的预期行为：Dungeons 只是容器，真正的生成链引用迁移在后续阶段
-    private Level createLevel(Level level, int levelDepth, int id){
+    private Level createLevel(Level level, int levelDepth, int levelBranch){
         this.level = level;
         Actor.clear();
 
         depth = levelDepth;
-        CreateId = id;
-        level.create(levelDepth, id);
-        if (!isSearch) {
-            Game.Seed = seed;
-            Game.Challenges = Dungeon.challenges;
-            Game.GameMode = Dungeon.GameMode;
-            if (depth > Statistics.deepestFloor) {
-                Statistics.deepestFloor = levelDepth;
-
-                if (Statistics.qualifiedForNoKilling) {
-                    Statistics.completedWithNoKilling = true;
-                } else {
-                    Statistics.completedWithNoKilling = false;
-                }
-            }
-            if (id / 1000 > Statistics.deepestSub)
-                Statistics.deepestSub = id / 1000;
-
-            Statistics.qualifiedForNoKilling = !bossLevel();
-        }
+        branch = levelBranch;
+        level.create(levelDepth, levelBranch);
         return level;
     }
 
-    // === 复制自 Dungeon.newLevel(int) ===
-    public Level newLevel(int id){
-        Level level;
-        if (id%1000==0)
-            level = newZeroLevel(id);
-        else if (id%1000!=id)
-            level = newSubLevel(id);
-        else {
-            switch (id) {
-                case 1: case 2: case 3: case 4:
-                    level = new SewerLevel();
-                    break;
-                case 5:
-                    level = new SewerBossLevel();
-                    break;
-                case 6: case 7: case 8: case 9:
-                    level = new PrisonLevel();
-                    break;
-                case 10:
-                    level = new PrisonBossLevel();
-                    break;
-                case 11: case 12: case 13: case 14:
-                    level = new CavesLevel();
-                    break;
-                case 15:
-                    level = new CavesBossLevel();
-                    break;
-                case 16: case 17: case 18: case 19:
-                    level = new CityLevel();
-                    break;
-                case 20:
-                    level = new CityBossLevel();
-                    break;
-                case 21: case 22: case 23: case 24:
-                    level = new DeepCaveLevel();
-                    break;
-                case 25:
-                    level = new DeepCaveBossLevel();
-                    break;
-                case 26: case 27: case 28: case 29:
-                    level = new HallsLevel();
-                    break;
-                case 30:
-                    level = new HallsBossLevel();
-                    break;
-                case 31:
-                    level = new LastLevel();
-                    break;
-                default:
-                    level = new DeadEndLevel();
-            }
-        }
-
-        return createLevel(level, id%1000, id);
-    }
-//    public Level nextNewLevel() {
-//        if (CreateId == 25)
-//            return newLevel(1025);
-//        else
-//            return newLevel(depth + 1);
-//    }
-
-    // === 复制自 Dungeon.newLevel(int, int) ===
-    public Level newLevel(int depth, int sub) {
-        return newLevel(depth + sub*1000);
-    }
-
-    private Level newZeroLevel(int id){
-        Level level;
-        switch (id){
-            default:
-                level = new DeadEndLevel();break;
-            case 0:
-                level = new ZeroLevel();break;
-            case 1000:
-                level = new ZeroLevelSub();
-                break;
-            case 2000:
-                level = new Room404();
-                break;
-            case 3000:
-                level = new CoffeeRoom();
-                break;
-            case 4000:
-                level = new Workshop();
-                break;
-        }
-        return level;
-    }
-
-    private Level newSubLevel(int id){
-        Level level;
-        switch(id){
-            default:
-                level = new DeadEndLevel();break;
-            case 1010:
-                level = new RabbitBossLevel();break;
-            //铁匠任务矿洞子层：对应洞窟主层 11~14
-            case 1011: case 1012: case 1013: case 1014:
-                level = new MiningLevel();break;
-            //小恶魔任务金库子层：对应城市主层 17~19
-            case 1017: case 1018: case 1019:
-                level = new VaultLevel();break;
-            case 1025:
-                level = new LastShopLevel();break;
-        }
-        return level;
+    public Level newLevel(int depth, int branch) {
+        return createLevel(Dungeon.getNewLevel(depth, branch), depth, branch);
     }
 
     public int curDepth(){
         return depth;
     }
 
-    // === 复制自 Dungeon.seedToCreate ===
-    public long seedToCreate(){
-        return seedForLevel(CreateId);
-    }
-
-    // === 复制自 Dungeon.seedCurLevel ===
-    public long seedCurLevel(){
-        return seedForLevel(levelId);
-    }
-
-    public long seedCurLevel(Level level){
-        return seedForLevel(level.levelId);
-    }
-
-    // === 复制自 Dungeon.seedForLevel ===
-    public long seedForLevel(int createId){
-        Random.pushGenerator( seed );
-        //以存档种子为开始的随机数序列
-        for (int i = 0; i < createId; i ++) {
-            Random.Long(); //we don't care about these values, just need to go through them
-        }
-        long result = Random.Long();
-        //过掉楼层深度个随机数，以获得即将要使用的随机数
-
-        Random.popGenerator();
-        return result;
-    }
-
-    // === 复制自 Dungeon.shopOnLevel ===
-    public boolean shopOnLevel() {
-        return depth == 6 || depth == 11 || depth == 16;
-    }
-
-    // === 复制自 Dungeon.bossLevel ===
     public boolean bossLevel() {
         return bossLevel( depth );
     }

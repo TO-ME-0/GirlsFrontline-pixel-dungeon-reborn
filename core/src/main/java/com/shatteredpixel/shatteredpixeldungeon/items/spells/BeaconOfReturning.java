@@ -103,7 +103,7 @@ public class BeaconOfReturning extends Spell {
 		if (returnLevelId != -1){
 			Notes.remove(Notes.Landmark.BEACON_LOCATION, returnLevelId);
 		}
-        returnLevelId = Dungeon.levelId;
+        returnLevelId = Dungeon.curFloorCode();
         returnPos = hero.pos;
 
 		Notes.add(Notes.Landmark.BEACON_LOCATION, returnLevelId);
@@ -119,7 +119,7 @@ public class BeaconOfReturning extends Spell {
 	}
 	
 	private void returnBeacon( Hero hero ){
-		if (Dungeon.level.locked && returnLevelId != Dungeon.levelId || Dungeon.level.levelId % 1000 == 0) {
+		if (Dungeon.level.locked && returnLevelId != Dungeon.curFloorCode() || Dungeon.cur().branch == 0) {
 			GLog.w( Messages.get(this, "preventing") );
 			return;
 		}
@@ -143,7 +143,7 @@ public class BeaconOfReturning extends Spell {
 		hero.busy();
 		
 		
-		if (returnLevelId == Dungeon.levelId) {
+		if (returnLevelId == Dungeon.curFloorCode()) {
 
 			if (!Dungeon.level.passable[returnPos] && !Dungeon.level.avoid[returnPos]){
 				returnPos = Dungeon.level.entrance;
@@ -172,7 +172,8 @@ public class BeaconOfReturning extends Spell {
 			if (timeBubble != null) timeBubble.disarmPressedTraps();
 			
 			InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-			InterlevelScene.returnLevel = returnLevelId;
+			InterlevelScene.returnDepth = returnLevelId%1000;
+			InterlevelScene.returnBranch = returnLevelId/1000;
 			InterlevelScene.returnPos = returnPos;
 			Game.switchScene( InterlevelScene.class );
 		}

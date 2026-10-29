@@ -70,7 +70,7 @@ public class SpectralNecromancer extends Necromancer {
 		} while (Dungeon.level.solid[pos + ofs] && !Dungeon.level.passable[pos + ofs]);
 		ScrollOfRemoveCurse item = new ScrollOfRemoveCurse();
 		//幽灵死灵必掉祛邪卷轴：实例级线索，看见掉落物即激活
-		AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "幽灵死灵法师必掉的祛邪卷轴。");
+		AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "幽灵死灵法师必掉的祛邪卷轴。");
 		Dungeon.level.drop( item, pos + ofs ).sprite.drop( pos );
 	}
 

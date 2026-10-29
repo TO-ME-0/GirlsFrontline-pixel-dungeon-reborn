@@ -83,7 +83,7 @@ public class NoelShopRoom extends ShopRoom {
         placeItems( level, center, list );
     }
     public void PlaceShopRandom(Level level, int center, ArrayList<Integer> list){
-        Random.pushGenerator( Dungeon.seedForLevel(level.levelId) );
+        Random.pushGenerator( Dungeon.seedCurLevel(level) );
         placeShopkeeper(level, center);
         placeItems( level, center, list );
         Random.popGenerator();

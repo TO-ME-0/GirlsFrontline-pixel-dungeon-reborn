@@ -140,10 +140,7 @@ public class JaegerLock extends Mob implements Callback {
 		if (Random.Int(3) == 0 && Random.Int(8) >= Dungeon.LimitedDrops.WARLOCK_HP.count() ){
             //修复术士/四区狙娘掉落血瓶应为8而实际为7的bug，理由如下：当掉落7个的时候计数为7，而Random（7）的范围是0-7，所以破碎出现了只能掉落7个的bug
 			Dungeon.LimitedDrops.WARLOCK_HP.used();
-			PotionOfHealing item = new PotionOfHealing();
-			//猎手固定分支必掉治疗：实例级线索，看见掉落物即激活
-			AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "猎手固定掉落的治疗药水。");
-			return item;
+			return new PotionOfHealing();
 		} else {
 			Item i = Generator.random(Generator.Category.POTION);
 			int healingTried = 0;
@@ -162,7 +159,7 @@ public class JaegerLock extends Mob implements Callback {
 			}
 
 			//猎手随机分支排除了治疗：NOT 级线索，看见掉落物即激活
-			AutoIdentify.tag(i, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+			AutoIdentify.tag(i, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
 					new Class[]{PotionOfHealing.class}, "猎手随机掉落的药水，必不是治疗。");
 			return i;
 		}

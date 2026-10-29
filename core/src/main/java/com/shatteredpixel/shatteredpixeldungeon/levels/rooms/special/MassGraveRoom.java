@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Skeleton;
 import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
@@ -56,7 +57,7 @@ public class MassGraveRoom extends SpecialRoom {
 		entrance.set(Door.Type.BARRICADE);
 		level.addItemToSpawn(new PotionOfLiquidFlame());
 		//解谜房池子事实：本层池子固定加入一瓶火焰药水，看见房间内部即激活
-		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+		AutoIdentify.tagFloor(new int[]{Dungeon.floorCode(level.levelDepth, level.branch)}, IdentifyKnowledge.Category.POTION,
 				new Class[]{PotionOfLiquidFlame.class}, 1, 1, left, top, right, bottom,
 				IdentifyKnowledge.Origin.ROOM, "乱葬岗房固定放置的火焰药水。");
 

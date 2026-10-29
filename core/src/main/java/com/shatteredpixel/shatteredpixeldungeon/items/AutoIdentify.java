@@ -66,7 +66,7 @@ public class AutoIdentify {
 		return categoryOf(item) != null && labelOf(item) != null && keyOf(item) != null;
 	}
 
-	//—— 线索登记（生成期 levelId 必须显式传入 level.levelId，不能用 Dungeon.levelId）——
+	//—— 线索登记 ——
 
 	//实例级 SINGLE：标签与真类都从实例读取
 	public static void tagSingle(Item item, int levelId, Origin origin, String cause) {
@@ -120,21 +120,21 @@ public class AutoIdentify {
 		if (Notes.knowledge == null || !isSupported(item)) return;
 		Category cat = categoryOf(item);
 		String label = labelOf(item);
-		Notes.knowledge.recordSeen(Dungeon.levelId, cat, label);
+		Notes.knowledge.recordSeen(Dungeon.curFloorCode(), cat, label);
 		Notes.knowledge.activateItemClues(cat, label);
 	}
 
 	//拾取只记账，不决定知识是否生效
 	public static void onPickUp(Item item) {
 		if (Notes.knowledge == null || !isSupported(item)) return;
-		Notes.knowledge.recordSeen(Dungeon.levelId, categoryOf(item), labelOf(item));
+		Notes.knowledge.recordSeen(Dungeon.curFloorCode(), categoryOf(item), labelOf(item));
 	}
 
 	//每次英雄视野更新后调用：激活房间被看见的 FloorClue，并锁存 poolComplete
 	public static void onRoomSeen(Level level, boolean[] fov) {
 		if (Notes.knowledge == null || fov == null || level.heaps == null) return;
 		IdentifyKnowledge k = Notes.knowledge;
-		int id = level.levelId;
+		int id = Dungeon.floorCode(level.levelDepth, level.branch);
 
 		for (FloorClue fc : k.floorClues) {
 			if (fc.active || !fc.hasRect() || !fc.covers(id)) continue;

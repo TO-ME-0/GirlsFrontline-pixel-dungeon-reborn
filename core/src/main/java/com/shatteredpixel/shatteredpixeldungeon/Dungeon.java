@@ -283,8 +283,6 @@ public class Dungeon {
 	public static SparseArray<ArrayList<Item>> portedItems;
 
 	public static int version;
-    public static int levelId;
-	// 4.0 架构补丁：支线层编号（0 为主层）。目前恒为 0，尚未接入任何支线生成逻辑
 	public static int branch;
 	public static long GameMode;
     public static String customSeedText = "";
@@ -358,7 +356,7 @@ public class Dungeon {
 		return (challenges & mask) != 0;
 	}
 	
-	private static Level createLevel(Level level,int levelDepth,int id){
+	private static Level createLevel(Level level,int levelDepth,int levelBranch){
 		Dungeon.level = null;
 		Actor.clear();
 
@@ -367,142 +365,94 @@ public class Dungeon {
 		Game.GameMode = GameMode;
 
         cur().depth       = levelDepth;
-        cur().CreateId    = id;
-		if (cur().depth > Statistics.deepestFloor) {
+        cur().branch      = levelBranch;
+		if (cur().branch == 0 && cur().depth > Statistics.deepestFloor) {
 			Statistics.deepestFloor = levelDepth;
 
             Statistics.completedWithNoKilling = Statistics.qualifiedForNoKilling;
 		}
-		if (id / 1000 > Statistics.deepestSub)
-			Statistics.deepestSub = id / 1000;
+		if (levelBranch > Statistics.deepestSub)
+			Statistics.deepestSub = levelBranch;
 
-		level.create(levelDepth,id);
-		Statistics.qualifiedForNoKilling = !bossLevel();
+		level.create(levelDepth,levelBranch);
+		if (cur().branch == 0)
+			Statistics.qualifiedForNoKilling = !bossLevel();
 		return level;
 	}
-    private static Level newZeroLevel(int id){
+    private static Level newZeroLevel(int branch){
         Level level;
-        switch (id){
-            default:
-                level = new DeadEndLevel();break;
-            case 0:
-                level = new ZeroLevel();break;
-            case 1000:
-                level = new ZeroLevelSub();
-                break;
-            case 2000:
-                level = new Room404();
-                break;
-            case 3000:
-                level = new CoffeeRoom();
-                break;
-            case 4000:
-                level = new Workshop();
-                break;
+        switch (branch){
+            default:level = new DeadEndLevel();break;
+            case 0:level = new ZeroLevel();break;
+            case 1:level = new ZeroLevelSub();break;
+            case 2:level = new Room404();break;
+            case 3:level = new CoffeeRoom();break;
+            case 4:level = new Workshop();break;
         }
         return level;
     }
-    private static Level newSubLevel(int id){
-        Level level;
-        switch(id){
-            default:
-                level = new DeadEndLevel();break;
-            case 1010:
-                level = new RabbitBossLevel();break;
-            //铁匠任务矿洞子层：对应洞窟主层 11~14
-            case 1011: case 1012: case 1013: case 1014:
-                level = new MiningLevel();break;
-            //小恶魔任务金库子层：对应城市主层 17~19
-            case 1017: case 1018: case 1019:
-                level = new VaultLevel();break;
-            case 1025:
-                level = new LastShopLevel();break;
-        }
-        return level;
-    }
-	public static Level newLevel(int id){
-		Level level;
-        if (id % 1000 == 0)
-            level = newZeroLevel(id);
-        else if (id > 1000)
-            level = newSubLevel(id);
-        else {
-            switch (id) {
-                case 1: case 2: case 3: case 4:
-                    level = new SewerLevel();
-                    break;
-                case 5:
-                    level = new SewerBossLevel();
-                    break;
-                case 6: case 7: case 8: case 9:
-                    level = new PrisonLevel();
-                    break;
-                case 10:
-                    level = new PrisonBossLevel();
-                    break;
-                case 11: case 12: case 13: case 14:
-                    level = new CavesLevel();
-                    break;
-                case 15:
-                    level = new CavesBossLevel();
-                    break;
-                case 16: case 17: case 18: case 19:
-                    level = new CityLevel();
-                    break;
-                case 20:
-                    level = new CityBossLevel();
-                    break;
-                case 21: case 22: case 23: case 24:
-                    level = new DeepCaveLevel();
-                    break;
-                case 25:
-                    level = new DeepCaveBossLevel();
-                    break;
-                case 26: case 27: case 28: case 29:
-                    level = new HallsLevel();
-                    break;
-                case 30:
-                    level = new HallsBossLevel();
-                    break;
-                case 31:
-                    level = new LastLevel();
-                    break;
-                default:
-                    level = new DeadEndLevel();
-            }
-        }
+    private static Level newSubLevel(int depth, int branch){
+		if (branch != 1)
+			return new DeadEndLevel();
 
-        return createLevel(level,id%1000, id);
+        switch(depth){
+            default:return new DeadEndLevel();
+            case 10:return new RabbitBossLevel();
+            //铁匠任务矿洞子层：对应洞窟主层 12~14
+            case 12: case 13: case 14:return new MiningLevel();
+            //小恶魔任务金库子层：对应城市主层 17~19
+            case 17: case 18: case 19:return new VaultLevel();
+            case 25:return new LastShopLevel();
+        }
     }
-	public static Level newLevel(int depth, int sub) {
-		return newLevel(depth + sub*1000);
+	public static Level getNewLevel (int depth, int branch) {
+		if (depth == 0)
+			return newZeroLevel(branch);
+		if (branch > 0)
+			return newSubLevel(depth, branch);
+
+        switch (depth) {
+            case 1: case 2: case 3: case 4:return new SewerLevel();
+            case 6: case 7: case 8: case 9:return new PrisonLevel();
+            case 11: case 12: case 13: case 14:return new CavesLevel();
+            case 16: case 17: case 18: case 19:return new CityLevel();
+            case 21: case 22: case 23: case 24:return new DeepCaveLevel();
+            case 26: case 27: case 28: case 29:return new HallsLevel();
+            case 5:return new SewerBossLevel();
+            case 10:return new PrisonBossLevel();
+            case 15:return new CavesBossLevel();
+            case 20:return new CityBossLevel();
+            case 25:return new DeepCaveBossLevel();
+            case 30:return new HallsBossLevel();
+            case 31:return new LastLevel();
+            default:return new DeadEndLevel();
+        }
 	}
-	public static void resetLevel() {
-		
-		Actor.clear();
-		
-		level.reset();
-		switchLevel( level, level.entrance );
-	}
+	public static Level newLevel(int depth, int branch){
+        return createLevel(getNewLevel(depth, branch), depth, branch);
+    }
 
 	public static int curDepth(){
 		return cur().depth;
 	}
 
+	public static int floorCode(int depth, int branch){ return depth + 1000*branch; }
+	public static int curFloorCode(){ return floorCode(cur().depth, cur().branch); }
+
 	public static long seedToCreate(){
-		return seedForLevel(cur().CreateId);
+		return seedForDepth(cur().depth, cur().branch);
 	}
 
     public static long seedCurLevel(){
-        return seedForLevel(levelId);
+        return seedForDepth(cur().depth, cur().branch);
     }
     public static long seedCurLevel(Level level){
-        return seedForLevel(level.levelId);
+        return seedForDepth(level.levelDepth, level.branch);
     }
-	public static long seedForLevel(int createId){
+	public static long seedForDepth(int depth,int branch){
 		Random.pushGenerator( cur().seed );
-        //以存档种子为开始的随机数序列
-        for (int i = 0; i < createId; i ++) {
+        int lookAhead = depth + 30*branch;
+        for (int i = 0; i < lookAhead; i ++) {
 				Random.Long(); //we don't care about these values, just need to go through them
 			}
 			long result = Random.Long();
@@ -534,7 +484,9 @@ public class Dungeon {
 		
 		PathFinder.cur().setMapSize(level.width(), level.height());
 
-        levelId=level.levelId;
+        branch=level.branch;
+        cur().depth=level.levelDepth;
+        cur().branch=level.branch;
 		Dungeon.level = level;
 		Mob.restoreAllies( level, pos );
 		Actor.init();
@@ -627,6 +579,7 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION= "mobs_to_champion";
 	private static final String HERO		    = "hero";
 	private static final String DEPTH		    = "depth";
+	private static final String BRANCH		    = "branch";
 	private static final String GOLD		    = "gold";
 	private static final String ENERGY		    = "energy";
 	private static final String BATTERY		    = "battery";
@@ -648,12 +601,6 @@ public class Dungeon {
 			Bundle bundle = new Bundle();
 
 
-            if (levelId!=0) {
-                bundle.put(LEVEL_ID, levelId);
-            }else {
-                level.levelId=cur().depth;
-                bundle.put(LEVEL_ID, cur().depth);
-            }
 			version = Game.versionCode;
 			bundle.put( VERSION, version );
 			bundle.put( SEED, cur().seed );
@@ -662,6 +609,7 @@ public class Dungeon {
 			bundle.put( MOBS_TO_CHAMPION, cur().mobsToChampion );
 			bundle.put( HERO, cur().hero );
 			bundle.put( DEPTH, cur().depth );
+			bundle.put( BRANCH, cur().branch );
 			bundle.put( GAME_MODE, GameMode);
 			//持久化主副武器快捷栏切换状态（Toolbar.swappedQuickSlots 为静态全局变量，不保存则读档后丢失）
 			bundle.put( SWAPPED_QUICK_SLOTS, Toolbar.swappedQuickSlots );
@@ -729,9 +677,9 @@ public class Dungeon {
 		bundle.put( LEVEL, level );
         if(level!=null&&level.FirstSave){//mark
             level.FirstSave = false;
-            FileUtils.bundleToFile(GamesInProgress.depthFile(save,level.levelId, true), bundle);
+            FileUtils.bundleToFile(GamesInProgress.depthFile(save,level.levelDepth, level.branch, true), bundle);
         }
-        FileUtils.bundleToFile(GamesInProgress.depthFile(save,level.levelId, false), bundle);
+        FileUtils.bundleToFile(GamesInProgress.depthFile(save,level.levelDepth, level.branch, false), bundle);
     }
 	
 	public static void saveAll() throws IOException {
@@ -752,7 +700,7 @@ public class Dungeon {
 		//读档时同样刷新农历节日状态，否则中秋等节日需开新局才生效
 		Gregorian.LunarCheckDate();
 
-		levelId = bundle.getInt( LEVEL_ID );
+		branch = bundle.contains( BRANCH ) ? bundle.getInt( BRANCH ) : bundle.getInt( LEVEL_ID )/1000;
 
 		version = bundle.getInt( VERSION );
 		cur().seed = bundle.contains( SEED ) ? bundle.getLong( SEED ) : DungeonSeed.randomSeed();
@@ -842,6 +790,7 @@ public class Dungeon {
 		cur().hero = null;
 		cur().hero = (Hero)bundle.get( HERO );
 		cur().depth = bundle.getInt( DEPTH );
+		cur().branch = branch;
 
 		gold = bundle.getInt( GOLD );
 		energy = bundle.getInt( ENERGY );
@@ -875,8 +824,8 @@ public class Dungeon {
         Type561Talent.onLevelEnter();
     }
 
-    public static Level tryLoadLevel(int levelId, boolean copy){//mark
-        Level level = BeforeTryLoadLevel(levelId, copy);
+    public static Level tryLoadLevel(int depth, int branch, boolean copy){//mark
+        Level level = BeforeTryLoadLevel(depth, branch, copy);
         if (level!=null){
             GetSight();
             return level;
@@ -884,24 +833,24 @@ public class Dungeon {
         return null;
     }
 
-    private static Level BeforeTryLoadLevel(int levelId, boolean copy){
+    private static Level BeforeTryLoadLevel(int depth, int branch, boolean copy){
         final int save=GamesInProgress.curSlot;
-        final String fileName=GamesInProgress.depthFile(save,levelId,copy);
+        final String fileName=GamesInProgress.depthFile(save,depth,branch,copy);
         if(FileUtils.fileExists(fileName)){
             //file may be deleted between fileExists and loadLevel,who knows.
             try{
-                return loadLevel(save,levelId, copy);
+                return loadLevel(save,depth,branch, copy);
             }catch(IOException e){
                 GirlsFrontlinePixelDungeon.reportException(e);
             }
         }
         return null;
     }
-    public static Level loadLevel(int save,int levelId, boolean copy) throws IOException {
+    public static Level loadLevel(int save,int depth,int branch, boolean copy) throws IOException {
         Dungeon.level = null;
         Actor.clear();
 
-        Bundle bundle = FileUtils.bundleFromFile( GamesInProgress.depthFile(save,levelId, copy));
+        Bundle bundle = FileUtils.bundleFromFile( GamesInProgress.depthFile(save,depth,branch, copy));
 
         Level level = (Level) bundle.get( LEVEL );
 		if (level == null){

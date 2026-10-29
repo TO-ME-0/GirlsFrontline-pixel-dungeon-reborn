@@ -121,7 +121,7 @@ public class TalentSecondSight extends Buff {
     @Override
     public boolean act() {
         for (curLevelSight sight: sights){
-            if (sight.level == Dungeon.levelId){
+            if (sight.level == Dungeon.curFloorCode()){
                 if (sight.time > 0)
                     sight.time--;
                 break;

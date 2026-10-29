@@ -177,7 +177,8 @@ public class LevelTeleporter extends TestItem {
                     buff = Dungeon.hero().buff(Swiftthistle.TimeBubble.class);
                     if (buff != null) buff.detach();
                     InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                    InterlevelScene.returnLevel = selectedLevel;
+                    InterlevelScene.returnDepth = selectedLevel;
+                    InterlevelScene.returnBranch = 0;
                     InterlevelScene.returnPos = -1;
                     Game.switchScene( InterlevelScene.class );
                 }

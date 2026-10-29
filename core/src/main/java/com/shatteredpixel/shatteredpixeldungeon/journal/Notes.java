@@ -658,7 +658,7 @@ public class Notes {
 	}
 
 	public static boolean add( Landmark landmark ) {
-		return add( landmark, Dungeon.levelId );
+		return add( landmark, Dungeon.curFloorCode() );
 	}
 
 	public static boolean add( Landmark landmark, int levelId) {
@@ -672,7 +672,7 @@ public class Notes {
 	}
 
 	public static boolean contains( Landmark landmark ){
-		return contains( landmark, Dungeon.levelId );
+		return contains( landmark, Dungeon.curFloorCode() );
 	}
 
 	public static boolean contains( Landmark landmark, int levelId ){
@@ -680,7 +680,7 @@ public class Notes {
 	}
 
 	public static boolean remove( Landmark landmark ) {
-		return remove( landmark, Dungeon.levelId );
+		return remove( landmark, Dungeon.curFloorCode() );
 	}
 
 	public static boolean remove( Landmark landmark, int levelId ) {

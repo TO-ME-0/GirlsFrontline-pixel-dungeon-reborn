@@ -109,7 +109,7 @@ public class ToxicGasRoom extends SpecialRoom {
 
 		level.addItemToSpawn(new PotionOfPurity());
 		//解谜房池子事实：本层池子固定加入一瓶净化药水，看见房间内部即激活
-		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+		AutoIdentify.tagFloor(new int[]{Dungeon.floorCode(level.levelDepth, level.branch)}, IdentifyKnowledge.Category.POTION,
 				new Class[]{PotionOfPurity.class}, 1, 1, left, top, right, bottom,
 				IdentifyKnowledge.Origin.ROOM, "毒气房固定放置的净化药水。");
 

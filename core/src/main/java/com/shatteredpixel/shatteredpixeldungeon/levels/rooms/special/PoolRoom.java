@@ -91,7 +91,7 @@ public class PoolRoom extends SpecialRoom {
 		
 		level.addItemToSpawn( new PotionOfInvisibility() );
 		//解谜房池子事实：本层池子固定加入一瓶隐身药水，看见房间内部即激活
-		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+		AutoIdentify.tagFloor(new int[]{Dungeon.floorCode(level.levelDepth, level.branch)}, IdentifyKnowledge.Category.POTION,
 				new Class[]{PotionOfInvisibility.class}, 1, 1, left, top, right, bottom,
 				IdentifyKnowledge.Origin.ROOM, "水池房固定放置的隐身药水。");
 		

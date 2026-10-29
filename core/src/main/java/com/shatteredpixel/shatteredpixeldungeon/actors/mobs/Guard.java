@@ -21,30 +21,20 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
-import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.journal.IdentifyKnowledge;
-import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GuardSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
-import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 public class Guard extends Mob {
@@ -59,7 +49,7 @@ public class Guard extends Mob {
 		baseSpeed = 0.8f;
 		maxLvl = 28;
 
-        loot = Generator.Category.POTION;
+        loot = new PotionOfHealing();
         lootChance = 0.5f;
 	}
 
@@ -111,39 +101,16 @@ public class Guard extends Mob {
 
     @Override
     public Item createLoot(){
-
-        if (Random.Int(3) < 1 && Random.Int(9) >= Dungeon.LimitedDrops.GUARD_HP.count() ){
-            //照搬的术士Warlock
-            Dungeon.LimitedDrops.GUARD_HP.used();
-            PotionOfHealing item = new PotionOfHealing();
-            //铁血卫士固定分支必掉治疗：实例级线索，看见掉落物即激活
-            AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "铁血卫士固定掉落的治疗药水。");
-            return item;
-        } else {
-            Item i = Generator.random(Generator.Category.POTION);
-            int healingTried = 0;
-            while (i instanceof PotionOfHealing){
-                healingTried++;
-                i = Generator.random(Generator.Category.POTION);
-            }
-            //进行随机药水生成，但是从中去除治疗并计数
-
-            //将前面随机药水随机到后去除的治疗归还到随机池子
-            if (healingTried > 0){
-                for (int j = 0; j < Generator.Category.POTION.classes.length; j++){
-                    if (Generator.Category.POTION.classes[j] == PotionOfHealing.class){
-                        Generator.Category.POTION.probs()[j] += healingTried;
-                    }
-                }
-            }
-
-            //铁血卫士随机分支排除了治疗：NOT 级线索，看见掉落物即激活
-            AutoIdentify.tag(i, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
-                    new Class[]{PotionOfHealing.class}, "铁血卫士随机掉落的药水，必不是治疗。");
-            return i;
-        }
-
+        Dungeon.LimitedDrops.GUARD_HP.used();
+        Item item = super.createLoot();
+        //铁血卫士固定分支必掉治疗：实例级线索，看见掉落物即激活
+        AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "固定掉落的治疗药水。");
+        return item;
     }
+	@Override
+	public float lootChance() {
+		return super.lootChance() * (9F - Dungeon.LimitedDrops.GUARD_HP.count()) / 9F;
+	}
 
 	private static String DISARMHITS = "hitsToDisarm";
 

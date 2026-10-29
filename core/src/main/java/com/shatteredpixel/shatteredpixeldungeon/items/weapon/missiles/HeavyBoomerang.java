@@ -71,14 +71,14 @@ public class HeavyBoomerang extends MissileWeapon {
 	protected void rangedHit(Char enemy, int cell) {
 		decrementDurability();
 		if (durability > 0){
-			Buff.append(Dungeon.hero(), CircleBack.class).setup(this, cell, Dungeon.hero().pos, Dungeon.cur().levelId);
+			Buff.append(Dungeon.hero(), CircleBack.class).setup(this, cell, Dungeon.hero().pos, Dungeon.curFloorCode());
 		}
 	}
 	
 	@Override
 	protected void rangedMiss(int cell) {
 		parent = null;
-		Buff.append(Dungeon.hero(), CircleBack.class).setup(this, cell, Dungeon.hero().pos, Dungeon.cur().levelId);
+		Buff.append(Dungeon.hero(), CircleBack.class).setup(this, cell, Dungeon.hero().pos, Dungeon.curFloorCode());
 	}
 	
 	public static class CircleBack extends Buff {
@@ -117,7 +117,7 @@ public class HeavyBoomerang extends MissileWeapon {
 		
 		@Override
 		public boolean act() {
-			if (returnLevelID == Dungeon.cur().levelId){
+			if (returnLevelID == Dungeon.curFloorCode()){
 				left--;
 				if (left <= 0){
 					final Char returnTarget = Actor.findChar(returnPos);

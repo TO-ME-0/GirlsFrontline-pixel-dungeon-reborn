@@ -16,7 +16,8 @@ public class VaultExitTrigger extends Trigger {
 		}
 
 		//returnPos=-4 由 InterlevelScene.returnTo 解析为金库传送点格
-		InterlevelScene.returnLevel = Dungeon.cur().depth;
+		InterlevelScene.returnDepth = Dungeon.cur().depth;
+		InterlevelScene.returnBranch = 0;
 		InterlevelScene.returnPos = -4;
 		InterlevelScene.mode = InterlevelScene.Mode.RETURN;
 		Game.switchScene(InterlevelScene.class);

@@ -647,9 +647,9 @@ public class GameScene extends PixelScene {
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.RESURRECT) {
 				GLog.h(Messages.get(this, "resurrect"), Dungeon.cur().depth);
 			} else {
-				// 根据当前levelId显示不同的进入消息
+				// 根据当前楼层显示不同的进入消息
 				if (InterlevelScene.mode == InterlevelScene.Mode.ACCESS) {
-                    switch (Dungeon.level.levelId) {
+                    switch (Dungeon.floorCode(Dungeon.level.levelDepth, Dungeon.level.branch)) {
                         case 0: // ZeroLevel
                             GLog.h(Messages.get(InterlevelScene.class, "access_zero_level"));
                             break;

@@ -65,8 +65,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Stylus;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
-// 4.0 架构补丁：支线层传送点（仅数据容器，暂未接入任何生成流程）
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
@@ -139,7 +137,7 @@ public abstract class Level implements Bundlable {
     public boolean SecondSight = true;
     public boolean prevent  = false;
 
-    public int levelId;
+    public int branch;
 	public int version;
 	
 	public int[] map;
@@ -187,8 +185,6 @@ public abstract class Level implements Bundlable {
 	public HashSet<CustomTilemap> customWalls;
 	// 4.0 架构补丁：地形层之上绘制的自定义贴图（如金库旗帜）
 	public HashSet<CustomTilemap> customTerrain;
-	// 4.0 架构补丁：本层所有传送点（暂未接入生成流程，生成为空列表）
-	public ArrayList<LevelTransition> transitions;
 	public HashMap<Integer, ArrayList<Plant>> triggeredPlant = new HashMap<>();
 	
 	protected ArrayList<Item> itemsToSpawn = new ArrayList<>();
@@ -201,6 +197,7 @@ public abstract class Level implements Bundlable {
 
 	private static final String LEVEL_DEPTH = "levelDepth";
     private static final String LEVEL_ID    = "levelId";
+    private static final String BRANCH      = "branch";
 	private static final String VERSION     = "version";
 	private static final String WIDTH       = "width";
 	private static final String HEIGHT      = "height";
@@ -219,8 +216,6 @@ public abstract class Level implements Bundlable {
 	private static final String CUSTOM_WALLS= "customWalls";
 	// 4.0 架构补丁：地形层自定义贴图存档键
 	private static final String CUSTOM_TERRAIN = "customTerrain";
-	// 4.0 架构补丁：传送点存档键
-	private static final String TRANSITIONS	= "transitions";
 	private static final String MOBS		= "mobs";
 	private static final String BLOBS		= "blobs";
 	private static final String FEELING		= "feeling";
@@ -230,13 +225,13 @@ public abstract class Level implements Bundlable {
     private static final String SHARED_VISION = "SHARED_VISION";
     private static final String PREVENT         = "prevent";
 	public boolean creating;
-	public void create(int levelDepth,int levelId){
+	public void create(int levelDepth,int levelBranch){
 		this.levelDepth=levelDepth;
-        this.levelId   =levelId;
+		this.branch   =levelBranch;
 		creating = true;
 		Random.pushGenerator( Dungeon.seedToCreate() );
 		
-		if (!(Dungeon.bossLevel())) {
+		if (!(Dungeon.bossLevel()) && levelBranch == 0) {
 
             addItemToSpawn(Generator.random(Generator.Category.FOOD));
 
@@ -248,8 +243,8 @@ public abstract class Level implements Bundlable {
 				addItemToSpawn( new PotionOfStrength() );
 				Dungeon.LimitedDrops.STRENGTH_POTIONS.used();
 				//章节配额：章内第1-2层与第3-4层各恰好产出一瓶力量药水；配额规则已知，立即激活
-				int posBase = (levelId / 5) * 5;
-				int posFirst = levelId % 5 <= 2 ? posBase + 1 : posBase + 3;
+				int posBase = (Dungeon.floorCode(levelDepth, levelBranch) / 5) * 5;
+				int posFirst = Dungeon.floorCode(levelDepth, levelBranch) % 5 <= 2 ? posBase + 1 : posBase + 3;
 				AutoIdentify.tagFloor(new int[]{posFirst, posFirst + 1}, IdentifyKnowledge.Category.POTION,
 						new Class[]{PotionOfStrength.class}, 1, 1,
 						IdentifyKnowledge.Origin.RUN, "章节固定配额的力量药水：每对相邻楼层中恰好一瓶。");
@@ -258,7 +253,7 @@ public abstract class Level implements Bundlable {
 				addItemToSpawn( new ScrollOfUpgrade() );
 				Dungeon.LimitedDrops.UPGRADE_SCROLLS.used();
 				//章节配额：每章固定产出升级卷轴（本张在本章楼层中至少一张）；配额规则已知，立即激活
-				int souChapter = levelId / 5;
+				int souChapter = Dungeon.floorCode(levelDepth, levelBranch) / 5;
 				int[] souFloors = souChapter == 0
 						? new int[]{1, 2, 3, 4}
 						: new int[]{souChapter * 5, souChapter * 5 + 1, souChapter * 5 + 2, souChapter * 5 + 3, souChapter * 5 + 4};
@@ -338,8 +333,6 @@ public abstract class Level implements Bundlable {
 			customWalls = new HashSet<>();
 			customTerrain = new HashSet<>();
 			triggeredPlant = new HashMap<>();
-			// 4.0 架构补丁：传送点列表初始化
-			transitions = new ArrayList<>();
 			
 		} while (!build());
 		
@@ -414,7 +407,7 @@ public abstract class Level implements Bundlable {
         SecondSight=bundle.getBoolean(SECONDSIGHT);
         prevent = bundle.getBoolean(PREVENT);
 		levelDepth=bundle.getInt(LEVEL_DEPTH);
-        levelId   =bundle.getInt(LEVEL_ID);
+		branch    =bundle.contains(BRANCH) ? bundle.getInt(BRANCH) : bundle.getInt(LEVEL_ID)/1000;
 		version   =bundle.getInt(VERSION);
 		
 		//saves from before v0.9.2b are not supported
@@ -433,13 +426,6 @@ public abstract class Level implements Bundlable {
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
 		customTerrain = new HashSet<>();
-		// 4.0 架构补丁：传送点列表（旧档无此键时为空）
-		transitions = new ArrayList<>();
-		if (bundle.contains(TRANSITIONS)){
-			for (Bundlable b : bundle.getCollection(TRANSITIONS)){
-				transitions.add((LevelTransition) b);
-			}
-		}
 		
 		map		= bundle.getIntArray( MAP );
 
@@ -547,7 +533,7 @@ public abstract class Level implements Bundlable {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put(LEVEL_DEPTH,levelDepth);
-        bundle.put(LEVEL_ID,levelId);
+		bundle.put(BRANCH,branch);
 		bundle.put(VERSION, Game.versionCode );
 		bundle.put(WIDTH, width );
 		bundle.put(HEIGHT, height );
@@ -568,8 +554,6 @@ public abstract class Level implements Bundlable {
 		bundle.put(CUSTOM_WALLS, customWalls );
 		// 4.0 架构补丁：地形层自定义贴图存档
 		bundle.put(CUSTOM_TERRAIN, customTerrain );
-		// 4.0 架构补丁：传送点存档
-		bundle.put(TRANSITIONS, transitions );
 		bundle.put(MOBS, mobs );
 		bundle.put(BLOBS, blobs.values() );
 		bundle.put(FEELING, feeling );
@@ -653,7 +637,7 @@ public abstract class Level implements Bundlable {
 			}
 		}
 		for (HeavyBoomerang.CircleBack b : Dungeon.hero().buffs(HeavyBoomerang.CircleBack.class)){
-			if (b.activeLevelID() == Dungeon.cur().levelId) items.add(b.cancel());
+			if (b.activeLevelID() == Dungeon.curFloorCode()) items.add(b.cancel());
 		}
 		return items;
 	}

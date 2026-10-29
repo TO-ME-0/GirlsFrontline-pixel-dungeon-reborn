@@ -75,7 +75,8 @@ public class VaultEntranceTrigger extends Trigger {
 		hero.updateHT( false );
 
 		InterlevelScene.accessPos = -1;
-		InterlevelScene.accessLevelId = 1000 + Dungeon.cur().depth;
+		InterlevelScene.accessDepth = Dungeon.cur().depth;
+		InterlevelScene.accessBranch = 1;
 		InterlevelScene.mode = InterlevelScene.Mode.ACCESS;
 		Game.switchScene(InterlevelScene.class);
 	}

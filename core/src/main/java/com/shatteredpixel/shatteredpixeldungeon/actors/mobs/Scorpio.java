@@ -113,7 +113,7 @@ public class Scorpio extends Mob {
 
 		Item item = Reflection.newInstance(loot);
 		//天蝎掉落排除了治疗与力量：NOT 级线索，看见掉落物即激活
-		AutoIdentify.tag(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
+		AutoIdentify.tag(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, IdentifyKnowledge.Mode.NOT,
 				new Class[]{PotionOfHealing.class, PotionOfStrength.class}, "天蝎掉落的药水，必不是治疗或力量。");
 		return item;
 	}

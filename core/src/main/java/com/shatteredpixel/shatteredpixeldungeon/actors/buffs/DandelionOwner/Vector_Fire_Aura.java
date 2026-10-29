@@ -65,9 +65,9 @@ public class Vector_Fire_Aura extends Buff implements ActionIndicator.Action {
             destroyEmitter();
     }
     private ArrayList<AffectAura> getList(){
-        if (!fireAura.containsKey(Dungeon.levelId) || fireAura.get(Dungeon.levelId) == null)
-            fireAura.put(Dungeon.levelId, new ArrayList<>());
-        return fireAura.get(Dungeon.levelId);
+        if (!fireAura.containsKey(Dungeon.curFloorCode()) || fireAura.get(Dungeon.curFloorCode()) == null)
+            fireAura.put(Dungeon.curFloorCode(), new ArrayList<>());
+        return fireAura.get(Dungeon.curFloorCode());
     }
     private static boolean outMap(int cell){
         Point p = Dungeon.level.cellToPoint(cell);

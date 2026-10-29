@@ -169,7 +169,7 @@ public class SentryRoom extends SpecialRoom {
 
 		level.addItemToSpawn(new PotionOfHaste());
 		//解谜房池子事实：本层池子固定加入一瓶加速药水，看见房间内部即激活
-		AutoIdentify.tagFloor(new int[]{level.levelId}, IdentifyKnowledge.Category.POTION,
+		AutoIdentify.tagFloor(new int[]{Dungeon.floorCode(level.levelDepth, level.branch)}, IdentifyKnowledge.Category.POTION,
 				new Class[]{PotionOfHaste.class}, 1, 1, left, top, right, bottom,
 				IdentifyKnowledge.Origin.ROOM, "哨戒房固定放置的加速药水。");
 

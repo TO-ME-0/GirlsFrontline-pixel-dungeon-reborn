@@ -918,26 +918,26 @@ public abstract class Mob extends Char {
 				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
 					item = Generator.random(ExoticPotion.regToExo.get(loot));
 					//指定类掉落（含异变）：实例级线索，看见掉落物即激活
-					AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+					AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 					return item;
 				}
 			} else if (ExoticScroll.regToExo.containsKey(loot)){
 				if (Random.Float() < ExoticCrystals.consumableExoticChance()){
 					item = Generator.random(ExoticScroll.regToExo.get(loot));
-					AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+					AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 					return item;
 				}
 			}
 
 			item = Generator.random( (Class<? extends Item>)loot );
 			//指定类掉落：实例级线索，看见掉落物即激活
-			AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+			AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 
 		} else {
 
 			item = (Item)loot;
 			//指定实例掉落：实例级线索，看见掉落物即激活
-			AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
+			AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, Messages.get(this, "name") + "掉落的道具。");
 
 		}
 		return item;

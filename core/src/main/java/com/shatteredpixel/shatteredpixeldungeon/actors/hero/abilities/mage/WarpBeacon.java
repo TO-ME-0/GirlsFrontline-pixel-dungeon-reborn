@@ -101,14 +101,14 @@ public class WarpBeacon extends ArmorAbility {
 				protected void onSelect(int index) {
 					if (index == 0){
 
-						if (tracker.LevelId != Dungeon.levelId && !MageTalent.hasLongrangeWarp(hero)){
+						if (tracker.LevelId != Dungeon.curFloorCode() && !MageTalent.hasLongrangeWarp(hero)){
 							GLog.w( Messages.get(WarpBeacon.class, "depths") );
 							return;
 						}
 
 						float chargeNeeded = chargeUse(hero);
 
-						if (tracker.LevelId != Dungeon.levelId){
+						if (tracker.LevelId != Dungeon.curFloorCode()){
 							chargeNeeded *= MageTalent.longrangeWarpChargeMultiplier(hero);
 						}
 
@@ -120,7 +120,7 @@ public class WarpBeacon extends ArmorAbility {
 						armor.charge -= chargeNeeded;
 						armor.updateQuickslot();
 
-						if (tracker.LevelId == Dungeon.levelId){
+						if (tracker.LevelId == Dungeon.curFloorCode()){
 							Char existing = Actor.findChar(tracker.pos);
 
 							ScrollOfTeleportation.appear(hero, tracker.pos);
@@ -181,7 +181,8 @@ public class WarpBeacon extends ArmorAbility {
 							Invisibility.dispel();
 
 							InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-							InterlevelScene.returnLevel = tracker.LevelId;
+							InterlevelScene.returnDepth = tracker.LevelId%1000;
+							InterlevelScene.returnBranch = tracker.LevelId/1000;
 							InterlevelScene.returnPos = tracker.pos;
 							Game.switchScene( InterlevelScene.class );
 						}
@@ -212,7 +213,7 @@ public class WarpBeacon extends ArmorAbility {
 
 			WarpBeaconTracker tracker = new WarpBeaconTracker();
 			tracker.pos = target;
-			tracker.LevelId = Dungeon.levelId;
+			tracker.LevelId = Dungeon.curFloorCode();
 			tracker.attachTo(hero);
 
 			hero.sprite.operate(target);
@@ -235,7 +236,7 @@ public class WarpBeacon extends ArmorAbility {
 
 		@Override
 		public void fx(boolean on) {
-			if (on && LevelId == Dungeon.levelId) {
+			if (on && LevelId == Dungeon.curFloorCode()) {
 				e = CellEmitter.center(pos);
 				e.pour(MagicMissile.WardParticle.UP, 0.05f);
 			}

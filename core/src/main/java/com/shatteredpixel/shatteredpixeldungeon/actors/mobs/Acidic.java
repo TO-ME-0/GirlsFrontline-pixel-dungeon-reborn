@@ -59,7 +59,7 @@ public class Acidic extends Scorpio {
 	public Item createLoot() {
 		PotionOfExperience item = new PotionOfExperience();
 		//酸性变异蝎必掉经验药水：实例级线索，看见掉落物即激活
-		AutoIdentify.tagSingle(item, Dungeon.levelId, IdentifyKnowledge.Origin.MOB, "酸性变异蝎必掉的经验药水。");
+		AutoIdentify.tagSingle(item, Dungeon.curFloorCode(), IdentifyKnowledge.Origin.MOB, "酸性变异蝎必掉的经验药水。");
 		return item;
 	}
 }

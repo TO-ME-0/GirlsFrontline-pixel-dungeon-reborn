@@ -163,13 +163,13 @@ public class CrystalPathRoom extends SpecialRoom {
                         item = Random.Float() < ExoticCrystals.consumableExoticChance()
                                 ? new PotionOfDivineInspiration() : new PotionOfExperience();
                         //水晶路奖励位：经验药水（含异变）实例级线索，看见即激活
-                        AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的经验药水。");
+                        AutoIdentify.tagSingle(item, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的经验药水。");
                     } else {
                         //异晶簇饰品：概率将蜕变卷轴升级为超维卷轴（实现见 ExoticCrystals）
                         item = Random.Float() < ExoticCrystals.consumableExoticChance()
                                 ? new ScrollOfMetamorphosis() : new ScrollOfTransmutation();
                         //水晶路奖励位：蜕变卷轴（含异变）实例级线索，看见即激活
-                        AutoIdentify.tagSingle(item, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的蜕变卷轴。");
+                        AutoIdentify.tagSingle(item, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的蜕变卷轴。");
                     }
                     break;
             }
@@ -322,32 +322,25 @@ public class CrystalPathRoom extends SpecialRoom {
                 sPlaced = true;
             }
         }
-        //水晶路保底奖励位：经验药水/蜕变卷轴（含异变）实例级线索，看见即激活
-        if (pPlaced)
-            AutoIdentify.tagSingle(p, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的经验药水。");
-        if (sPlaced)
-            AutoIdentify.tagSingle(s, level.levelId, IdentifyKnowledge.Origin.ROOM, "水晶路奖励位固定提供的蜕变卷轴。");
         if ((p.isKnown() && s.isKnown()) || (!p.isKnown() && !s.isKnown())) {
             Painter.set(level, prize1, Terrain.PEDESTAL);
             Painter.set(level, prize2, Terrain.PEDESTAL);
         }else {
             if(isEXP){
+            AutoIdentify.tagSingle(p, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.ROOM, "三档奖励位固定提供的经验药水。");
                 Painter.set(level, prize1, Terrain.PEDESTAL);
                 Painter.set(level, prize2, Terrain.EMBERS);
             }else {
+                AutoIdentify.tagSingle(s, Dungeon.floorCode(level.levelDepth, level.branch), IdentifyKnowledge.Origin.ROOM, "三档奖励位固定提供的嬗变磁盘。");
                 Painter.set(level, prize1, Terrain.EMBERS);
                 Painter.set(level, prize2, Terrain.PEDESTAL);
             }
         }
-        /*以下为物品生成并掉落，读取对应链表的第0位，将其生成并移除（移除后后续物品填充上来）
-        然后在对应的room将生成的物品drop到地上*/
-        //以下是药水的生成，同侧room为0,2,4
+        
         level.drop(potions.remove(0), level.pointToCell(rooms[0].center())).setRoom(Heap.Room.PathNew);
         level.drop(potions.remove(0), level.pointToCell(rooms[2].center())).setRoom(Heap.Room.PathNew);
         level.drop(potions.remove(0), prize1).setRoom(Heap.Room.PathNew);
-        /*prize为破碎的机制，意为六选三的基座所在格，让保底经验/升级放置在基座上
-        这里移除与否都没有影响，而且不移除可以让物品显得不那么凌乱*/
-        //以下是磁盘的生成，同侧room为1,3,5
+        
         level.drop(scrolls.remove(0), level.pointToCell(rooms[1].center())).setRoom(Heap.Room.PathNew);
         level.drop(scrolls.remove(0), level.pointToCell(rooms[3].center())).setRoom(Heap.Room.PathNew);
         level.drop(scrolls.remove(0), prize2).setRoom(Heap.Room.PathNew);
