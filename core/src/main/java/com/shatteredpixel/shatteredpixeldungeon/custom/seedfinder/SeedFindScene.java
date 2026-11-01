@@ -7,17 +7,23 @@ import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder.Holder.ArmorHolder;
+import com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder.Holder.MeleeWeaponHolder;
+import com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder.Holder.MissileWeaponHolder;
+import com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder.Holder.WeaponHolder;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.Constants;
 import com.shatteredpixel.shatteredpixeldungeon.items.ColorItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -52,12 +58,17 @@ import com.watabou.noosa.ui.Component;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 
 public class SeedFindScene extends PixelScene {
     public static String seedCode = "";
     private static final ArrayList<Item> wantedItems = new ArrayList<>();
+    public static Item wand1;
+    public static Item wand2;
+    public static Item impReward;
     public static HeroClass currentHero = HeroClass.NONE;
     public static int currentFloor = Constants.MAX_DEPTH;
 
@@ -165,27 +176,39 @@ public class SeedFindScene extends PixelScene {
     private void buildResultTabs(SeedFinder seedFinder) {
         resultTabs = new ArrayList<>();
         StringBuilder ov = new StringBuilder();
+        //完成SeedFinder的交换
+        if (seedFinder.seedWandSwapped) {
+            Item wand = wand1;
+            wand1 = wand2;
+            wand2 = wand;
+        }
         // 总览页：各需求物品所在楼层
-
-        seedFinder.buildLogMatchIndex();
         boolean[] itemsFound = new boolean[seedFinder.wantedArr.length];
+        //与 SeedFinder.buildMatchIndex 同一顺序推进：每个需求的每个复制品对应一个 wantedArr 下标
+        int wantedIndex = 0;
         for (Item item : seedFinder.wantedItems) {
             if (item instanceof Trinket)
                 item = new TrinketCatalyst();
             StringBuilder fl = new StringBuilder();
             for (int i = 0; i < item.quantity(); i++) {
                 for (SeedFinder.FloorData fd : seedFinder.lastFloors)
-                    if (floorHas(seedFinder, fd, item, itemsFound)) {
+                    if (floorHas(seedFinder, fd, item, wantedIndex, itemsFound)) {
                         if (fl.length() > 0) fl.append("、");
                         fl.append(fd.title);
                     }
+                wantedIndex++;
             }
             ov.append(item).append("：");
             if (fl.length() > 0) ov.append(fl).append(" 楼");
             else ov.append("未找到");
             ov.append("\n\n");
         }
-
+        //已完成产生楼层的检查，恢复
+        if (seedFinder.seedWandSwapped) {
+            Item wand = wand1;
+            wand1 = wand2;
+            wand2 = wand;
+        }
         ov.append("饰品序列：\n");
         for (int i = 0; i < seedFinder.lastTrinketSequence.size(); i++) {
             if (i % 5 == 4)
@@ -207,24 +230,34 @@ public class SeedFindScene extends PixelScene {
                 resultTabs.add(new ResultTab(titles[g], groupText[g].toString(), false));
     }
 
-    private static boolean floorHas(SeedFinder seedFinder, SeedFinder.FloorData fd, Item item, boolean[] itemFound) {
-        for (SeedFinder.HeapItem hi : fd.heapItems)
-            if (seedFinder.tryMatch(item, hi.item, itemFound)) return true;
+    private static boolean floorHas(SeedFinder seedFinder, SeedFinder.FloorData fd, Item item, int wantedIndex, boolean[] itemFound) {
+        if (fd.impRewards != null) {
+            //宝库始终只能带走一件
+            if (!seedFinder.impSelect)
+                return false;
 
-        if (fd.ghostRewards != null)
-            for (Item i : fd.ghostRewards)
-                if (seedFinder.tryMatch(item, i, itemFound))
-                    return fd.ghostSelect = true;
-
-        if (fd.wandmakerRewards != null)
-            for (Item i : fd.wandmakerRewards)
-                if (seedFinder.tryMatch(item, i, itemFound))
-                    return fd.wandmakerSelect = true;
-
-        if (fd.impRewards != null)
+            if (impReward != null && item != impReward
+                    || wand2 != null && item != wand2)
+                return false;
             for (Item i : fd.impRewards)
-                if (seedFinder.tryMatch(item, i, itemFound))
-                    return fd.impSelect = true;
+                if (seedFinder.tryMatchAt(wantedIndex, i, itemFound))
+                    return seedFinder.impSelect = true;
+        }
+        for (SeedFinder.HeapItem hi : fd.heapItems)
+            if (seedFinder.tryMatchAt(wantedIndex, hi.item, itemFound)) return true;
+
+        if (fd.ghostRewards != null && !seedFinder.ghostSelect)
+            for (Item i : fd.ghostRewards)
+                if (seedFinder.tryMatchAt(wantedIndex, i, itemFound))
+                    return seedFinder.ghostSelect = true;
+
+        if (fd.wandmakerRewards != null && !seedFinder.wandmakerSelect) {
+            if (wand1 != null && item != wand1)
+                return false;
+            for (Item i : fd.wandmakerRewards)
+                if (seedFinder.tryMatchAt(wantedIndex, i, itemFound))
+                    return seedFinder.wandmakerSelect = true;
+        }
 
         return false;
     }
@@ -451,6 +484,44 @@ public class SeedFindScene extends PixelScene {
     private Window curResultWnd;
 
     private static final int BTN_H = 16;
+    private static void addWantedItem(Item item) {
+        wantedItems.add(item);
+        if (item.level() >= 4 || meleeT1.contains(item.getClass()))
+            impReward = item;
+        else if (item.level() == 3) {
+            if (item instanceof Ring)
+                impReward = item;
+            else if (item instanceof Wand) {
+                if (wand1 == null)
+                    wand1 = item;
+                else
+                    wand2 = item;
+            }
+        }
+        Collections.sort(wantedItems, itemComparator);
+    }
+    private static void removeItem(Item item) {
+        wantedItems.remove(item);
+        if (wand1 == item) {
+            wand1 = wand2;
+            wand2 = null;
+        }
+        else if (wand2 == item)
+            wand2 = null;
+        else if (impReward == item)
+            impReward = null;
+        Collections.sort(wantedItems, itemComparator);
+    }
+    public static final Comparator<Item> itemComparator = new Comparator<Item>() {
+        @Override
+        public int compare( Item lhs, Item rhs ) {
+            return rhs.trueLevel() - lhs.trueLevel();
+        }
+    };
+    private static boolean hasImpReward() {
+        //无法进入宝库的楼层，实际等效已选择了宝库奖励，所以在此合并。
+        return currentFloor < 17 || wand2 != null || impReward != null;
+    }
 
     // ======================== 新窗口（仅第一页实现，其余留空） ========================
     private final class WndFinder extends WndTabbed {
@@ -596,7 +667,7 @@ public class SeedFindScene extends PixelScene {
 
             // 2-6阶近战武器
             Generator.Category category;
-            for (int t = 1; t < Generator.wepTiers.length; t++) {
+            for (int t = 0; t < Generator.wepTiers.length; t++) {
                 category = Generator.wepTiers[t];
                 g = new ItemGroup(Catalog.valueOf("MELEE_WEAPONS_T" + (t + 1)).title());
                 g.items.add(Holder.meleeHolder[t]);
@@ -789,7 +860,7 @@ public class SeedFindScene extends PixelScene {
                                                     updateList();
                                                     hide();
                                                 } else if (index == 1) {
-                                                    wantedItems.remove(item);
+                                                    removeItem(item);
                                                     updateList();
                                                     hide();
                                                 } else if (index == 2)
@@ -917,6 +988,15 @@ public class SeedFindScene extends PixelScene {
                     super.onClick();
                     SeedFindScene.currentHero = GamesInProgress.selectedClass;
                     currentFloor = tempFloor;
+                    //依据更新后的楼层过滤一遍物品，防止以不合适的楼层搜索过高等级的装备。
+                    Item[] list = wantedItems.toArray(new Item[0]);
+                    for (Item item : list)
+                        removeItem(item);
+                    wantedItems.clear();
+                    for (Item item : list)
+                        if (item.trueLevel() <= getMaxLevelForClass(item))
+                            addWantedItem(item);
+
                     Dungeon.init("");
                     mainWindow.refreshPage1Info();
                     hide();
@@ -1028,16 +1108,6 @@ public class SeedFindScene extends PixelScene {
             }
         }
     }
-    private static void addWantedItem(Item item) {
-        wantedItems.add(item);
-        Collections.sort(wantedItems, itemComparator);
-    }
-    public static final Comparator<Item> itemComparator = new Comparator<Item>() {
-        @Override
-        public int compare( Item lhs, Item rhs ) {
-            return rhs.trueLevel() - lhs.trueLevel();
-        }
-    };
     private static final class PickGridItem extends ScrollingGridPane.GridItem {
         private final Class<? extends Item> cls;
         private final boolean direct;   // 神器/饰品：单击直接加入，无配置窗
@@ -1068,6 +1138,8 @@ public class SeedFindScene extends PixelScene {
         @Override
         public void onClick() {
             super.onClick();
+            if (meleeT1.contains(cls) && hasImpReward())
+                return;
             if (!direct) {
                 GirlsFrontlinePixelDungeon.scene().addToFront(new ItemConfigWindow(cls));
                 return;
@@ -1075,7 +1147,7 @@ public class SeedFindScene extends PixelScene {
             if (isWanted()) {
                 for (Item item : wantedItems.toArray(new Item[0]))
                     if (cls.isInstance(item)) {
-                        wantedItems.remove(item);
+                        removeItem(item);
                         break;
                     }
                 return;
@@ -1084,7 +1156,7 @@ public class SeedFindScene extends PixelScene {
             if (single)
                 for (Item item : wantedItems.toArray(new Item[0]))
                     if (item instanceof Trinket)
-                        wantedItems.remove(item);
+                        removeItem(item);
             addWantedItem(newInstance(cls));
         }
 
@@ -1264,6 +1336,10 @@ public class SeedFindScene extends PixelScene {
         }
     }
 
+    static final HashSet<Class<?>> meleeT1 = new HashSet<>(Arrays.asList(Generator.Category.WEP_T1.classes));
+    static {
+        meleeT1.add(Holder.Tier1MeleeHolder.class);
+    }
     static final Class<?>[][] enchant = {
             Weapon.Enchantment.common,
             Weapon.Enchantment.uncommon,
@@ -1291,7 +1367,7 @@ public class SeedFindScene extends PixelScene {
 
     private static Image image(Class<? extends Item> cls) {
         Item item = newInstance(cls);
-        if (item instanceof ColorItem)
+        if (item instanceof ColorItem && !(item instanceof Holder))
             return Icons.Notice((ColorItem) item);
         return new ItemSprite(item.image, item.glowing());
     }
@@ -1307,25 +1383,37 @@ public class SeedFindScene extends PixelScene {
     }
 
     private static int getMaxLevelForClass(Item item) {
-        if (item instanceof Wand || item instanceof Holder.WandHolder) {
-            // 已选 +3 任务配件，其余配件最多 +2（一局仅一根任务杖）
-            return hasQuestLevel(Wand.class) || hasQuestLevel(Holder.WandHolder.class) || currentFloor < 7
-                    ? 2 : 3;
+        if (item instanceof Wand) {
+            if (hasImpReward())
+                return wand1 != null || currentFloor < 7 ? 2 : 3;
+            else
+                return 4;
         }
-        if (item instanceof Ring || item instanceof Holder.RingHolder) {
-            // 已选 +3（小恶魔任务奖励 +3/+4 的下限）瞄准镜，其余只能 +2
-            return hasQuestLevel(Ring.class) || hasQuestLevel(Holder.RingHolder.class) || currentFloor < 17
-                    ? 2 : 4;
-        }
-        return item instanceof Weapon || item instanceof Armor
-                ? 3 : 0;
-    }
+        if (item instanceof Ring)
+            return hasImpReward() ? 2 : 4;
 
-    private static boolean hasQuestLevel(Class<?> type) {
-        for (Item item : wantedItems)
-            if (type.isInstance(item) && item.trueLevel() >= 3)
-                return true;
-        return false;
+        if (item instanceof Armor)
+            //仅PlateArmor可产出+4
+            return hasImpReward() || !(item instanceof PlateArmor) && item.getClass() != ArmorHolder.class ? 3 : 4;
+        if (item instanceof Weapon) {
+            //排除无法从宝库获取的情况。
+            if (hasImpReward())
+                return 3;
+
+            Weapon wep = (Weapon) item;
+            //T1有额外1级可以产出+3
+            //仅T4、T5、T6可以产出+4
+            if (wep.tier < 4 && wep.getClass() != WeaponHolder.class && wep.getClass() != MeleeWeaponHolder.class && wep.getClass() != MissileWeaponHolder.class)
+                return 3;
+
+            //T4投武可产出3-5级，T5可产出2-4级。
+            if (wep instanceof MissileWeapon)
+                return wep.tier == 5 ? 4 : 5;
+            //T4近武可产出3-5级，T5在过渡区间可产出2-4或3-5，T6可产出2-4
+            else
+                return wep.tier == 6 ? 4 : 5;
+        }
+        return 0;
     }
 
     // ======================== update() / 查找状态节流刷新 ========================
@@ -1448,11 +1536,18 @@ public class SeedFindScene extends PixelScene {
 
     private void stopSearch() {
         stopThread = true;
-        if (findSeedThread != null && findSeedThread.isAlive()) {
-            findSeedThread.interrupt();
-        }
         SeedFinder.SeedFinding = false;
         SeedFinder.running = false;
+        Thread t = findSeedThread;
+        if (t != null && t.isAlive()) {
+            t.interrupt();
+            //等 worker 真正退出后再销毁场景/重开查找，避免残留线程继续改动全局生成状态
+            try {
+                t.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     // ======================== CreditsBlock（保留原样） ========================

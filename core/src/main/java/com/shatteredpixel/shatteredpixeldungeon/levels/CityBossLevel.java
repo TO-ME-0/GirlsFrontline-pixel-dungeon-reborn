@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeons;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli;
@@ -225,6 +226,11 @@ public class CityBossLevel extends Level {
 		return true;
 	}
 
+	public void create(int levelDepth, int levelBranch){
+		super.create(levelDepth, levelBranch);
+		if (Dungeons.cur().isSearch)
+			spawnShop();
+	}
 	//returns a random pedestal that doesn't already have a summon inbound on it
 	public int getSummoningPos(){
 		Mob king = getKing();
@@ -358,6 +364,8 @@ public class CityBossLevel extends Level {
 	}
 
 	public void spawnShop(){
+		if (impShop.shopSpawned())
+			return;
 		Random.pushGenerator( Dungeon.seedCurLevel(this) );
 		while (impShop.itemCount() >= 7*(impShop.height()-2)){
 			impShop.bottom++;

@@ -45,15 +45,19 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -114,8 +118,27 @@ public abstract class SeedFinder implements Runnable {
         heroClass = cl;
         need = Math.max(1, wantedArr.length - SPDSettings.seedFinderMissing());
     }
-    WantedTarget wand;
-    WantedTarget ring;
+    //[0]=用户选的第一把（工匠槽），[1]=第二把（宝库槽）；读取方向由每线程的 swapped 决定
+    private final WantedTarget[] wands = new WantedTarget[2];
+    WantedTarget imp;
+    //每线程的读取方向：false=[0] 是 wand1，true=对调。查种线程各自独立，无共享写
+    private final ThreadLocal<Boolean> swapped = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.FALSE;
+        }
+    };
+    //命中种子解析出的方向：结果页据此决定是否交换静态 wand1/wand2
+    public boolean seedWandSwapped;
+
+    public WantedTarget wand1() {
+        return wands[swapped.get() ? 1 : 0];
+    }
+
+    public WantedTarget wand2() {
+        return wands[swapped.get() ? 0 : 1];
+    }
+
     Class<? extends Trinket> trinket;
     public final ArrayList<Item> wantedItems;
 
@@ -132,10 +155,18 @@ public abstract class SeedFinder implements Runnable {
                 }
                 WantedTarget w = new WantedTarget(item);
                 targets.add(w);
-                if ((item instanceof Wand || item instanceof Holder.WandHolder) && item.level() >= 3)
-                    wand = w;
-                else if ((item instanceof Ring || item instanceof Holder.RingHolder) && item.level() >= 3)
-                    ring = w;
+                if (item == SeedFindScene.wand1) {
+                    wands[0] = w;
+                    putReward(w, item, index);
+                }
+                else if (item == SeedFindScene.wand2) {
+                    wands[1] = w;
+                    putReward(w, item, index);
+                }
+                else if (item == SeedFindScene.impReward) {
+                    imp = w;
+                    putReward(w, item, index);
+                }
                 if (item instanceof Holder)
                     ((Holder) item).fillMap(temp, index);
                 else {
@@ -160,31 +191,24 @@ public abstract class SeedFinder implements Runnable {
         }
         matchIndex = idx;
     }
-    public void buildLogMatchIndex() {
-        HashMap<Class<? extends Item>, ArrayList<Integer>> temp = new HashMap<>();
-        int index = 0;
-        for (Item item : wantedItems)
-            for (int i = 0; i < item.quantity(); i++) {
-                if (item instanceof Holder) {
-                    ArrayList<Integer> list = temp.get(item.getClass());
-                    if (list == null)
-                        temp.put(item.getClass(), list = new ArrayList<>());
-                    list.add(index);
-                }
-                index++;
-            }
-        for (Map.Entry<Class<? extends Item>, ArrayList<Integer>> e : temp.entrySet()) {
-            ArrayList<Integer> list = e.getValue();
-            int[] indices = new int[list.size()];
-            for (int k = 0; k < list.size(); k++) {
-                indices[k] = list.get(k);
-            }
-            matchIndex.put(e.getKey(), indices);
+    //登记一个奖励槽：具体物品的可选类就是自身；Holder 用 fillMap 展开成它代表的整类子类。
+    //这里会多跑一次 fillMap（构造函数里已为 matchIndex 跑过一次），只发生在构造期，
+    //结果直接挂到目标对象上，热路径只剩下一次 Set.contains
+    private void putReward(WantedTarget w, Item template, int index) {
+        w.rewardIndex = index;
+        if (template instanceof Holder) {
+            HashMap<Class<? extends Item>, ArrayList<Integer>> expanded = new HashMap<>();
+            ((Holder) template).fillMap(expanded, index);
+            w.rewardClasses = expanded.keySet();
+        } else {
+            w.rewardClasses = Collections.singleton(template.getClass());
         }
     }
     // 多线程分段查种：随机起始种子后，把 [start, TOTAL_SEEDS) 区间均分为 threadCount 段，
     // 每个 worker 独立进入查种上下文扫自己那段，首个命中即广播停止所有线程。
     public final String findSeed(final int threadCount) {
+        //每次查找重新发布方向，避免上一次的交换结果残留到结果页
+        seedWandSwapped = false;
         if (threadCount <= 1) {
             String result = "NONE";
             SeedFinding = true;
@@ -195,30 +219,40 @@ public abstract class SeedFinder implements Runnable {
             //种子域 [0, TOTAL_SEEDS) 环形扫描：随机起点 + 取模，种子永不越界
             final long start = Random.Long(DungeonSeed.TOTAL_SEEDS);
 
-            for (long j = 0; j < DungeonSeed.TOTAL_SEEDS
-                    && running && SeedFinding; ++j) {
-                long currentSeed = (start + j) % DungeonSeed.TOTAL_SEEDS;
-                workerSeeds.set(0, currentSeed);
+            //单线程同样必须进入查种上下文：Dungeons.cur().isSearch 决定遗物注入、
+            //20 层商店、任务 complete 的副作用，缺失会让单线程与多线程结果不一致
+            Dungeon.enterSearchContext();
+            try {
+                for (long j = 0; j < DungeonSeed.TOTAL_SEEDS
+                        && running && SeedFinding; ++j) {
+                    long currentSeed = (start + j) % DungeonSeed.TOTAL_SEEDS;
+                    workerSeeds.set(0, currentSeed);
 
-                // 10 连复查：命中目标必须落在该种子各楼层生成变体的交集内
-                boolean confirmed = true;
-                for (int r = 0; r < 10; r++) {
-                    if (!testSeed(currentSeed)) {
-                        confirmed = false;
+                    // 10 连复查：命中目标必须落在该种子各楼层生成变体的交集内
+                    boolean confirmed = true;
+                    for (int r = 0; r < 10; r++) {
+                        if (!testSeed(currentSeed)) {
+                            confirmed = false;
+                            break;
+                        }
+                    }
+                    if (confirmed) {
+                        //把本线程解析出的法杖方向交给结果页
+                        seedWandSwapped = swapped.get();
+                        result = logSeedItems(currentSeed);
+                        break;
+                    }
+
+                    if (Thread.currentThread().isInterrupted()) {
+                        running = false;
                         break;
                     }
                 }
-                if (confirmed) {
-                    result = logSeedItems(currentSeed);
-                    break;
-                }
-
-                if (Thread.currentThread().isInterrupted()) {
-                    running = false;
-                    break;
-                }
+            } finally {
+                swapped.remove();
+                Dungeon.exitSearchContext();
+                SeedFinding = false;
             }
-            SeedFinding = false;
             return result;
         }
 
@@ -267,6 +301,7 @@ public abstract class SeedFinder implements Runnable {
                                 if (foundSeed.compareAndSet(-1, currentSeed)) {
                                     SeedFinding = false; // 广播停止
                                     running = false;
+                                    seedWandSwapped = swapped.get();
                                 }
                                 break;
                             }
@@ -276,6 +311,7 @@ public abstract class SeedFinder implements Runnable {
                         t.printStackTrace();
                         workerErrors[workerId] = "异常 " + t + stackBrief(t.getStackTrace(), 6);
                     } finally {
+                        swapped.remove();
                         Dungeon.exitSearchContext();
                     }
                 }
@@ -321,13 +357,48 @@ public abstract class SeedFinder implements Runnable {
 
         SeedFinding = false;
         long hit = foundSeed.get();
-        return hit >= 0 ? logSeedItems(hit) : "NONE";
+        if (hit < 0) return "NONE";
+        //命中种子的整局重放同样必须在查种上下文内完成
+        Dungeon.enterSearchContext();
+        try {
+            return logSeedItems(hit);
+        } finally {
+            Dungeon.exitSearchContext();
+        }
     }
 
     // 多线程查种的命中种子（CAS，-1 表示未命中）
     private static final AtomicLong foundSeed = new AtomicLong(-1);
 
     private final int need;
+    public boolean wandmakerTryMatch(WantedTarget target) {
+        //集合与任务对象各取一次：循环里只做 Set.contains
+        Set<Class<? extends Item>> cls = target.rewardClasses;
+        Wandmaker.Quest q = Wandmaker.Quest.cur();
+        //先判类别再判等级：matches() 会按附魔/铭文强转，跨类别直接短路更安全也更快
+        return (cls.contains(q.wand1.getClass()) && target.matches(q.wand1))
+                || (cls.contains(q.wand2.getClass()) && target.matches(q.wand2));
+    }
+    public boolean impTryMatch(WantedTarget target) {
+        //宝库无论如何只能带出一件，final 以外房间的装备与 6 件宝库奖励同属一个槽位候选：
+        //完整扫描时这些装备会作为金库层的堆叠物被 tryMatch 命中，提前剪枝必须同步放宽，否则会出假阴性
+        //预生成量按各档最高请求次数取（必然多于实际落地量），剪枝允许这部分假阳性
+        Set<Class<? extends Item>> cls = target.rewardClasses;
+        Imp.Quest q = Imp.Quest.cur();
+        for (Item item : q.rewardOptions)
+            if (cls.contains(item.getClass()) && target.matches(item)) {
+                GLog.p(String.valueOf(Dungeon.cur().seed));
+                return true;
+            }
+        for (ArrayList<Item> tier : q.vaultEquipOptions)
+            for (Item item : tier)
+                if (cls.contains(item.getClass()) && target.matches(item)) {
+                    GLog.p(String.valueOf(Dungeon.cur().seed));
+                    return true;
+                }
+        return false;
+    }
+
     protected boolean testSeed(long seed) {
         Dungeon.cur().hero = null;
         //worker 的 initHero 读取静态 selectedClass：必须与场景所选职业一致，
@@ -342,31 +413,101 @@ public abstract class SeedFinder implements Runnable {
             if (!getTrinket)
                 return false;
         }
+        //每颗种子都从用户顺序（未交换）开始推演：剪枝直接用 wands[0]/wands[1]（等价方向=false），
+        //方向确定后只写一次 ThreadLocal，省掉“先置 false、再按需置 true”的额外写
+        WantedTarget wand = null, reward = null;
+        if (wands[0] != null) {
+            boolean sw;
+            //固定只能查自身
+            if (imp != null) {
+                if (!wandmakerTryMatch(wands[0]))
+                    return false;
+                sw = false;
+            }
+            //可对调
+            else if (wands[1] != null) {
+                boolean ww1 = wandmakerTryMatch(wands[0]), ww2 = wandmakerTryMatch(wands[1]),
+                        wi1 = impTryMatch(wands[0]),       wi2 = impTryMatch(wands[1]);
+                //至少存在一条对角线以获取奖励
+                if (!(ww1 && wi2 || ww2 && wi1))
+                    return false;
+                //主对角线为false，则交换为副对角线
+                sw = !wi2;
+            }
+            //可尝试占用宝库任务奖励
+            else {
+                if (!wandmakerTryMatch(wands[0])
+                        && floor > 16 && !impTryMatch(wands[0]))
+                    return false;
+                //单法杖后置给宝库槽（wands[1] 为空，交换方向即等价于 wand1=null、wand2=此杖）
+                sw = true;
+            }
+            swapped.set(sw);
+            //方向已定，缓存到局部变量：热循环内不再反复读 ThreadLocal
+            wand = wand1();
+            reward = wand2();
+        }
+        if (imp != null && !impTryMatch(imp))
+            return false;
+        if (reward == null)
+            reward = imp;
         boolean[] itemsFound = new boolean[wantedArr.length];
         int foundCount = 0;
         int n = need;
         boolean ghostSeen = false, impSeen = false, wandmakerSeen = false;
 
         int depth = 1;
-        int levelSub = 0;
+        int branch = 0;
         while (depth <= floor) {
-            Level l = Dungeons.cur().newLevel(depth, levelSub);
-            if (depth == 25) {
-                if (levelSub == 0)
-                    levelSub++;
-                else {
-                    levelSub = 0;
-                    depth++;
+            Level l = Dungeons.cur().newLevel(depth, branch);
+            if (branch == 1) {
+                branch = 0;
+                depth++;
+                if (!impSeen && Imp.Quest.cur().spawned) {
+                    impSeen = true;
+                    if (reward != null) {
+                        for (Heap h : l.heaps.values())
+                            for (Item item : h.items)
+                                if (tryMatch(reward, item, itemsFound)) {
+                                    if (++foundCount == n)
+                                        return true;
+                                    else
+                                        continue;
+                                }
+                        return false;
+                    }
+                    ArrayList<Item> rewards = new ArrayList<>();
+                    for (Heap h : l.heaps.values())
+                        for (Item item : h.items)
+                            rewards.add(item);
+                    //避免优先匹配低等级物品。
+                    Collections.sort(rewards, itemComparator);
+                    for (Item i : rewards)
+                        if (tryMatch(i, itemsFound)) {
+                            if (++foundCount == n)
+                                return true;
+                            else
+                                continue;
+                        }
+                    //宝库匹配逻辑，由于宝库物品都是heap，但只能带走一件，所以要单独写
+                    continue;
                 }
+            }
+            else if (Imp.Quest.cur().spawned && !impSeen) {
+                branch = 1;
+                impSeen = true;
             }
             else
                 depth++;
-            Class<? extends Level> cl = l.getClass();
-            if (cl == SewerBossLevel.class && trinket != null)
-                Reflection.newInstance(trinket).upgrade(3).collect();
-            else if (cl == CityBossLevel.class)
-                ((CityBossLevel) l).spawnShop();
 
+            if (depth % 5 == 0) {
+                if (depth == 5 && trinket != null)
+                    Reflection.newInstance(trinket).upgrade(3).collect();
+                if (depth == 25)
+                    branch = 1;
+                else if (depth != 20)
+                    depth++;
+            }
             // 地面物品：遇物即匹配，不建中间表、不 identify
             // level()/enchantment/glyph 均为生成时定型的字段/方法，无需 identify 即可读取
             // values() 直接遍历 IntMap 的 Values 迭代器，省去 valueList() 的数组拷贝+List包装
@@ -401,59 +542,75 @@ public abstract class SeedFinder implements Runnable {
             }
             if (!wandmakerSeen && Wandmaker.Quest.cur().spawned) {
                 wandmakerSeen = true;
-                Item w1 = Wandmaker.Quest.cur().wand1;
-                Item w2 = Wandmaker.Quest.cur().wand2;
-                if (wand != null && !wand.matches(w1) && !wand.matches(w2))
-                    return false;
-                if ((tryMatch(w1, itemsFound) || tryMatch(w2, itemsFound)) && ++foundCount == n)
-                    return true;
-            }
-            if (!impSeen && Imp.Quest.cur().spawned) {
-                impSeen = true;
-                //新版任务：奖励为 rewardOptions 预生成列表（0=神器/替代戒指，1=戒指，2/3=武器，4=板甲，5=法杖）
-                if (ring != null) {
-                    boolean ringMatched = false;
-                    for (Item i : Imp.Quest.cur().rewardOptions)
-                        if (i != null && ring.matches(i)) { ringMatched = true; break; }
-                    if (!ringMatched)
-                        return false;
+                Item wa = Wandmaker.Quest.cur().wand1;
+                Item wb = Wandmaker.Quest.cur().wand2;
+                if (wand != null) {
+                    if ((tryMatch(wand, wa, itemsFound) || tryMatch(wand, wb, itemsFound)) && ++foundCount == n)
+                        return true;
                 }
-                for (Item i : Imp.Quest.cur().rewardOptions)
-                    if (i != null && tryMatch(i, itemsFound) && ++foundCount == n)
+                else if ((tryMatch(wa, itemsFound) || tryMatch(wb, itemsFound)) && ++foundCount == n)
                         return true;
             }
-
         }
         return false;
     }
+    private static final Comparator<Item> itemComparator = new Comparator<Item>() {
+        @Override
+        public int compare( Item lhs, Item rhs ) {
+            return rhs.trueLevel() - lhs.trueLevel();
+        }
+    };
     private boolean tryMatch(Item item, boolean[] itemsFound) {
-        //用于实际查找，超类没法用getClass查找，所以在建表的时候改为添加具体子类
-        return tryMatch(item, item, itemsFound);
-    }
-    public boolean tryMatch(Item wanted, Item testing, boolean[] itemsFound) {
-        //用于总览页以超类查找。
-        int[] candidates = matchIndex.get(wanted.getClass());
-        //兼容以实际查找中的具体子类查找
+        //实际查找的最热路径：wanted == testing，直接按自身类查表，免去 Holder 判断
+        int[] candidates = matchIndex.get(item.getClass());
         if (candidates == null) return false;
         for (int idx : candidates) {
             //只查找这个类所能在的位置
-            if (!itemsFound[idx] && wantedArr[idx].matches(testing)) {
+            if (!itemsFound[idx] && wantedArr[idx].matches(item)) {
                 itemsFound[idx] = true;
                 return true;
             }
         }
         return false;
     }
+    //总览页专用：只针对 wantedIndex 这一个目标判断。
+    //类门禁交给展开表——用 testing 的真实类查 matchIndex（Holder 已被 fillMap 展开成具体子类），
+    //候选里出现 wantedIndex 才说明该目标接受这个类；再叠加 matches() 的等级/附魔过滤。
+    //这样不会像旧的“按 wanted 类查表 + matches 不校验类”那样被异类高等级物品误命中
+    public boolean tryMatchAt(int wantedIndex, Item testing, boolean[] itemsFound) {
+        if (itemsFound[wantedIndex]) return false;
+        int[] candidates = matchIndex.get(testing.getClass());
+        if (candidates == null) return false;
+        for (int c : candidates) {
+            if (c == wantedIndex) {
+                if (!wantedArr[wantedIndex].matches(testing)) return false;
+                itemsFound[wantedIndex] = true;
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean tryMatch(WantedTarget target, Item testing, boolean[] itemsFound) {
+        int idx = target.rewardIndex;
+        //任务奖励是混合类型（神器/戒指/武器/护甲/法杖），必须同类别才可比：
+        //先查预生成的类别集合（Holder 已展开），既防 matches() 强转 CCE，也防跨类按等级误判
+        if (!itemsFound[idx] && target.rewardClasses.contains(testing.getClass())
+                && target.matches(testing)) {
+            itemsFound[idx] = true;
+            return true;
+        }
+        return false;
+    }
     private ArrayList<Heap> getMobDrops(Level l) {
         ArrayList<Heap> heaps = new ArrayList<>();
         for (Mob m : l.mobs) {
-            if (m instanceof SksStatue && !(m instanceof ArmoredStatue)) {
+            if (m.getClass() == SksStatue.class) {
                 Heap h = new Heap();
                 h.items = new LinkedList<>();
                 h.items.add(((SksStatue) m).weapon().identify());
                 h.type = Type.HEAP;
                 heaps.add(h);
-            } else if (m instanceof ArmoredStatue) {
+            } else if (m.getClass() == ArmoredStatue.class) {
                 Heap h = new Heap();
                 h.items = new LinkedList<>();
                 h.items.add(((ArmoredStatue) m).armor().identify());
@@ -463,16 +620,11 @@ public abstract class SeedFinder implements Runnable {
             } else if (m instanceof Mimic) {
                 Heap h = new Heap();
                 h.items = new LinkedList<>();
-                for (Item item : ((Mimic) m).items) {
+                for (Item item : ((Mimic) m).items)
                     h.items.add(item.identify());
-                }
-                if (m instanceof GoldenMimic) {
-                    h.type = Type.GOLDEN_MIMIC;
-                } else if (m instanceof CrystalMimic) {
-                    h.type = Type.CRYSTAL_MIMIC;
-                } else {
-                    h.type = Type.MIMIC;
-                }
+                if (m.getClass() == GoldenMimic.class) h.type = Type.GOLDEN_MIMIC;
+                else if (m.getClass() == CrystalMimic.class) h.type = Type.CRYSTAL_MIMIC;
+                else h.type = Type.MIMIC;
                 heaps.add(h);
             }
         }
@@ -496,22 +648,27 @@ public abstract class SeedFinder implements Runnable {
         // Phase 1: 遍历所有楼层，收集物品（不 identify），任务奖励在出现层一次性收取并 complete
         ArrayList<FloorData> floorDataList = lastFloors;
         int depth = 1;
-        int levelSub = 0;
-        boolean smithSeen = false;
+        int branch = 0;
+        boolean ghostSeen = false, wandmakerSeen = false, smithSeen = false, impSeen = false;
         SeedFinding = true;
         while (depth <= floor) {
-            Level l = Dungeons.cur().newLevel(depth, levelSub);
-            // 楼层显示名：子层记作 "25/1"（分组也依赖这里的 depth，须在推进前捕获）
-            int curDepth = depth;
-            int curSub = levelSub;
-            if (depth == 25) {
-                if (levelSub == 0)
-                    levelSub++;
-                else {
-                    levelSub = 0;
-                    depth++;
-                }
+            Level l = Dungeons.cur().newLevel(depth, branch);
+            FloorData fd = new FloorData(depth,
+                    branch > 0 ? depth + "/" + branch : String.valueOf(depth));
+            if (branch == 1) {
+                branch = 0;
+                depth++;
             }
+            else if (Blacksmith.Quest.cur().spawned && !Blacksmith.Quest.cur().completed) {
+                branch = 1;
+                Blacksmith.Quest.cur().completed = true;
+            }
+            else if (Imp.Quest.cur().spawned && !Imp.Quest.cur().completed) {
+                branch = 1;
+                Imp.Quest.cur().completed = true;
+            }
+            else if (depth == 25)
+                branch = 1;
             else
                 depth++;
 
@@ -524,9 +681,6 @@ public abstract class SeedFinder implements Runnable {
             else if (cl == CityBossLevel.class)
                 ((CityBossLevel) l).spawnShop();
 
-            FloorData fd = new FloorData(curDepth,
-                    curSub > 0 ? curDepth + "/" + curSub : String.valueOf(curDepth));
-
             // 地面物品
             for (Heap h : l.heaps.valueList())
                 for (Item item : h.items)
@@ -538,7 +692,8 @@ public abstract class SeedFinder implements Runnable {
                     fd.heapItems.add(new HeapItem(item, h));
 
             // 鬼魂任务奖励（奖励自 init 已预生成，以 spawned 判定出现层；complete 后置空保证只收一次）
-            if (Ghost.Quest.cur().spawned && Ghost.Quest.cur().armor != null) {
+            if (Ghost.Quest.cur().spawned && !ghostSeen) {
+                ghostSeen = true;
                 ArrayList<Item> rewards = new ArrayList<>();
                 rewards.add(Ghost.Quest.cur().armor);
                 rewards.add(Ghost.Quest.cur().weapon);
@@ -546,7 +701,8 @@ public abstract class SeedFinder implements Runnable {
                 fd.ghostRewards = rewards;
             }
             // 工匠任务奖励（type 在 complete 前捕获）
-            if (Wandmaker.Quest.cur().spawned && Wandmaker.Quest.cur().wand1 != null) {
+            if (Wandmaker.Quest.cur().spawned && !wandmakerSeen) {
+                wandmakerSeen = true;
                 ArrayList<Item> rewards = new ArrayList<>();
                 rewards.add(Wandmaker.Quest.cur().wand1);
                 rewards.add(Wandmaker.Quest.cur().wand2);
@@ -554,18 +710,17 @@ public abstract class SeedFinder implements Runnable {
                 Wandmaker.Quest.cur().complete();
                 fd.wandmakerRewards = rewards;
             }
-            // 小恶魔任务奖励（新版：rewardOptions 预生成列表，收取后清空保证只收一次）
-            if (Imp.Quest.cur().spawned && !Imp.Quest.cur().rewardOptions.isEmpty()) {
-                ArrayList<Item> rewards = new ArrayList<>();
-                for (Item i : Imp.Quest.cur().rewardOptions)
-                    if (i != null) rewards.add(i);
-                Imp.Quest.cur().rewardOptions.clear();
-                fd.impRewards = rewards;
-            }
             // 铁匠 2000 积分开炉奖励（仅 log 展示，不参与 testSeed 匹配；不置空故用 smithSeen 防重）
-            if (!smithSeen && Blacksmith.Quest.cur().spawned) {
+            if (Blacksmith.Quest.cur().spawned && !smithSeen) {
                 smithSeen = true;
                 fd.smithRewards = Blacksmith.Quest.cur().smithRewards;
+            }
+            // 小恶魔任务奖励（新版：rewardOptions、vaultEquipOptions 预生成列表）
+            if (Imp.Quest.cur().spawned && !impSeen) {
+                impSeen = true;
+                fd.impRewards = new ArrayList<>(Imp.Quest.cur().rewardOptions);
+                for (ArrayList<Item> list : Imp.Quest.cur().vaultEquipOptions)
+                    fd.impRewards.addAll(list);
             }
 
             floorDataList.add(fd);
@@ -716,6 +871,9 @@ public abstract class SeedFinder implements Runnable {
         }
     }
 
+    public boolean ghostSelect;
+    public boolean wandmakerSelect;
+    public boolean impSelect;
     // 单层数据载体：Phase 1 收集、Phase 2 identify、Phase 3 展示
     public static final class FloorData {
         final int depth;
@@ -723,12 +881,9 @@ public abstract class SeedFinder implements Runnable {
         String text;          // Phase 3 生成的本层完整文本（含楼层头）
         final ArrayList<HeapItem> heapItems = new ArrayList<>();
         ArrayList<Item> ghostRewards = null;
-        boolean ghostSelect;
         ArrayList<Item> wandmakerRewards = null;
-        boolean wandmakerSelect;
         int wandmakerType = 0;
         ArrayList<Item> impRewards = null;
-        boolean impSelect;
         ArrayList<Item> smithRewards = null;
 
         FloorData(int depth, String title) {

@@ -4,6 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 
+import java.util.Set;
+
 /**
  * 结构化查询目标：物品类 + 最低等级 + 可选附魔/铭文体。
  * 匹配要求物品类精确一致、强化等级不低于要求；
@@ -14,6 +16,13 @@ public class WantedTarget {
     public final int minLevel;
     public final Class<?> aug;
     private final boolean augIsGlyph;
+
+    //查种热路径专用：奖励槽可接受的物品类。具体物品=singleton，Holder=fillMap 展开的整类子类；
+    //Holder.getClass() 与实际物品类恒不相等，所以奖励槽的类别判定只能查这个集合。
+    //直接挂在目标对象上，省掉 SeedFinder 里的 HashMap<WantedTarget, ?> 查表
+    public Set<Class<? extends Item>> rewardClasses;
+    //该目标在 wantedArr 中的下标；-1 表示不是奖励槽（省掉 rewardIdx 查表）
+    public int rewardIndex = -1;
 
     public WantedTarget(Item item) {
         this.minLevel = item.trueLevel();
