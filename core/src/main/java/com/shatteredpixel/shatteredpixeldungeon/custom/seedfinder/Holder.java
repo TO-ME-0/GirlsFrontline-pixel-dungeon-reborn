@@ -1,9 +1,16 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.seedfinder;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 import java.util.ArrayList;
@@ -33,9 +40,7 @@ public interface Holder {
 
     // ================= 护甲 / 法杖 / 戒指 =================
 
-    class ArmorHolder extends Armor implements Holder {
-        { image = ItemSpriteSheet.ARMOR_HOLDER; }
-
+    class ArmorHolder extends Armor implements Holder { { image = ItemSpriteSheet.ARMOR_HOLDER; }@Override public String desc() { return ""; }
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
             addCategory(map, Generator.Category.ARMOR, index);
@@ -43,29 +48,24 @@ public interface Holder {
 
         @Override
         public String name() { return "任意护甲"; }
-
-        @Override
-        public String desc() { return ""; }
     }
 
-    class WandHolder extends Item implements Holder {
-        { image = ItemSpriteSheet.WAND_HOLDER; }
-
+    class ArtifactHolder extends Artifact implements Holder {
+        @Override
+        public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
+            //暂时仅作为占位符，所以不写。
+        }
+    }
+    class WandHolder extends Wand implements Holder { { image = ItemSpriteSheet.WAND_HOLDER; }@Override public String desc() { return ""; }@Override public void onZap(Ballistica attack) {}@Override public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {}
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
             addCategory(map, Generator.Category.WAND, index);
         }
-
         @Override
         public String name() { return "任意子弹模块"; }
-
-        @Override
-        public String desc() { return ""; }
     }
 
-    class RingHolder extends Item implements Holder {
-        { image = ItemSpriteSheet.RING_HOLDER; }
-
+    class RingHolder extends Ring implements Holder { { image = ItemSpriteSheet.RING_HOLDER; }@Override public String desc() { return ""; }
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
             addCategory(map, Generator.Category.RING, index);
@@ -73,14 +73,9 @@ public interface Holder {
 
         @Override
         public String name() { return "任意瞄准镜"; }
-
-        @Override
-        public String desc() { return ""; }
     }
 
-    class ScrollHolder extends Item implements Holder {
-        { image = ItemSpriteSheet.SCROLL_HOLDER; }
-
+    class ScrollHolder extends Item implements Holder { { image = ItemSpriteSheet.SCROLL_HOLDER; }@Override public String desc() { return ""; }
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
             addCategory(map, Generator.Category.SCROLL, index);
@@ -88,12 +83,8 @@ public interface Holder {
 
         @Override
         public String name() { return "任意磁盘"; }
-
-        @Override
-        public String desc() { return ""; }
     }
-    class PotionHolder extends Item implements Holder {
-        { image = ItemSpriteSheet.POTION_HOLDER; }
+    class PotionHolder extends Item implements Holder { { image = ItemSpriteSheet.POTION_HOLDER; }@Override public String desc() { return ""; }
 
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
@@ -102,12 +93,8 @@ public interface Holder {
 
         @Override
         public String name() { return "任意药水"; }
-
-        @Override
-        public String desc() { return ""; }
     }
-    class StoneHolder extends Item implements Holder {
-        { image = ItemSpriteSheet.STONE_HOLDER; }
+    class StoneHolder extends Item implements Holder { { image = ItemSpriteSheet.STONE_HOLDER; }@Override public String desc() { return ""; }
 
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
@@ -117,38 +104,25 @@ public interface Holder {
         @Override
         public String name() { return "任意模块"; }
 
-        @Override
-        public String desc() { return ""; }
     }
 
     // ================= 武器（总 / 各阶） =================
 
-    class WeaponHolder extends Weapon implements Holder {
-        { image = ItemSpriteSheet.WEAPON_HOLDER; }
+    class WeaponHolder extends Weapon implements Holder { { image = ItemSpriteSheet.WEAPON_HOLDER; }@Override public String desc() { return ""; }@Override public int min(int lvl) { return 0; }@Override public int max(int lvl) { return 0; }@Override public int STRReq(int lvl) { return 0; }
 
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
-            for (int t = 1; t < Generator.wepTiers.length; t++)
+            for (int t = 0; t < Generator.wepTiers.length; t++)
                 addCategory(map, Generator.wepTiers[t], index);
             for (int t = 1; t < Generator.misTiers.length; t++)
                 addCategory(map, Generator.misTiers[t], index);
         }
 
-        @Override public int min(int lvl) { return 0; }
-
-        @Override public int max(int lvl) { return 0; }
-
-        @Override public int STRReq(int lvl) { return 0; }
-
         @Override
         public String name() { return "任意武器"; }
-
-        @Override
-        public String desc() { return ""; }
     }
 
-    class MeleeWeaponHolder extends WeaponHolder {
-        public MeleeWeaponHolder() {
+    class MeleeWeaponHolder extends WeaponHolder { public MeleeWeaponHolder() {
             this(0);
         }
         public MeleeWeaponHolder(int tier) {
@@ -167,24 +141,23 @@ public interface Holder {
         public String name() { return tier == 0 ? "任意近战武器" : tier + "阶近战武器"; }
 
     }
-    Class<? extends MeleeWeaponHolder>[] meleeHolder = new Class[]{null, Tier2MeleeHolder.class, Tier3MeleeHolder.class, Tier4MeleeHolder.class, Tier5MeleeHolder.class, Tier6MeleeHolder.class};
+    Class<? extends MeleeWeaponHolder>[] meleeHolder = new Class[]{Tier1MeleeHolder.class, Tier2MeleeHolder.class, Tier3MeleeHolder.class, Tier4MeleeHolder.class, Tier5MeleeHolder.class, Tier6MeleeHolder.class};
+    class Tier1MeleeHolder extends MeleeWeaponHolder { public Tier1MeleeHolder() {super(1);}}
     class Tier2MeleeHolder extends MeleeWeaponHolder { public Tier2MeleeHolder() {super(2);}}
     class Tier3MeleeHolder extends MeleeWeaponHolder { public Tier3MeleeHolder() {super(3);}}
     class Tier4MeleeHolder extends MeleeWeaponHolder { public Tier4MeleeHolder() {super(4);}}
     class Tier5MeleeHolder extends MeleeWeaponHolder { public Tier5MeleeHolder() {super(5);}}
     class Tier6MeleeHolder extends MeleeWeaponHolder { public Tier6MeleeHolder() {super(6);}}
-    class MissileWeaponHolder extends WeaponHolder {
-        { image = ItemSpriteSheet.MISSILE_HOLDER; }
-        public MissileWeaponHolder() {
-            this(0);
-        }
+    
+    class MissileWeaponHolder extends MissileWeapon implements Holder { { image = ItemSpriteSheet.MISSILE_HOLDER; }public MissileWeaponHolder() {this(0);}@Override public String desc() { return ""; }@Override public int min(int lvl) { return 0; }@Override public int max(int lvl) { return 0; }@Override public int STRReq(int lvl) { return 0; }
+
         public MissileWeaponHolder(int tier) {
             this.tier = tier;
         }
         @Override
         public void fillMap(HashMap<Class<? extends Item>, ArrayList<Integer>> map, int index) {
             if (tier == 0)
-                for (int t = 1; t < Generator.wepTiers.length; t++)
+                for (int t = 0; t < Generator.misTiers.length; t++)
                     addCategory(map, Generator.misTiers[t], index);
             else
                 addCategory(map, Generator.misTiers[tier - 1], index);

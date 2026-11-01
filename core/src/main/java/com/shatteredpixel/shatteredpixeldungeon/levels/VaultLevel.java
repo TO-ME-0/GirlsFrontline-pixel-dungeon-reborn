@@ -127,6 +127,14 @@ public class VaultLevel extends CityLevel {
 
 	@Override
 	protected boolean build() {
+		//Level.create 用同一实例重试 build，本轮必须从预生成池头重新切循环；
+		//否则 equipCyclesUsed 跨轮累加，第 2 轮必然越界（tier0 每轮固定 4 次请求，容量仅 6）。
+		//房间在 paint 期也会调用 createEquipment，故归零必须放在整轮入口而非只包住下面 4 次
+		Arrays.fill(equipmentLoot, null);
+		Arrays.fill(equipCyclesUsed, 0);
+		higherTierIdx = 0;
+		lowerTierIdx = 0;
+
 		itemsToSpawn.clear();
 
 		for (int i = 0; i < 4; i++){
@@ -140,7 +148,15 @@ public class VaultLevel extends CityLevel {
 		addItemToSpawn(Generator.randomUsingDefaults(Generator.Category.FOOD));
 		addItemToSpawn(Generator.randomUsingDefaults(Generator.Category.FOOD));
 
-		return super.build();
+		boolean built = super.build();
+		//清空点只能在整层 build/paint 成功之后：RegularLevel 会对 initRooms 做 Random.shuffle，
+		//奖励房不保证最后 paint，故不能像 VaultFinalRoom 那样在房间里清理；
+		//build 失败会被 Level.create 重试，此时必须保留整表以便下一轮继续装载
+		if (built){
+			Imp.Quest.cur().rewardOptions.clear();
+			for (ArrayList<Item> list : Imp.Quest.cur().vaultEquipOptions) list.clear();
+		}
+		return built;
 	}
 
 	@Override
@@ -148,20 +164,22 @@ public class VaultLevel extends CityLevel {
 		ArrayList<Room> initRooms = new ArrayList<>();
 
 		initRooms.add(roomEntrance = new VaultEntranceRoom());
-		VaultRoom.setupChances();
+		//权重与待生成宝藏房列表都按本次建层持有：查种器是多线程并发生成楼层的，
+		//静态状态会在线程间被扣减/取空（曾导致 nextRoom 取空表非法越界、房间组合串味）
+		float[] roomChances = VaultRoom.setupChances();
 
 		int i = 0;
 		while (i < 9){
-			VaultRoom r = VaultRoom.createRoom();
+			VaultRoom r = VaultRoom.createRoom(roomChances);
 			i += r.sizeFactor();
 			initRooms.add(r);
 		}
 		initRooms.add( new VaultTokensRoom() );
 		initRooms.add( new VaultSimpleEnemyTreasureRoom() );
 
-		VaultTreasureRoom.generateRoomList();
+		ArrayList<Class<? extends VaultTreasureRoom>> treasureRooms = VaultTreasureRoom.generateRoomList();
 		for (i = 0; i < 7; i++){
-			initRooms.add(VaultTreasureRoom.nextRoom());
+			initRooms.add(VaultTreasureRoom.nextRoom(treasureRooms));
 		}
 
 		initRooms.add(new VaultFinalRoom());
@@ -200,37 +218,97 @@ public class VaultLevel extends CityLevel {
 		return 0;
 	}
 
-	//只发生在楼层生成阶段，无需存入 bundle
+	//建层期的装载状态：只发生在楼层生成阶段，无需存入 bundle
 	// 这里用数组以便追踪和访问下标
 	// 这样可以保证战利品均匀分布
-	// 具体来说，每 6 件由 T2/3 与 T0/1 生成的装备保证为：
+	// 具体来说，每 6 件（一个循环）由各档位生成的装备保证为：
 	// 2x 近战武器，1x 护甲，1x 投掷武器，1x 法杖，1x 戒指
-	Item[][] equipmentLoot = new Item[4][];
+	//预生成池按档位独立存放在 Imp.Quest.vaultEquipOptions[tier]，槽位下标 = 循环 * 单循环件数 + 槽位；
+	public static final int EQUIP_TIERS = 4;
+	Item[][] equipmentLoot = new Item[EQUIP_TIERS][];
+
+	public static final int EQUIP_CYCLE_SIZE = 6;
+	//每档最多请求次数（极端布局下的峰值），池只预生成到这里为止：
+	//tier0 最多 5 次（build 4 次 + 交替火力房 1 次）；
+	//tier1 最多 13 次（宝藏房 3 次 + 两个象限房各 4 次 + 两个中心房各 1 次）；
+	//tier2 最多 13 次（宝藏房 2 次 + 单怪宝藏房 1 次 + 象限房 8 次 + 中心房 2 次）；
+	//tier3 最多 14 次（宝藏房 2 次 + 令牌房 1 次 + 单怪宝藏房 1 次 + 象限房 8 次 + 中心房 2 次）
+	//峰值之后的整循环尾巴不进入池：那部分永远不会被发放，加进来只会给查种剪枝增加多余的假阳性
+	public static final int[] EQUIP_PEAK = { 5, 13, 13, 14 };
+	//整层最多 10 个循环，而法杖可用 10 种、戒指可用 8 种：法杖/戒指单独去重，
+	//用尽一整轮后清空集合，因此最多出现两件同类，既不会三件重复也不会因类别耗尽而死循环
+	private static final int USABLE_WANDS = Generator.Category.WAND.classes.length - 3;
+	private static final int USABLE_RINGS = Generator.Category.RING.classes.length - 3;
 	int higherTierIdx = 0;
 	int lowerTierIdx = 0;
+	//每档已装载的循环数，仅用于算槽位（循环 * 单循环件数 + 槽位）；
+	//容量已按单轮峰值取整，单轮内不会取空；build 重试时由 build() 入口清零
+	private final int[] equipCyclesUsed = new int[EQUIP_TIERS];
 
-	public void setupEquipment(){
-		for (int i = 0; i < equipmentLoot.length; i++){
-			boolean empty = true;
-			if (equipmentLoot[i] != null) {
-				for (int j = 0; j < equipmentLoot[i].length; j++) {
-					if (equipmentLoot[i][j] != null) {
-						empty = false;
-					}
+	//查种器因此在 init 阶段即可把金库外围装备当作宝库槽候选提前剪枝
+	public static Item[][] generateEquipPool(){
+		Item[][] pool = new Item[EQUIP_TIERS][];
+		//近战/投掷/护甲的去重集合跨档位共享：同一次生成不允许出现两件相同的装备（护甲除外）
+		HashSet<Class<? extends Item>> poolClasses = new HashSet<>();
+		//法杖/戒指按整层计的独立集合，必须在档次循环之外创建，否则同类装备可在不同档位凑满三件
+		HashSet<Class<? extends Item>> ringUsed = new HashSet<>();
+		HashSet<Class<? extends Item>> wandUsed = new HashSet<>();
+		for (int tier = 0; tier < EQUIP_TIERS; tier++){
+			//循环必须整段生成（近战×2/护甲/投掷/法杖/戒指是一组），但只保留到该档峰值，
+			//最后一个循环用不完的尾部直接丢弃
+			pool[tier] = new Item[EQUIP_PEAK[tier]];
+			int idx = 0;
+			while (idx < EQUIP_PEAK[tier]){
+				ArrayList<Item> lootList = generateEquipCycle(tier, poolClasses, ringUsed, wandUsed);
+				for (int slot = 0; slot < EQUIP_CYCLE_SIZE && idx < EQUIP_PEAK[tier]; slot++){
+					pool[tier][idx++] = lootList.get(slot);
 				}
 			}
-			if (empty){
-				setupEquipmentAtTier(i);
-			}
+		}
+		return pool;
+	}
+
+	//只装载被请求的档位：不能顺手重载其它已发空的档位，
+	//tier0 池容量恰为 5（build 4 次 + 交替火力房 1 次），发空后再被重载会越界
+	private void setupEquipment(int tier){
+		if (tierEmpty(tier)){
+			loadEquipmentCycle(tier);
 		}
 	}
 
-	//不能生成两件相同的装备（护甲除外）
-	// 注意如果生成太多物品目前会导致无限循环
-	// 目前我们按每个档次理论最多约 12 件设计，几乎是实际最大值的两倍
-	private HashSet<Class<? extends Item>> generatedClasses = new HashSet<>();
+	//整档发放完才换下一个循环；只要还剩一件就沿用当前循环，避免跳过战利品
+	private boolean tierEmpty(int tier){
+		if (equipmentLoot[tier] == null) return true;
+		for (int j = 0; j < equipmentLoot[tier].length; j++){
+			if (equipmentLoot[tier][j] != null) return false;
+		}
+		return true;
+	}
 
-	public void setupEquipmentAtTier(int lootTier){
+	//按固定槽位切出一个循环。池已按各档峰值预生成，正常布局下必然够用，故不设现场生成兜底；
+	//列表为空只可能是旧档未写入或读档后未初始化，此时按同种子补齐。
+	//最后一个循环可能不足 6 件（池只保留到峰值），按实际剩余件数切
+	private void loadEquipmentCycle(int tier){
+		ArrayList<Item> pool = Imp.Quest.cur().vaultEquipOptions.get(tier);
+		if (pool.isEmpty()){
+			Imp.Quest.cur().genVaultEquip();
+			pool = Imp.Quest.cur().vaultEquipOptions.get(tier);
+		}
+		int cycle = equipCyclesUsed[tier];
+		int start = cycle * EQUIP_CYCLE_SIZE;
+		int count = Math.min(EQUIP_CYCLE_SIZE, pool.size() - start);
+		Item[] cycleLoot = new Item[count];
+		for (int slot = 0; slot < count; slot++){
+			cycleLoot[slot] = pool.get(start + slot);
+		}
+		equipmentLoot[tier] = cycleLoot;
+		equipCyclesUsed[tier] = cycle + 1;
+	}
+
+	private static ArrayList<Item> generateEquipCycle(int lootTier, HashSet<Class<? extends Item>> generatedClasses,
+			HashSet<Class<? extends Item>> ringUsed, HashSet<Class<? extends Item>> wandUsed){
+		//lootTier为item[][]的第一个下标，取值范围0-3
+		//仅lootTier == 3时，低档次高强化项能产出且固定产出+4的t4近战武器。其余+4及以上仅最终奖励房产出。
 
 		ArrayList<Item> lootList = new ArrayList<>();
 
@@ -240,12 +318,15 @@ public class VaultLevel extends CityLevel {
 			switch (lootTier) {
 				default:
 				case 0:
-					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T2);
+					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T1);
+					if (loot.level() == 0)
+						loot = Generator.randomUsingDefaults(Generator.Category.WEP_T1);
+					//1阶有一次无等级重roll
 					break;
-				case 1:
-					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T2);
+                case 1:
+                    loot = Generator.randomUsingDefaults(Generator.Category.WEP_T2);
 					break;
-				case 2:
+                case 2:
 					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T3);
 					break;
 				case 3:
@@ -253,18 +334,14 @@ public class VaultLevel extends CityLevel {
 					break;
 			}
 		//T2 武器允许重复，因为生成量很大
-		} while (lootTier > 1 && generatedClasses.contains(loot.getClass()));
-		generatedClasses.add(loot.getClass());
-		if (lootTier == 0) { //T0 永远 +0
-			loot.level(lootTier);
-		} else {
-			loot.level(lootTier+1);
-		}
-		if (Random.Int(3) >= lootTier) {
-			((Weapon) loot).enchant(null);
-		} else {
-			((Weapon) loot).enchant();
-		}
+		} while (!generatedClasses.add(loot.getClass()));
+
+		//2-4阶至少+2
+		if (lootTier != 0) loot.level(lootTier+1);
+		//1阶补1级
+		else loot.upgrade();
+		if (Random.Int(3) >= lootTier) ((Weapon) loot).enchant(null);
+		else ((Weapon) loot).enchant();
 		lootList.add(loot);
 
 		//第二件武器（较高档次，更少强化）
@@ -272,27 +349,23 @@ public class VaultLevel extends CityLevel {
 			switch (lootTier) {
 				default:
 				case 0:
-					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T2);
-					break;
-				case 1:
 					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T3);
 					break;
-				case 2:
+				case 1:
 					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T4);
 					break;
-				case 3:
+				case 2:
 					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T5);
 					break;
+				case 3:
+					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T6);
+					break;
 			}
-		//T2 武器允许重复，因为生成量很大
-		} while (lootTier > 0 && generatedClasses.contains(loot.getClass()));
-		generatedClasses.add(loot.getClass());
-		loot.level(lootTier);
-		if (Random.Int(3) >= lootTier) {
-			((Weapon) loot).enchant(null);
-		} else {
-			((Weapon) loot).enchant();
-		}
+		} while (!generatedClasses.add(loot.getClass()));
+
+		if (loot.trueLevel() < lootTier) loot.level(lootTier);
+		if (Random.Int(3) >= lootTier) ((Weapon) loot).enchant(null);
+		else ((Weapon) loot).enchant();
 		lootList.add(loot);
 
 		//投掷武器（与第二件武器同级同强化）
@@ -312,14 +385,11 @@ public class VaultLevel extends CityLevel {
 					loot = Generator.randomUsingDefaults(Generator.Category.MIS_T5);
 					break;
 			}
-		} while (generatedClasses.contains(loot.getClass()));
-		generatedClasses.add(loot.getClass());
-		loot.level(lootTier);
-		if (Random.Int(3) >= lootTier) {
-			((Weapon) loot).enchant(null);
-		} else {
-			((Weapon) loot).enchant();
-		}
+		} while (!generatedClasses.add(loot.getClass()));
+
+		if (loot.trueLevel() < lootTier) loot.level(lootTier);
+		if (Random.Int(3) >= lootTier) ((Weapon) loot).enchant(null);
+		else ((Weapon) loot).enchant();
 		lootList.add(loot);
 
 		//护甲（与第二件武器同级同强化）
@@ -340,40 +410,43 @@ public class VaultLevel extends CityLevel {
 		}
 		//跳过重复检查，目前每档也只有 1 件护甲
 		generatedClasses.add(loot.getClass());
-		loot.level(lootTier);
-		if (Random.Int(3) >= lootTier) {
-			((Armor) loot).inscribe(null);
-		} else {
-			((Armor) loot).inscribe();
-		}
+
+		if (loot.trueLevel() < lootTier) loot.level(lootTier);
+		if (Random.Int(3) >= lootTier) ((Armor) loot).inscribe(null);
+		else ((Armor) loot).inscribe();
 		lootList.add(loot);
 
-		//法杖（部分法杖被禁用）
+		//法杖（部分法杖被禁用）：法杖使用独立集合，集合装满（本轮可用种类全部取过）后立即清空重新计数，
+		//因此最多出现两根同类法杖，且永远不会因类别耗尽而死循环；尺寸单调递增，故用 == 判断装满
 		do {
 			loot = Generator.randomUsingDefaults(Generator.Category.WAND);
-		} while (generatedClasses.contains(loot.getClass()) || loot instanceof WandOfRegrowth
-				|| loot instanceof WandOfTransfusion || loot instanceof WandOfCorruption);
-		generatedClasses.add(loot.getClass());
-		loot.level(lootTier);
+		} while (loot instanceof WandOfRegrowth || loot instanceof WandOfTransfusion
+				|| loot instanceof WandOfCorruption
+				|| !wandUsed.add(loot.getClass()));
+		if (wandUsed.size() == USABLE_WANDS) wandUsed.clear();
+
+		if (loot.trueLevel() < lootTier) loot.level(lootTier);
 		((Wand)loot).curCharges = ((Wand)loot).maxCharges;
 		lootList.add(loot);
 
-		//戒指（部分戒指被禁用）
+		//戒指（部分戒指被禁用）：与法杖同一规则，独立集合并于装满后清空
 		do {
 			loot = Generator.randomUsingDefaults(Generator.Category.RING);
-		} while (generatedClasses.contains(loot.getClass()) || loot instanceof RingOfWealth
-				|| loot instanceof RingOfMight || loot instanceof RingOfForce);
-		generatedClasses.add(loot.getClass());
-		loot.level(lootTier);
+		} while (loot instanceof RingOfWealth
+				|| loot instanceof RingOfMight || loot instanceof RingOfForce
+				|| !ringUsed.add(loot.getClass()));
+		if (ringUsed.size() == USABLE_RINGS) ringUsed.clear();
+
+		if (loot.trueLevel() < lootTier) loot.level(lootTier);
 		lootList.add(loot);
 
-		equipmentLoot[lootTier] = lootList.toArray(new Item[0]);
+		return lootList;
 	}
 
 	public Item createEquipment(int lootTier) {
 
-		//确保没有空的战利品列表
-		setupEquipment();
+		//确保所请求档位有战利品列表
+		setupEquipment(lootTier);
 
 		int idx;
 		if (lootTier >= 2){

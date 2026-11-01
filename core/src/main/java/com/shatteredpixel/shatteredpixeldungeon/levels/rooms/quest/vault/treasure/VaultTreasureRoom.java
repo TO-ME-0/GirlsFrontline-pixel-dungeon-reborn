@@ -67,10 +67,9 @@ public abstract class VaultTreasureRoom extends VaultRoom {
 			VaultManyScansRoom.class, VaultMultipleEnemyTreasureRoom.class, VaultHardLaserTreasureRoom.class
 	));
 
-	public static ArrayList<Class<? extends VaultTreasureRoom>> treasuresToSpawn = new ArrayList<>();
-
-	//不需要像特殊房那样长期持久化，只生成一次即可
-	public static void generateRoomList() {
+	//不需要像特殊房那样长期持久化，只生成一次即可。
+	//返回列表由调用方持有：查种器多线程同时建层，不能把待生成表放在静态字段里被各线程共用
+	public static ArrayList<Class<? extends VaultTreasureRoom>> generateRoomList() {
 		ArrayList<Class<? extends VaultTreasureRoom>> T1s = new ArrayList<>(T1_ROOMS);
 		Random.shuffle(T1s);
 		ArrayList<Class<? extends VaultTreasureRoom>> T2s = new ArrayList<>(T2_ROOMS);
@@ -84,18 +83,19 @@ public abstract class VaultTreasureRoom extends VaultRoom {
 		fullList.add(T2s);
 		fullList.add(T3s);
 
-		treasuresToSpawn = new ArrayList<>();
+		ArrayList<Class<? extends VaultTreasureRoom>> roomList = new ArrayList<>();
 		while (!fullList.isEmpty()){
 			ArrayList<Class<? extends VaultTreasureRoom>> current = fullList.remove(0);
-			treasuresToSpawn.add(current.remove(0));
+			roomList.add(current.remove(0));
 			if (!current.isEmpty()){
 				fullList.add(current);
 			}
 		}
+		return roomList;
 	}
 
-	public static VaultTreasureRoom nextRoom(){
-		return Reflection.newInstance(treasuresToSpawn.remove(0));
+	public static VaultTreasureRoom nextRoom(ArrayList<Class<? extends VaultTreasureRoom>> roomList){
+		return Reflection.newInstance(roomList.remove(0));
 	}
 
 }

@@ -225,10 +225,12 @@ public class VaultFinalRoom extends SpecialRoom {
 
 		Random.shuffle(treasureSpots);
 
+		//基座只有 6 个：只摆最终奖励（rewardOptions 恒为 6 件），外围装备由各房间自行装载，不能当作最终奖励摆出
 		for (Item i : Imp.Quest.cur().rewardOptions){
 			level.drop(i, treasureSpots.remove(0));
 		}
-		Imp.Quest.cur().rewardOptions.clear();
+		//清空统一在 VaultLevel.build() 收尾：本房间的 paint 顺序不保证最后，
+		//在这里 clear 会提前抹掉其他房间尚未装载的奖励/装备
 
 		VaultTreasure vis = new VaultTreasure();
 		vis.setRect(treasure.left, treasure.top-1, treasure.width(), treasure.height()+1);

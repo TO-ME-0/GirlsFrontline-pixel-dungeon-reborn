@@ -75,16 +75,17 @@ public abstract class VaultRoom extends StandardRoom {
 		// 一个简单的敌人宝藏房也是必然生成的
 	}
 
-	private static float[] chances = new float[0];
-
-	public static void setupChances(){
-		chances = new float[]{2,2,2,2,2, 1,1, 1,1,1};
+	//房间权重必须是建层局部的：查种器多线程同时建层，静态权重会被其它线程扣减，
+	//同一种子会算出不同房间组合（不崩但结果错误）
+	public static float[] setupChances(){
+		return new float[]{2,2,2,2,2, 1,1, 1,1,1};
 	}
 
-	public static VaultRoom createRoom(){
+	public static VaultRoom createRoom(float[] chances){
 		int idx = Random.chances(chances);
 		if (idx == -1){
-			setupChances();
+			//原地重置，保持调用方持有的数组有效
+			System.arraycopy(setupChances(), 0, chances, 0, chances.length);
 			idx = Random.chances(chances);
 		}
 		chances[idx]--;
