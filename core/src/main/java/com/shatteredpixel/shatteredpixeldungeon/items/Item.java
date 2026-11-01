@@ -515,10 +515,11 @@ public class Item implements Bundlable {
 			return Degrade.reduceLevel(lvl);
         return lvl;
 	}
-	public void level( int value ){
+	public Item level( int value ){
 		level = value;
 
 		updateQuickslot();
+		return this;
 	}
 
 	public Item clone( Item item ){
