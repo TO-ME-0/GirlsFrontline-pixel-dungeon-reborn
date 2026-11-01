@@ -40,6 +40,19 @@ import java.util.Iterator;
 //知识本体存在 Notes.knowledge，激活条件是“看见”而非“拾取”。
 public class AutoIdentify {
 
+	//—— 总开关 ——
+
+	//自动鉴定尚未完成审查，暂时整体短路：不区分正常游玩与查种器，一律不结算。
+	//Notes.knowledge 与 Dungeon.guessType 都是全局静态状态，写它们既会落进玩家存档，
+	//也会在查种多线程建层时被各 worker 争用，所以在唯一入口处直接关死。
+	//所有调用点（Potion/Scroll/房间/怪物掉落/视野更新/信息窗）保持原样调用，
+	//不要在任何调用点再写条件分支；审查通过后把 ENABLED 改回 true 即恢复全部功能。
+	private static final boolean ENABLED = false;
+
+	private static boolean disabled() {
+		return !ENABLED;
+	}
+
 	//—— 基础查询 ——
 
 	public static Category categoryOf(Item item) {
@@ -70,13 +83,13 @@ public class AutoIdentify {
 
 	//实例级 SINGLE：标签与真类都从实例读取
 	public static void tagSingle(Item item, int levelId, Origin origin, String cause) {
-		if (!isSupported(item)) return;
+		if (disabled() || !isSupported(item)) return;
 		tag(item, levelId, origin, Mode.SINGLE, new Class[]{ keyOf(item) }, cause);
 	}
 
 	//实例级 ANY_OF / NOT：标签从实例读取，类集合由登记点给出
 	public static void tag(Item item, int levelId, Origin origin, Mode mode, Class<? extends Item>[] classes, String cause) {
-		if (Notes.knowledge == null || !isSupported(item)) return;
+		if (disabled() || Notes.knowledge == null || !isSupported(item)) return;
 		ItemClue c = new ItemClue();
 		c.levelId  = levelId;
 		c.category = categoryOf(item);
@@ -96,7 +109,7 @@ public class AutoIdentify {
 
 	//楼层池级（带房间内部范围）：看见房间才激活
 	public static void tagFloor(int[] levelIds, Category cat, Class<? extends Item>[] classes, int min, int max, int left, int top, int right, int bottom, Origin origin, String cause) {
-		if (Notes.knowledge == null) return;
+		if (disabled() || Notes.knowledge == null) return;
 		FloorClue c = new FloorClue();
 		c.levelIds = levelIds;
 		c.category = cat;
@@ -117,7 +130,7 @@ public class AutoIdentify {
 
 	//堆进入视野（或落点本就在视野）：记录标签 + 激活同类别同标签的休眠实例线索
 	public static void onSeen(Item item) {
-		if (Notes.knowledge == null || !isSupported(item)) return;
+		if (disabled() || Notes.knowledge == null || !isSupported(item)) return;
 		Category cat = categoryOf(item);
 		String label = labelOf(item);
 		Notes.knowledge.recordSeen(Dungeon.curFloorCode(), cat, label);
@@ -126,13 +139,13 @@ public class AutoIdentify {
 
 	//拾取只记账，不决定知识是否生效
 	public static void onPickUp(Item item) {
-		if (Notes.knowledge == null || !isSupported(item)) return;
+		if (disabled() || Notes.knowledge == null || !isSupported(item)) return;
 		Notes.knowledge.recordSeen(Dungeon.curFloorCode(), categoryOf(item), labelOf(item));
 	}
 
 	//每次英雄视野更新后调用：激活房间被看见的 FloorClue，并锁存 poolComplete
 	public static void onRoomSeen(Level level, boolean[] fov) {
-		if (Notes.knowledge == null || fov == null || level.heaps == null) return;
+		if (disabled() || Notes.knowledge == null || fov == null || level.heaps == null) return;
 		IdentifyKnowledge k = Notes.knowledge;
 		int id = Dungeon.floorCode(level.levelDepth, level.branch);
 
@@ -180,7 +193,7 @@ public class AutoIdentify {
 
 	//能否对该物品尝试猜测：受支持、未真鉴定、且存在已激活的同类线索
 	public static boolean canGuess(Item item) {
-		if (Notes.knowledge == null || !isSupported(item)) return false;
+		if (disabled() || Notes.knowledge == null || !isSupported(item)) return false;
 		if (item instanceof Potion && ((Potion) item).isKnown()) return false;
 		if (item instanceof Scroll && ((Scroll) item).isKnown()) return false;
 		Category cat = categoryOf(item);
@@ -196,7 +209,7 @@ public class AutoIdentify {
 
 	//对目标物品的标签做约束求解（§2.3），结果落盘后返回；不受支持/已真鉴定返回 null
 	public static IdentifyKnowledge.SolveOutcome guess(Item item) {
-		if (Notes.knowledge == null || !isSupported(item)) return null;
+		if (disabled() || Notes.knowledge == null || !isSupported(item)) return null;
 		if (item instanceof Potion && ((Potion) item).isKnown()) return null;
 		if (item instanceof Scroll && ((Scroll) item).isKnown()) return null;
 		IdentifyKnowledge.SolveOutcome out = Notes.knowledge.solve(categoryOf(item), labelOf(item));
@@ -210,7 +223,7 @@ public class AutoIdentify {
 
 	//该物品当前正面猜测的依据文本（来源 + 楼层），供信息页展示；无正面猜测时返回空串
 	public static String guessEvidence(Item item) {
-		if (Notes.knowledge == null) return "";
+		if (disabled() || Notes.knowledge == null) return "";
 		IdentifyKnowledge.ClassGuess g = Notes.knowledge.findGuess(keyOf(item));
 		if (g == null || g.status != IdentifyKnowledge.Status.POSITIVE) return "";
 		StringBuilder sb = new StringBuilder();
@@ -230,6 +243,7 @@ public class AutoIdentify {
 
 	//标签重掷：该类别知识清空，展示缓存同步失效（vetoed 保留）
 	public static void onLabelsRegenerated(Category cat) {
+		if (disabled()) return;
 		if (Notes.knowledge != null) {
 			Notes.knowledge.clearCategory(cat);
 		}
@@ -243,6 +257,7 @@ public class AutoIdentify {
 
 	//读档后把正面猜测补回展示缓存
 	public static void restoreGuessCache() {
+		if (disabled()) return;
 		if (Notes.knowledge != null) {
 			Notes.knowledge.restoreGuessCache();
 		}
