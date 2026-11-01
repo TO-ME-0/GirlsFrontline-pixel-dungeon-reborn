@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.VaultTokenDoor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.quest.vault.VaultBossElemental;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -292,6 +293,10 @@ public class EscapeCrystal extends Item {
 	public void storeHeroBelongings( Hero hero ){
 		storedItems = new Bundle();
 
+		TestBag testBag = hero.belongings.getItem(TestBag.class);
+		if (testBag != null)
+			testBag.detach(hero.belongings.backpack);
+		
 		Bundle belongings = new Bundle();
 		hero.belongings.storeInBundle(belongings);
 		storedItems.put(BELONGINGS, belongings);
@@ -307,6 +312,8 @@ public class EscapeCrystal extends Item {
 		QuickSlotButton.reset();
 		Dungeon.gold = Dungeon.energy = 0;
 		hero.belongings.clear();
+		if (testBag != null)
+			testBag.collect();
 	}
 
 	public void restoreHeroBelongings( Hero hero, Item preserve ){
@@ -314,6 +321,7 @@ public class EscapeCrystal extends Item {
 		if (preserve != null) {
 			preserve.detachAll(hero.belongings.backpack);
 		}
+		TestBag testBag = hero.belongings.getItem(TestBag.class);
 
 		hero.belongings.clear();
 
@@ -322,6 +330,8 @@ public class EscapeCrystal extends Item {
 		QuickSlotButton.reset();
 
 		Dungeon.hero().belongings.restoreFromBundle(storedItems.getBundle(BELONGINGS));
+		if (testBag != null)
+			testBag.collect();
 
 		Dungeon.gold = storedItems.getInt(GOLD);
 		Dungeon.energy = storedItems.getInt(ENERGY);

@@ -7,6 +7,7 @@ public class TestItem extends Item {
     {
         unique = true;
         bones = false;
+        keptThoughLostInvent = true;
     }
 
     protected boolean changeDefAct = false;
