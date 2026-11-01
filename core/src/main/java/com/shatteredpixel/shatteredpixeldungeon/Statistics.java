@@ -144,7 +144,8 @@ public class Statistics {
 		
 		duration		= bundle.getFloat( DURATION );
 
-		questScores		= bundle.getIntArray( QUEST_SCORES );
+		if (bundle.contains(QUEST_SCORES)) questScores	= bundle.getIntArray( QUEST_SCORES );
+		else questScores = new int[4];
 		//旧存档无此键时 getIntArray 返回 null，补为全零
 		if (questScores == null || questScores.length != 4) questScores = new int[4];
 

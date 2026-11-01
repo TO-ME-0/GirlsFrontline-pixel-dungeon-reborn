@@ -225,7 +225,7 @@ public abstract class Level implements Bundlable {
     private static final String SHARED_VISION = "SHARED_VISION";
     private static final String PREVENT         = "prevent";
 	public boolean creating;
-	public void create(int levelDepth,int levelBranch){
+	public void create(int levelDepth, int levelBranch){
 		this.levelDepth=levelDepth;
 		this.branch   =levelBranch;
 		creating = true;

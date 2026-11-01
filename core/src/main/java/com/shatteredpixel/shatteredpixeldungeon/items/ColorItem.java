@@ -12,7 +12,7 @@ public interface ColorItem extends Bundlable {
     //猜测归属的“知识键”：异变药水/卷轴映射回普通类，普通类即自身
     @SuppressWarnings("unchecked")
     default Class<? extends ColorItem> guessKey() {
-        return (Class<? extends ColorItem>) getClass();
+        return getClass();
     }
 
     //猜测用的标签（药水颜色/卷轴符文），无标签的类返回 null

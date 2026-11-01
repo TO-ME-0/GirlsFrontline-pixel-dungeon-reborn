@@ -835,7 +835,6 @@ public class Generator {
 				return ((Item) Reflection.newInstance(itemCls)).random();
 		}
 	}
-
     public static Item randomUsingDefaults() {
         return randomUsingDefaults(Random.chances(Dungeons.cur().genCategoryProbs));
     }

@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.RatKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MapEditor;
+import com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -654,7 +655,7 @@ public class Notes {
 				? (IdentifyKnowledge) bundle.get( KNOWLEDGE )
 				: new IdentifyKnowledge();
 		//读档后把正面猜测补回展示缓存
-		com.shatteredpixel.shatteredpixeldungeon.items.AutoIdentify.restoreGuessCache();
+		AutoIdentify.restoreGuessCache();
 	}
 
 	public static boolean add( Landmark landmark ) {
