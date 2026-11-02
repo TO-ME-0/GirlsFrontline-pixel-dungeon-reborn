@@ -320,6 +320,17 @@ public class AboutSceneV2 extends PixelScene {
 						"© 2014-2024 Evan Debenham",
 				0x888888);
 
+		//*** 破碎地牢致谢入口（最下方） ***
+		StyledButton shatteredBtn = new StyledButton(Chrome.Type.GREY_BUTTON, "查看破碎地牢致谢界面") {
+			@Override
+			protected void onClick() {
+				GirlsFrontlinePixelDungeon.switchNoFade(AboutSceneShattered.class);
+			}
+		};
+		shatteredBtn.setRect((w - 104) / 2f, y + 4, 104, 18);
+		content.add(shatteredBtn);
+		y = shatteredBtn.bottom() + 4;
+
 		content.setSize(w, y + 8);
 
 		//内容尺寸确定后再设置面板矩形，保证滚动条可见性计算正确
