@@ -54,7 +54,22 @@ public enum Rankings {
 	INSTANCE;
 	
 	public static final int TABLE_SIZE	= 30;
-	
+
+	//每页展示的记录数（与 RankingsScene 分页一致）
+	public static final int RECORDS_PER_PAGE = 10;
+	//排行榜最大页数（含初始页数），可在机密商店用电池购买扩容
+	public static final int MAX_PAGES = 14;
+
+	//当前排行榜容量上限（页数）：初始页数 + 商店购买的额外页数
+	public static int maxPages() {
+		return Math.min( MAX_PAGES, TABLE_SIZE / RECORDS_PER_PAGE + SPDSettings.rankingExtraPages() );
+	}
+
+	//当前排行榜容量上限（记录数）
+	public static int maxRecords() {
+		return maxPages() * RECORDS_PER_PAGE;
+	}
+
 	public static final String RANKINGS_FILE = "rankings.dat";
 	
 	public ArrayList<Record> records;
@@ -119,7 +134,7 @@ public enum Rankings {
 		lastRecord = records.indexOf( rec );
         //最后一次存档的序号
 		int size = records.size();
-		while (size > TABLE_SIZE+LockNumber) {
+		while (size > maxRecords()+LockNumber) {
             int rem = size-1;
 			if (lastRecord == size - 1) {
                 //最后一次在存档末尾时

@@ -110,6 +110,30 @@ public class SPDSettings extends GameSettings {
 		return getBoolean( KEY_XMAS_EGG, false );
 	}
 
+	//机密商店购买的排行榜额外页数（跨存档保留；每页10条记录，含初始页数最多14页）
+
+	public static final String KEY_RANKING_EXTRA_PAGES = "shop_ranking_extra_pages";
+
+	public static void rankingExtraPages( int value ) {
+		put( KEY_RANKING_EXTRA_PAGES, value );
+	}
+
+	public static int rankingExtraPages() {
+		return getInt( KEY_RANKING_EXTRA_PAGES, 0 );
+	}
+
+	//机密商店购买的额外存档槽位数（跨存档保留；含初始10个槽位最多14个）
+
+	public static final String KEY_EXTRA_SAVE_SLOTS = "shop_extra_save_slots";
+
+	public static void extraSaveSlots( int value ) {
+		put( KEY_EXTRA_SAVE_SLOTS, value );
+	}
+
+	public static int extraSaveSlots() {
+		return getInt( KEY_EXTRA_SAVE_SLOTS, 0 );
+	}
+
 	//圣诞节彩蛋功能的永久解锁标记：向0层营地FNC交付圣诞入场券后开启（跨存档保留）
 
 	public static final String KEY_XMAS_UNLOCKED = "xmas_unlocked";

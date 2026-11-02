@@ -60,6 +60,8 @@ public enum HeroSubClass {
 
     public static final HashMap<String, String> rename = new HashMap<>();
     static {
+    	//0.6.0 前 GSH18 转职"未来之星"的旧枚举名，兼容旧存档与旧排行榜记录
+    	rename.put("THE_HEART_OF_SIRIUS", "FUTURE_STAR");
     }
 	int icon;
 

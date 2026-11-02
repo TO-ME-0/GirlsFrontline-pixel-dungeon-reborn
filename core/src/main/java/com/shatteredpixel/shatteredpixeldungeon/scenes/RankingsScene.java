@@ -59,7 +59,7 @@ public class RankingsScene extends PixelScene {
 	
 	private Archs archs;
 	// 每页显示的记录数
-	private static final int RECORDS_PER_PAGE = 10;
+	private static final int RECORDS_PER_PAGE = Rankings.RECORDS_PER_PAGE;
 	
 	private static int currentPage = 0;
 

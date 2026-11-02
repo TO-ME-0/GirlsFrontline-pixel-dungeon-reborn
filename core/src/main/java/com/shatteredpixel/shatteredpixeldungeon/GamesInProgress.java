@@ -39,7 +39,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 
 public class GamesInProgress {
 	
-	public static final int MAX_SLOTS = 10;
+	//初始存档槽位数
+	public static final int BASE_SLOTS = 10;
+	//存档槽位上限（含初始槽位），可在机密商店用电池购买扩容
+	public static final int SLOTS_LIMIT = 14;
+
+	//当前可用的存档槽位数：初始槽位 + 商店购买的额外槽位
+	public static int maxSlots() {
+		return Math.min( SLOTS_LIMIT, BASE_SLOTS + SPDSettings.extraSaveSlots() );
+	}
 	
 	//null means we have loaded info and it is empty, no entry means unknown.
 	private static HashMap<Integer, Info> slotStates = new HashMap<>();
@@ -73,15 +81,15 @@ public class GamesInProgress {
     }
 	
 	public static int firstEmpty(){
-		for (int i = 1; i <= MAX_SLOTS; i++){
+		for (int i = 1; i <= maxSlots(); i++){
 			if (check(i) == null) return i;
 		}
 		return -1;
 	}
-	
+
 	public static ArrayList<Info> checkAll(){
 		ArrayList<Info> result = new ArrayList<>();
-		for (int i = 1; i <= MAX_SLOTS; i++){
+		for (int i = 1; i <= maxSlots(); i++){
 			Info curr = check(i);
 			if (curr != null) result.add(curr);
 		}

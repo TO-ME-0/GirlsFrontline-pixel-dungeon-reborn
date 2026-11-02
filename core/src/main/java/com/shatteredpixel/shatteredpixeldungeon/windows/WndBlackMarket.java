@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.Rankings;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.items.ChristmasTicket;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -45,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
@@ -86,6 +89,12 @@ public class WndBlackMarket extends Window {
 
 	//扩展内容第一格：超级小爱 DLC 解锁券（购买后立即解锁女猎手“超级小爱”转职按钮）
 	private static final int SUPER_AI_DLC_PRICE = 25;
+
+	//扩展内容第二格：排行榜扩容（每 10 电池提升 1 页容量，含初始页数最多 Rankings.MAX_PAGES 页）
+	private static final int RANKING_PAGE_PRICE = 10;
+
+	//扩展内容第三格：存档槽位扩容（每 10 电池增加 1 个槽位，含初始槽位最多 GamesInProgress.SLOTS_LIMIT 个）
+	private static final int SAVE_SLOT_PRICE = 10;
 
 	private static final int SEP_COLOR      = 0xFF000000; //分隔条
 	private static final int ICON_FRAME     = 0x33FFFFFF; //卡片图标底框
@@ -216,7 +225,7 @@ public class WndBlackMarket extends Window {
 	//构建某一分类页的卡片：
 	//  第1页（武器类）：P90 永久解锁商品
 	//  第2页（活动类）：圣诞入场券
-	//  第3页（扩展内容）：超级小爱 DLC 解锁券
+	//  第3页（扩展内容）：超级小爱 DLC 解锁券、排行榜扩容、存档槽位扩容
 	//  其余格子暂为占位卡片
 	private void buildPage(int page) {
 		Component content = pane.content();
@@ -254,6 +263,22 @@ public class WndBlackMarket extends Window {
 						"superai_desc", "superai_done", "buy_superai_msg");
 				cards[i] = dlc;
 				cardH[i] = Math.max(CARD_H_MIN, dlc.measureHeight(cardW));
+			} else if (page == 2 && i == 1) {
+				//扩展内容第二格：排行榜扩容，可重复购买直至达到最大页数
+				RepeatUpgradeCard rankCard = new RepeatUpgradeCard(Icons.get(Icons.RANKINGS),
+						"rankpage_name", "rankpage_desc", "buy_rankpage_msg", RANKING_PAGE_PRICE,
+						Rankings::maxPages, () -> Rankings.MAX_PAGES,
+						this::buyRankingPage, this::onUnlockPurchased);
+				cards[i] = rankCard;
+				cardH[i] = Math.max(CARD_H_MIN, rankCard.measureHeight(cardW));
+			} else if (page == 2 && i == 2) {
+				//扩展内容第三格：存档槽位扩容，可重复购买直至达到槽位上限
+				RepeatUpgradeCard slotCard = new RepeatUpgradeCard(Icons.get(Icons.DATA),
+						"slotup_name", "slotup_desc", "buy_slotup_msg", SAVE_SLOT_PRICE,
+						GamesInProgress::maxSlots, () -> GamesInProgress.SLOTS_LIMIT,
+						this::buySaveSlot, this::onUnlockPurchased);
+				cards[i] = slotCard;
+				cardH[i] = Math.max(CARD_H_MIN, slotCard.measureHeight(cardW));
 			} else {
 				ItemCard card = new ItemCard(i + 1);
 				cards[i] = card;
@@ -353,6 +378,44 @@ public class WndBlackMarket extends Window {
 	}
 
 	/**
+	 * 尝试购买 1 页排行榜扩容（由 {@link RepeatUpgradeCard} 在二次确认后调用）。
+	 * 电池不足时返回 false 且不做任何改动；成功则扣除电池、永久增加 1 页容量上限。
+	 * 达到最大页数后不再出售。本方法在渲染线程执行。
+	 */
+	private boolean buyRankingPage() {
+		if (Rankings.maxPages() >= Rankings.MAX_PAGES) return true;
+		if (SPDSettings.batteryLeft() < RANKING_PAGE_PRICE) {
+			GLog.w(Messages.format(Messages.get(this, "buy_poor"), RANKING_PAGE_PRICE));
+			return false;
+		}
+		SPDSettings.batteryAdd(-RANKING_PAGE_PRICE);
+		SPDSettings.rankingExtraPages(SPDSettings.rankingExtraPages() + 1);
+		Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
+		GLog.i(Messages.format(Messages.get(this, "buy_rankpage_done"),
+				Rankings.maxPages(), Rankings.MAX_PAGES));
+		return true;
+	}
+
+	/**
+	 * 尝试购买 1 个存档槽位扩容（由 {@link RepeatUpgradeCard} 在二次确认后调用）。
+	 * 电池不足时返回 false 且不做任何改动；成功则扣除电池、永久增加 1 个槽位。
+	 * 达到槽位上限后不再出售。本方法在渲染线程执行。
+	 */
+	private boolean buySaveSlot() {
+		if (GamesInProgress.maxSlots() >= GamesInProgress.SLOTS_LIMIT) return true;
+		if (SPDSettings.batteryLeft() < SAVE_SLOT_PRICE) {
+			GLog.w(Messages.format(Messages.get(this, "buy_poor"), SAVE_SLOT_PRICE));
+			return false;
+		}
+		SPDSettings.batteryAdd(-SAVE_SLOT_PRICE);
+		SPDSettings.extraSaveSlots(SPDSettings.extraSaveSlots() + 1);
+		Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
+		GLog.i(Messages.format(Messages.get(this, "buy_slotup_done"),
+				GamesInProgress.maxSlots(), GamesInProgress.SLOTS_LIMIT));
+		return true;
+	}
+
+	/**
 	 * 左侧分类页签：未选中为普通灰底，选中时金色高亮、文字变黑（对应参考图中亮黄的“道具”页签）。
 	 */
 	private static class CategoryButton extends Button {
@@ -438,6 +501,11 @@ public class WndBlackMarket extends Window {
 	//无参布尔回调（不使用 java.util.function 以兼容 minSdk 19）
 	private interface BoolQuery {
 		boolean get();
+	}
+
+	//无参整数回调（不使用 java.util.function 以兼容 minSdk 19）
+	private interface IntQuery {
+		int get();
 	}
 
 	private class UnlockCard extends Button {
@@ -591,6 +659,163 @@ public class WndBlackMarket extends Window {
 		@Override
 		protected void onPointerDown() {
 			if (!unlocked) bg.brightness(1.3f);
+			Sample.INSTANCE.play(Assets.Sounds.CLICK);
+		}
+
+		@Override
+		protected void onPointerUp() {
+			bg.resetColor();
+		}
+	}
+
+	/**
+	 * 可重复购买的扩容商品卡（排行榜页数、存档槽位等）：
+	 * 未达上限时底部为橙色价格条（电池+单次价格），点击弹出二次确认，确认后执行购买回调；
+	 * 达到上限后底部变为绿色“已达上限”条，不再可购买。已购数量跨存档保存在 SPDSettings。
+	 */
+	private class RepeatUpgradeCard extends Button {
+
+		private final int price;
+		private final IntQuery current;    //当前已扩容后的数值（页数/槽位数）
+		private final IntQuery limit;      //数值上限
+		private final BoolQuery tryPurchase; //二次确认后执行，返回是否购买成功
+		private final Runnable onChanged;  //购买成功后的 UI 刷新回调
+		private final boolean maxed;
+
+		//文案 key：卡片名称、进度说明（含当前值/上限两个 %d 参数）、购买确认文案
+		private final String buyMsgKey;
+
+		private final NinePatch bg;
+		private final ColorBlock iconFrame;
+		private final Image icon;
+		private final RenderedTextBlock name;
+		private final RenderedTextBlock status;
+		private final ColorBlock priceBar;
+		private final ItemSprite priceIcon;        //未达上限：电池图标
+		private final RenderedTextBlock priceText; //未达上限：单次价格数字
+		private final RenderedTextBlock doneLabel; //已达上限：“已达上限”
+
+		RepeatUpgradeCard(Image icon, String nameKey, String descKey, String buyMsgKey, int price,
+						  IntQuery current, IntQuery limit, BoolQuery tryPurchase, Runnable onChanged) {
+			super();
+
+			this.price = price;
+			this.current = current;
+			this.limit = limit;
+			this.tryPurchase = tryPurchase;
+			this.onChanged = onChanged;
+			this.buyMsgKey = buyMsgKey;
+			this.maxed = current.get() >= limit.get();
+
+			bg = Chrome.get(Chrome.Type.GREY_BUTTON_TR);
+			add(bg);
+
+			iconFrame = new ColorBlock(16, 16, ICON_FRAME);
+			add(iconFrame);
+
+			this.icon = icon;
+			add(this.icon);
+
+			name = PixelScene.renderTextBlock(Messages.get(WndBlackMarket.class, nameKey), 7);
+			add(name);
+
+			status = PixelScene.renderTextBlock(Messages.format(
+					Messages.get(WndBlackMarket.class, descKey),
+					current.get(), limit.get()), 6);
+			status.hardlight(TEXT_DIM);
+			add(status);
+
+			priceBar = new ColorBlock(1, 1, maxed ? UNLOCKED_COLOR : PRICE_COLOR);
+			add(priceBar);
+
+			if (maxed) {
+				priceIcon = null;
+				priceText = null;
+				doneLabel = PixelScene.renderTextBlock(Messages.get(WndBlackMarket.class, "upgrade_full"), 7);
+				add(doneLabel);
+			} else {
+				doneLabel = null;
+				priceIcon = new ItemSprite(ItemSpriteSheet.BATTERY);
+				priceIcon.scale.set(0.45f);
+				add(priceIcon);
+
+				priceText = PixelScene.renderTextBlock(Integer.toString(price), 7);
+				add(priceText);
+			}
+		}
+
+		//与 UnlockCard 相同的高度计算：图标行 + 名称/说明两行 + 底部价格条
+		float measureHeight(float cardW) {
+			int textAreaW = (int) (cardW - 22); //2=左内边距 + 16图标 + 2间距 + 2右内边距
+			name.maxWidth(Math.max(1, textAreaW));
+			status.maxWidth(Math.max(1, textAreaW));
+			float topContent = Math.max(16 + 2, 2 + name.height() + 1 + status.height()) + 1;
+			return topContent + PRICE_H;
+		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+			bg.x = x;
+			bg.y = y;
+			bg.size(width, height);
+
+			iconFrame.x = x + 2;
+			iconFrame.y = y + 2;
+
+			icon.x = iconFrame.x + (iconFrame.width() - icon.width()) / 2f;
+			icon.y = iconFrame.y + (iconFrame.height() - icon.height()) / 2f;
+			PixelScene.align(icon);
+
+			float textX = iconFrame.x + iconFrame.width() + 2;
+			int textW = (int)(width - (textX - x) - 2);
+			name.maxWidth(textW);
+			name.setPos(textX, y + 2);
+
+			status.maxWidth(textW);
+			status.setPos(textX, name.bottom() + 1);
+
+			priceBar.x = x;
+			priceBar.y = y + height - PRICE_H;
+			priceBar.size(width, PRICE_H);
+
+			if (maxed) {
+				doneLabel.setPos(x + (width - doneLabel.width()) / 2f,
+						priceBar.y + (PRICE_H - doneLabel.height()) / 2f);
+				PixelScene.align(doneLabel);
+			} else {
+				float groupW = priceIcon.width() + 1 + priceText.width();
+				float gx = x + (width - groupW) / 2f;
+				priceIcon.x = gx;
+				priceIcon.y = priceBar.y + (PRICE_H - priceIcon.height()) / 2f;
+				PixelScene.align(priceIcon);
+				priceText.setPos(priceIcon.x + priceIcon.width() + 1,
+						priceBar.y + (PRICE_H - priceText.height()) / 2f);
+				PixelScene.align(priceText);
+			}
+		}
+
+		@Override
+		protected void onClick() {
+			if (maxed) return; //已达上限，不可重复购买
+			GameScene.show(new WndOptions(
+					Messages.get(WndBlackMarket.class, "buy_title"),
+					Messages.format(Messages.get(WndBlackMarket.class, buyMsgKey),
+							price, current.get(), limit.get()),
+					Messages.get(WndBlackMarket.class, "buy_yes"),
+					Messages.get(WndBlackMarket.class, "buy_no")) {
+				@Override
+				protected void onSelect(int index) {
+					if (index == 0 && tryPurchase.get()) {
+						onChanged.run();
+					}
+				}
+			});
+		}
+
+		@Override
+		protected void onPointerDown() {
+			if (!maxed) bg.brightness(1.3f);
 			Sample.INSTANCE.play(Assets.Sounds.CLICK);
 		}
 

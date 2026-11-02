@@ -265,7 +265,7 @@ public class TitleScene extends PixelScene {
 		public static int DISPWIDTH;
 		public static int DISPHEIGHT;
 
-		private ArrayList<SaveSlot> Slots = new ArrayList<>(GamesInProgress.MAX_SLOTS);
+		private ArrayList<SaveSlot> Slots = new ArrayList<>(GamesInProgress.maxSlots());
 
 		protected static final int MARGIN = SPDSettings.landscape() ? 7:5;
 
@@ -333,7 +333,9 @@ public class TitleScene extends PixelScene {
 
 
 
-			Point TotalSlots = SPDSettings.landscape() ? new Point( 5, 2 ) : new Point( 2, 5 );
+			//滚动区域行数按当前可用槽位数计算（初始10个，可在机密商店扩容至 GamesInProgress.SLOTS_LIMIT）
+			int slotCols = SPDSettings.landscape() ? 5 : 2;
+			Point TotalSlots = new Point( slotCols, (int)Math.ceil( GamesInProgress.maxSlots() / (float)slotCols ) );
 			int REALWIDTH = (int)Slots.get(0).width() * TotalSlots.x + MARGIN * (TotalSlots.x+1);
 			int REALHEIGHT = (int)Slots.get(0).height() * TotalSlots.y  + MARGIN * (TotalSlots.y + 1);
 			content.setRect(0, 0, REALWIDTH, REALHEIGHT);

@@ -272,7 +272,7 @@ public class DataTransfer {
 
 	//导入完成后重载所有模块的内存缓存，使其与磁盘数据一致
 	public static void resetCaches() {
-		for (int i = 1; i <= GamesInProgress.MAX_SLOTS; i++) {
+		for (int i = 1; i <= GamesInProgress.SLOTS_LIMIT; i++) {
 			GamesInProgress.setUnknown(i);
 		}
 		Badges.reloadGlobal();
@@ -304,7 +304,7 @@ public class DataTransfer {
 				paths.add(name);
 			}
 		}
-		for (int i = 1; i <= GamesInProgress.MAX_SLOTS; i++) {
+		for (int i = 1; i <= GamesInProgress.SLOTS_LIMIT; i++) {
 			String folder = GamesInProgress.gameFolder(i);
 			if (!FileUtils.dirExists(folder)) continue;
 			for (String name : FileUtils.filesInDir(folder)) {
@@ -328,7 +328,7 @@ public class DataTransfer {
 				FileUtils.deleteFile(name);
 			}
 		}
-		for (int i = 1; i <= GamesInProgress.MAX_SLOTS; i++) {
+		for (int i = 1; i <= GamesInProgress.SLOTS_LIMIT; i++) {
 			FileUtils.deleteDir(GamesInProgress.gameFolder(i));
 		}
 	}
