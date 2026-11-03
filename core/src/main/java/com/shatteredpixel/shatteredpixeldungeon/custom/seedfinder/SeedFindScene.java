@@ -71,7 +71,6 @@ public class SeedFindScene extends PixelScene {
     public static Item impReward;
     public static HeroClass currentHero = HeroClass.NONE;
     public static int currentFloor = Constants.MAX_DEPTH;
-
     public void create() {
         super.create();
 
@@ -176,6 +175,9 @@ public class SeedFindScene extends PixelScene {
     private void buildResultTabs(SeedFinder seedFinder) {
         resultTabs = new ArrayList<>();
         StringBuilder ov = new StringBuilder();
+        // 压力测试：把吞吐量统计放在总览页顶部
+        if (seedFinder.stressReport != null)
+            ov.append(seedFinder.stressReport).append("\n\n");
         //完成SeedFinder的交换
         if (seedFinder.seedWandSwapped) {
             Item wand = wand1;
@@ -484,6 +486,8 @@ public class SeedFindScene extends PixelScene {
     private Window curResultWnd;
 
     private static final int BTN_H = 16;
+    // 压力测试时长上限：200 秒
+    private static final long STRESS_TEST_MS = 200_000L;
     private static void addWantedItem(Item item) {
         wantedItems.add(item);
         if (item.level() >= 4 || meleeT1.contains(item.getClass()))
@@ -956,6 +960,16 @@ public class SeedFindScene extends PixelScene {
                 startBtn.setRect(1, pos, w - 2, 18);
                 pos = startBtn.bottom() + 4;
 
+                RedButton stressBtn = new RedButton("压力测试") {
+                    @Override
+                    protected void onClick() {
+                        GirlsFrontlinePixelDungeon.scene().addToFront(new WndStressConfirm());
+                    }
+                };
+                content.add(stressBtn);
+                stressBtn.setRect(1, pos, w - 2, 18);
+                pos = stressBtn.bottom() + 4;
+
                 content.setSize(w, pos);
             }
         }
@@ -966,6 +980,59 @@ public class SeedFindScene extends PixelScene {
         public void onBackPressed() {
 
         }
+    }
+
+    // ======================== 压力测试确认窗 ========================
+    private class WndStressConfirm extends Window {
+        private static final int WIDTH_P = 120;
+        private static final int WIDTH_L = 144;
+        private static final int MARGIN = 2;
+        private static final int BTN_H = 18;
+
+        WndStressConfirm() {
+            super();
+            int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
+            float pos = MARGIN;
+
+            RenderedTextBlock title = PixelScene.renderTextBlock("压力测试", 9);
+            title.hardlight(TITLE_COLOR);
+            title.setPos(MARGIN, pos);
+            title.maxWidth(width - MARGIN * 2);
+            add(title);
+            pos = title.bottom() + 2 * MARGIN;
+
+            RenderedTextBlock message = PixelScene.renderTextBlock("", 6);
+            message.text("以当前配置开始查询，会累计多线程查询种子数量。在查询出来结果或者200秒时停止。", width - MARGIN * 2);
+            message.setPos(MARGIN, pos);
+            add(message);
+            pos = message.bottom() + 2 * MARGIN;
+
+            RedButton confirmBtn = new RedButton("确认") {
+                @Override
+                protected void onClick() {
+                    hide();
+                    startStressTest();
+                }
+            };
+            add(confirmBtn);
+            float btnW = (width - MARGIN * 3) / 2f;
+            confirmBtn.setRect(MARGIN, pos, btnW, BTN_H);
+
+            RedButton cancelBtn = new RedButton("取消") {
+                @Override
+                protected void onClick() {
+                    hide();
+                }
+            };
+            add(cancelBtn);
+            cancelBtn.setRect(MARGIN + btnW + MARGIN, pos, btnW, BTN_H);
+
+            resize(width, (int) (cancelBtn.bottom() + MARGIN));
+        }
+    }
+    // 常规查找与压力测试统一使用的线程数
+    private static int searchThreads() {
+        return SPDSettings.seedFinderThreads();
     }
 
     public static class WndFinderSettings extends WndStartGame {
@@ -1450,6 +1517,9 @@ public class SeedFindScene extends PixelScene {
                     if (err != null)
                         sb.append("\n线程 ").append(i + 1).append(" ").append(err);
                 }
+                if (activeFinder.stressTest)
+                    sb.append("\n已累计查询 ").append(activeFinder.stressSeedCount())
+                            .append(" 个种子（上限 ").append(STRESS_TEST_MS / 1000).append(" 秒）");
                 currentSeedText.text(sb.toString());
             }
         }
@@ -1471,12 +1541,28 @@ public class SeedFindScene extends PixelScene {
         // 防御：即使 TEST_MODE 曾在 debug 菜单里被写入，种子查找也一律不带它
         SPDSettings.challenges(SPDSettings.challenges() & ~Challenges.TEST_MODE);
 
-        final int threads = SPDSettings.seedFinderThreads();
+        final int threads = searchThreads();
         final SeedFinder finder = new SeedFinder(wantedItems, currentFloor, currentHero) {
             @Override
             public void run() {
                 Dungeon.resetTest();
                 String str = findSeed(threads);
+                SeedFindScene.INSTANCE.text = str;
+            }
+        };
+        launchFinder(finder);
+    }
+
+    // 压力测试：查种流程与正常查找一致，额外累计查询种子数，并在 200 秒或命中时停止
+    private void startStressTest() {
+        SPDSettings.challenges(SPDSettings.challenges() & ~Challenges.TEST_MODE);
+
+        final int threads = searchThreads();
+        final SeedFinder finder = new SeedFinder(wantedItems, currentFloor, currentHero) {
+            @Override
+            public void run() {
+                Dungeon.resetTest();
+                String str = stressFindSeed(threads, STRESS_TEST_MS);
                 SeedFindScene.INSTANCE.text = str;
             }
         };

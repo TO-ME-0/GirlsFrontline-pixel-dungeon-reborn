@@ -45,7 +45,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -82,6 +81,35 @@ public abstract class SeedFinder implements Runnable {
 
     public long workerSeed(int index) {
         return workerSeeds.get(index);
+    }
+
+    // ===== 压力测试 =====
+    // 仅压力测试期间分配/读写：正常查种热循环内不出现任何计数或计时判断
+    public volatile boolean stressTest;
+    public volatile String stressReport;
+    private volatile AtomicLongArray stressCounts = new AtomicLongArray(0);
+    private long stressStartMs;
+    private long stressDeadlineMs;
+
+    // 各 worker 累计查询的种子数（每 worker 独立计数，避免全局 CAS 竞争影响吞吐量测量）
+    public long stressSeedCount() {
+        AtomicLongArray a = stressCounts;
+        long sum = 0;
+        for (int i = 0; i < a.length(); i++) sum += a.get(i);
+        return sum;
+    }
+
+    private String buildStressReport(boolean found, long hitSeed) {
+        long count = stressSeedCount();
+        StringBuilder sb = new StringBuilder("压力测试结束：共查询 ")
+                .append(count).append(" 个种子，用时 ")
+                .append(String.format("%.1f", (System.currentTimeMillis() - stressStartMs) / 1000.0))
+                .append(" 秒");
+        if (found)
+            sb.append("，命中种子：").append(DungeonSeed.convertToCode(hitSeed));
+        else
+            sb.append("，未找到满足条件的种子");
+        return sb.toString();
     }
 
     // 诊断：每个 worker 的停滞堆栈 / 异常信息（场景线程每 0.25s 显示）
@@ -207,14 +235,33 @@ public abstract class SeedFinder implements Runnable {
     // 多线程分段查种：随机起始种子后，把 [start, TOTAL_SEEDS) 区间均分为 threadCount 段，
     // 每个 worker 独立进入查种上下文扫自己那段，首个命中即广播停止所有线程。
     public final String findSeed(final int threadCount) {
+        return findSeed(threadCount, false, 0L);
+    }
+
+    // 压力测试入口：查种流程与 findSeed 完全一致，只额外按 worker 累计种子数并在到达时长上限时停止。
+    // 正常查种走 findSeed，worker 热循环内没有任何压力测试相关的判断。
+    public final String stressFindSeed(final int threadCount, long durationMs) {
+        return findSeed(threadCount, true, durationMs);
+    }
+
+    private String findSeed(final int threadCount, boolean stress, long durationMs) {
         //每次查找重新发布方向，避免上一次的交换结果残留到结果页
         seedWandSwapped = false;
+        stressTest = stress;
+        stressReport = null;
+        if (stress) {
+            stressStartMs = System.currentTimeMillis();
+            stressDeadlineMs = stressStartMs + durationMs;
+        }
         if (threadCount <= 1) {
             String result = "NONE";
             SeedFinding = true;
             running = true;
             workerCount = 1;
             workerSeeds = newSeedArray(1);
+            if (stress) stressCounts = new AtomicLongArray(1);
+            boolean found = false;
+            long foundAt = -1;
 
             //种子域 [0, TOTAL_SEEDS) 环形扫描：随机起点 + 取模，种子永不越界
             final long start = Random.Long(DungeonSeed.TOTAL_SEEDS);
@@ -223,35 +270,71 @@ public abstract class SeedFinder implements Runnable {
             //20 层商店、任务 complete 的副作用，缺失会让单线程与多线程结果不一致
             Dungeon.enterSearchContext();
             try {
-                for (long j = 0; j < DungeonSeed.TOTAL_SEEDS
-                        && running && SeedFinding; ++j) {
-                    long currentSeed = (start + j) % DungeonSeed.TOTAL_SEEDS;
-                    workerSeeds.set(0, currentSeed);
+                if (stress) {
+                    for (long j = 0; j < DungeonSeed.TOTAL_SEEDS
+                            && running && SeedFinding
+                            && System.currentTimeMillis() < stressDeadlineMs; ++j) {
+                        long currentSeed = (start + j) % DungeonSeed.TOTAL_SEEDS;
+                        workerSeeds.set(0, currentSeed);
+                        stressCounts.incrementAndGet(0);
 
-                    // 10 连复查：命中目标必须落在该种子各楼层生成变体的交集内
-                    boolean confirmed = true;
-                    for (int r = 0; r < 10; r++) {
-                        if (!testSeed(currentSeed)) {
-                            confirmed = false;
+                        // 10 连复查：命中目标必须落在该种子各楼层生成变体的交集内
+                        boolean confirmed = true;
+                        for (int r = 0; r < 10; r++) {
+                            if (!testSeed(currentSeed)) {
+                                confirmed = false;
+                                break;
+                            }
+                        }
+                        if (confirmed) {
+                            //把本线程解析出的法杖方向交给结果页
+                            seedWandSwapped = swapped.get();
+                            result = logSeedItems(currentSeed);
+                            foundAt = currentSeed;
+                            found = true;
+                            break;
+                        }
+
+                        if (Thread.currentThread().isInterrupted()) {
+                            running = false;
                             break;
                         }
                     }
-                    if (confirmed) {
-                        //把本线程解析出的法杖方向交给结果页
-                        seedWandSwapped = swapped.get();
-                        result = logSeedItems(currentSeed);
-                        break;
-                    }
+                } else {
+                    for (long j = 0; j < DungeonSeed.TOTAL_SEEDS
+                            && running && SeedFinding; ++j) {
+                        long currentSeed = (start + j) % DungeonSeed.TOTAL_SEEDS;
+                        workerSeeds.set(0, currentSeed);
 
-                    if (Thread.currentThread().isInterrupted()) {
-                        running = false;
-                        break;
+                        // 10 连复查：命中目标必须落在该种子各楼层生成变体的交集内
+                        boolean confirmed = true;
+                        for (int r = 0; r < 10; r++) {
+                            if (!testSeed(currentSeed)) {
+                                confirmed = false;
+                                break;
+                            }
+                        }
+                        if (confirmed) {
+                            //把本线程解析出的法杖方向交给结果页
+                            seedWandSwapped = swapped.get();
+                            result = logSeedItems(currentSeed);
+                            break;
+                        }
+
+                        if (Thread.currentThread().isInterrupted()) {
+                            running = false;
+                            break;
+                        }
                     }
                 }
             } finally {
                 swapped.remove();
                 Dungeon.exitSearchContext();
                 SeedFinding = false;
+            }
+            if (stress) {
+                stressReport = buildStressReport(found, foundAt);
+                if (!found) result = stressReport;
             }
             return result;
         }
@@ -264,6 +347,7 @@ public abstract class SeedFinder implements Runnable {
         workerSeeds = newSeedArray(threadCount);
         workerErrors = new String[threadCount];
         workerProgressMs = new long[threadCount];
+        if (stress) stressCounts = new AtomicLongArray(threadCount);
         long initMs = System.currentTimeMillis();
         for (int i = 0; i < threadCount; i++) workerProgressMs[i] = initMs;
 
@@ -271,6 +355,7 @@ public abstract class SeedFinder implements Runnable {
         //currentSeed = (start + j) % total 永在合法域内（原先 seedDigits + i 会越过域上界导致后段 worker 全灭）
         final long total = DungeonSeed.TOTAL_SEEDS;
         final long start = Random.Long(total);
+        final boolean stressRun = stress;
         Thread[] workers = new Thread[threadCount];
 
         for (int w = 0; w < threadCount; w++) {
@@ -282,31 +367,10 @@ public abstract class SeedFinder implements Runnable {
                 public void run() {
                     Dungeon.enterSearchContext();
                     try {
-                        for (long j = segStart; j < segEnd && running && SeedFinding
-                                && foundSeed.get() < 0; ++j) {
-                            long currentSeed = (start + j) % total;
-                            workerSeeds.set(workerId, currentSeed);
-                            workerProgressMs[workerId] = System.currentTimeMillis();
-
-                            // 10 连复查
-                            boolean confirmed = true;
-                            for (int r = 0; r < 10; r++) {
-                                if (!testSeed(currentSeed)) {
-                                    confirmed = false;
-                                    break;
-                                }
-                            }
-                            if (confirmed) {
-                                // CAS 保证只有第一个命中的 worker 胜出
-                                if (foundSeed.compareAndSet(-1, currentSeed)) {
-                                    SeedFinding = false; // 广播停止
-                                    running = false;
-                                    seedWandSwapped = swapped.get();
-                                }
-                                break;
-                            }
-                            if (Thread.currentThread().isInterrupted()) break;
-                        }
+                        if (stressRun)
+                            scanStress(workerId, segStart, segEnd, start, total);
+                        else
+                            scanNormal(workerId, segStart, segEnd, start, total);
                     } catch (Throwable t) {
                         t.printStackTrace();
                         workerErrors[workerId] = "异常 " + t + stackBrief(t.getStackTrace(), 6);
@@ -357,13 +421,74 @@ public abstract class SeedFinder implements Runnable {
 
         SeedFinding = false;
         long hit = foundSeed.get();
-        if (hit < 0) return "NONE";
+        if (stress) stressReport = buildStressReport(hit >= 0, hit);
+        if (hit < 0) return stress ? stressReport : "NONE";
         //命中种子的整局重放同样必须在查种上下文内完成
         Dungeon.enterSearchContext();
         try {
             return logSeedItems(hit);
         } finally {
             Dungeon.exitSearchContext();
+        }
+    }
+
+    // 正常查种的 worker 热循环：与压力测试版本完全独立，不含任何额外计数/计时判断
+    private void scanNormal(int workerId, long segStart, long segEnd, long start, long total) {
+        for (long j = segStart; j < segEnd && running && SeedFinding
+                && foundSeed.get() < 0; ++j) {
+            long currentSeed = (start + j) % total;
+            workerSeeds.set(workerId, currentSeed);
+            workerProgressMs[workerId] = System.currentTimeMillis();
+
+            // 10 连复查
+            boolean confirmed = true;
+            for (int r = 0; r < 10; r++) {
+                if (!testSeed(currentSeed)) {
+                    confirmed = false;
+                    break;
+                }
+            }
+            if (confirmed) {
+                // CAS 保证只有第一个命中的 worker 胜出
+                if (foundSeed.compareAndSet(-1, currentSeed)) {
+                    SeedFinding = false; // 广播停止
+                    running = false;
+                    seedWandSwapped = swapped.get();
+                }
+                break;
+            }
+            if (Thread.currentThread().isInterrupted()) break;
+        }
+    }
+
+    // 压力测试 worker 热循环：额外累计本 worker 查询的种子数，并在到达时长上限时停止
+    private void scanStress(int workerId, long segStart, long segEnd, long start, long total) {
+        for (long j = segStart; j < segEnd && running && SeedFinding
+                && foundSeed.get() < 0
+                && System.currentTimeMillis() < stressDeadlineMs; ++j) {
+            long currentSeed = (start + j) % total;
+            workerSeeds.set(workerId, currentSeed);
+            workerProgressMs[workerId] = System.currentTimeMillis();
+            stressCounts.incrementAndGet(workerId);
+
+            // 10 连复查
+            boolean confirmed = true;
+            for (int r = 0; r < 10; r++) {
+                if (!testSeed(currentSeed)) {
+                    confirmed = false;
+                    break;
+                }
+            }
+            if (confirmed) {
+                // CAS 保证只有第一个命中的 worker 胜出
+                if (foundSeed.compareAndSet(-1, currentSeed)) {
+                    SeedFinding = false; // 广播停止
+                    running = false;
+                    seedWandSwapped = swapped.get();
+                }
+                break;
+            }
+            if (Thread.currentThread().isInterrupted()) break;
         }
     }
 
@@ -386,16 +511,12 @@ public abstract class SeedFinder implements Runnable {
         Set<Class<? extends Item>> cls = target.rewardClasses;
         Imp.Quest q = Imp.Quest.cur();
         for (Item item : q.rewardOptions)
-            if (cls.contains(item.getClass()) && target.matches(item)) {
-                GLog.p(String.valueOf(Dungeon.cur().seed));
+            if (cls.contains(item.getClass()) && target.matches(item))
                 return true;
-            }
         for (ArrayList<Item> tier : q.vaultEquipOptions)
             for (Item item : tier)
-                if (cls.contains(item.getClass()) && target.matches(item)) {
-                    GLog.p(String.valueOf(Dungeon.cur().seed));
+                if (cls.contains(item.getClass()) && target.matches(item))
                     return true;
-                }
         return false;
     }
 
