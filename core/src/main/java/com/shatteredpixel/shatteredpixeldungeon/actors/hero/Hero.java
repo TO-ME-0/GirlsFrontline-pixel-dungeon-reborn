@@ -70,7 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.MageTalen
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.RogueTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.Type561Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.WarriorTalent;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TalentSecondSight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SecondSightCooldown;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
@@ -579,7 +579,6 @@ public class Hero extends Char {
 		}
 		Buff.affect( this, Regeneration.class );
 		Buff.affect( this, Hunger.class ).satisfy(Hunger.minLevel);
-        Buff.affect( this, TalentSecondSight.class).Set(0, 0);
         Buff.affect( this, Item.CooldownTracker.class );
 	}
 	

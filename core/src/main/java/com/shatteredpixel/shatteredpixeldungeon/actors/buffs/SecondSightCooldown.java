@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-//A buff whose only purposes is to keep track of a count of some form
-public class TalentSecondSight extends Buff {
+public class SecondSightCooldown extends Buff {
     {
         revivePersists = true;
     }
@@ -60,14 +59,14 @@ public class TalentSecondSight extends Buff {
     public int icon() {
         boolean on = false;
         for (curLevelSight sight : sights){
-            if (nearbyLevel(sight.level)){
+            if (sight.level != 0 && sight.time > 0 && nearbyLevel(sight.level)){
                 on = true;
                 break;
             }
         }
-        if (on){
+        if (on)
             return BuffIndicator.MIND_VISION;
-        }else
+        else
             return super.icon();
     }
 
@@ -118,6 +117,40 @@ public class TalentSecondSight extends Buff {
         sights.add(new curLevelSight(id, 0));
         return true;
     }
+
+    /** 本层第一次侦察视野是否还没使用 */
+    public boolean isFirstSightAvailable(int id){
+        for (curLevelSight sight : sights){
+            if (sight.level == id)
+                return !sight.firstSightUsed;
+        }
+        return true;
+    }
+    public void consumeFirstSight(int id){
+        getOrCreate(id).firstSightUsed = true;
+    }
+
+    /** 本层第二次侦察视野是否还没使用 */
+    public boolean isSecondSightAvailable(int id){
+        for (curLevelSight sight : sights){
+            if (sight.level == id)
+                return !sight.secondSightUsed;
+        }
+        return true;
+    }
+    public void consumeSecondSight(int id){
+        getOrCreate(id).secondSightUsed = true;
+    }
+
+    private curLevelSight getOrCreate(int id){
+        for (curLevelSight sight : sights){
+            if (sight.level == id)
+                return sight;
+        }
+        curLevelSight sight = new curLevelSight(id, 0);
+        sights.add(sight);
+        return sight;
+    }
     @Override
     public boolean act() {
         for (curLevelSight sight: sights){
@@ -166,7 +199,10 @@ public class TalentSecondSight extends Buff {
     public static class curLevelSight implements Bundlable{
 
         private int level;
-        private int time;
+        private volatile int time;
+        //本层第一次/第二次侦察视野是否已使用
+        private boolean firstSightUsed;
+        private boolean secondSightUsed;
         //Bundle 反射反序列化必须存在无参构造
         public curLevelSight(){
         }
@@ -176,16 +212,22 @@ public class TalentSecondSight extends Buff {
         }
         private static final String ID = "sight_level";
         private static final String CD = "sight_time";
+        private static final String FIRST_USED = "first_sight_used";
+        private static final String SECOND_USED = "second_sight_used";
         @Override
         public void restoreFromBundle(Bundle bundle) {
             level = bundle.getInt(ID);
             time = bundle.getInt(CD);
+            firstSightUsed = bundle.getBoolean(FIRST_USED);
+            secondSightUsed = bundle.getBoolean(SECOND_USED);
         }
 
         @Override
         public void storeInBundle(Bundle bundle) {
             bundle.put(ID, level);
             bundle.put(CD, time);
+            bundle.put(FIRST_USED, firstSightUsed);
+            bundle.put(SECOND_USED, secondSightUsed);
         }
     }
 }

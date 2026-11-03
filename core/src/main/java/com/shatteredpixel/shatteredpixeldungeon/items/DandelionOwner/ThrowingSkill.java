@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
@@ -169,15 +170,25 @@ public class ThrowingSkill extends SkillItem {
                     Dungeon.level.destroy(cell);
                     GameScene.updateMap(cell);
                 }
-                CellEmitter.get(i).burst(SmokeParticle.FACTORY, 5);
                 Char ch;
                 if ((ch = Actor.findChar(cell)) != null)
                     list.add(ch);
             }
+            for (Char ch : list)
+                //参考 Item.cast() 的 MissileSprite 用法：从爆心 center 飞向每个受击目标
+                ((MissileSprite) Dungeon.hero().sprite.parent.recycle(MissileSprite.class))
+                        .reset(center, ch.pos, this, null);
+            
+            for (int i : throwingPos()) {
+                int cell = center + i;
+                if (outMap(cell))
+                    continue;
+                CellEmitter.get(cell).burst(SmokeParticle.FACTORY, 5);
+            }
             Dungeon.observe();
             int size = list.size();
             boolean crit = CardAffect.crit();
-            for (Char ch : list){
+            for (Char ch : list) {
                 if (ch.alignment == Char.Alignment.ALLY || ch instanceof NPC)
                     continue;
                 for (int i = 0; i < size; i++) {

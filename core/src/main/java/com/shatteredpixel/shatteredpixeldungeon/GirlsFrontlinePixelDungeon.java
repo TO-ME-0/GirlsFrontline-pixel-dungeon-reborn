@@ -159,6 +159,15 @@ public class GirlsFrontlinePixelDungeon extends Game {
 				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue.class,
 				"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue" );
 
+		//战地侦察第二视野冷却 buff 改名后的旧存档类名兼容
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SecondSightCooldown.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TalentSecondSight" );
+		//嵌套的楼层记录类 FQCN 含旧外层类名，需单独迁移
+		Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SecondSightCooldown.curLevelSight.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TalentSecondSight$curLevelSight" );
+
 	}
 	public static void reportException( Throwable tr ) {
 		Game.GameMode = Dungeon.GameMode;

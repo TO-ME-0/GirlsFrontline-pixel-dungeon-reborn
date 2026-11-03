@@ -403,22 +403,40 @@ public class CardAffect {
         final int finalDist = dist;
         final boolean finalCollided = collided && collideDmg;
 
-        int oldPos = ch.pos;
+        final int oldPos = ch.pos;
+
+        if (closeDoors && Dungeon.level.map[oldPos] == Terrain.OPEN_DOOR){
+            Door.leave(oldPos);
+        }
+
+        //立即更新坐标：ThrowingSkill(M1887)/IntensifySkill(LTLX7000) 依靠
+        //oldPos != ch.pos 判断本次是否真正被击退，并据此做 while 重试。
         ch.pos = newPos;
+
+        if (ch != Dungeon.hero()){
+            ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
+        }
+
+        ch.moveSprite(oldPos, ch.pos);
+
+        //补上 Char.move() 里的占格逻辑：陷阱触发、落坑、蛛网、压力板等
+        Dungeon.level.occupyCell(ch);
+
+        if (ch == Dungeon.hero()){
+            Dungeon.observe();
+        }
+
         if (finalCollided && ch.isAlive()) {
             Actor.add(new Actor() {
                 @Override
                 protected boolean act() {
-                    ch.damage(Random.NormalIntRange(finalDist, 2*finalDist), M4A1.INSTANCE());
+                    if (ch.isAlive())
+                        ch.damage(Random.NormalIntRange(finalDist, 2*finalDist), M4A1.INSTANCE());
                     Actor.remove(this);
                     return true;
                 }
             });
             Paralysis.prolong(ch, Paralysis.class, 1 + finalDist/2f);
         }
-        if (closeDoors && Dungeon.level.map[oldPos] == Terrain.OPEN_DOOR){
-            Door.leave(oldPos);
-        }
-        ch.moveSprite(oldPos, ch.pos);
     }
 }

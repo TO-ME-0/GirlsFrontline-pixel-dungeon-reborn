@@ -82,7 +82,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SoulMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarShield;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TalentSecondSight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SecondSightCooldown;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ToxicImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
@@ -192,7 +192,7 @@ public class BuffScanner {
         buffClasses.add(Speed.class);
         buffClasses.add(Stamina.class);
         buffClasses.add(StarShield.class);
-        buffClasses.add(TalentSecondSight.class);
+        buffClasses.add(SecondSightCooldown.class);
         buffClasses.add(Terror.class);
         buffClasses.add(ToxicImbue.class);
         buffClasses.add(Vertigo.class);

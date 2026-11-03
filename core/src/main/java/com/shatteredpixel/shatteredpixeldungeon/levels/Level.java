@@ -133,8 +133,6 @@ public abstract class Level implements Bundlable {
 	protected static final float TIME_TO_RESPAWN	= 50;
 
 	public int levelDepth;
-    public boolean FirstSight = true;
-    public boolean SecondSight = true;
     public boolean prevent  = false;
 
     public int branch;
@@ -220,8 +218,6 @@ public abstract class Level implements Bundlable {
 	private static final String BLOBS		= "blobs";
 	private static final String FEELING		= "feeling";
     private static final String FIRSTSAVE   = "firstsave";
-    private static final String FIRSTSIGHT   = "FIRSTSIGHT";
-    private static final String SECONDSIGHT   = "SECONDSIGHT";
     private static final String SHARED_VISION = "SHARED_VISION";
     private static final String PREVENT         = "prevent";
 	public boolean creating;
@@ -403,8 +399,6 @@ public abstract class Level implements Bundlable {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
         FirstSave =bundle.getBoolean(FIRSTSAVE);
-        FirstSight=bundle.getBoolean(FIRSTSAVE);
-        SecondSight=bundle.getBoolean(SECONDSIGHT);
         prevent = bundle.getBoolean(PREVENT);
 		levelDepth=bundle.getInt(LEVEL_DEPTH);
 		branch    =bundle.contains(BRANCH) ? bundle.getInt(BRANCH) : bundle.getInt(LEVEL_ID)/1000;
@@ -560,8 +554,6 @@ public abstract class Level implements Bundlable {
 		bundle.put("mobs_to_spawn", mobsToSpawn.toArray(new Class[0]));
 		bundle.put("respawner", respawner );
         bundle.put(FIRSTSAVE, FirstSave);
-        bundle.put(FIRSTSIGHT,FirstSight);
-        bundle.put(SECONDSIGHT,SecondSight);
         bundle.put(FLAME, flammableB);
         bundle.put(SHARED_VISION, sharedVision);
         bundle.put(PREVENT, prevent);

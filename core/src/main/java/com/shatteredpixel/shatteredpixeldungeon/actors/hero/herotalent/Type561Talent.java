@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EquipLevelUp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TalentSecondSight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SecondSightCooldown;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -86,12 +86,12 @@ public final class Type561Talent {
 				((RedBook) workingItem).activate(hero);
 		}
 		else if (talent == Talent.Type56Two_Sight){
-			Buff.affect( hero, TalentSecondSight.class).Set(Dungeon.curFloorCode(), 0);
+			Buff.affect( hero, SecondSightCooldown.class).Set(Dungeon.curFloorCode(), 0);
 			if (hero.pointsInTalent(Talent.Type56Two_Sight) == 1){
-				Dungeon.level.FirstSight = false;
+				Buff.affect( Dungeon.hero(), SecondSightCooldown.class).consumeFirstSight(Dungeon.curFloorCode());
 				Buff.affect(hero, MindVision.class, 3);
 			}else if (hero.pointsInTalent(Talent.Type56Two_Sight) == 2) {
-				Dungeon.level.SecondSight = false;
+				Buff.affect( Dungeon.hero(), SecondSightCooldown.class).consumeSecondSight(Dungeon.curFloorCode());
 				Buff.affect(hero, MindVision.class, 3);
 			}
 			Dungeon.observe();
@@ -279,22 +279,22 @@ public final class Type561Talent {
 	public static void onLevelEnter(){
 		if (Dungeon.hero()!=null && Dungeon.level!=null){
 			if(Dungeon.hero().hasTalent(Talent.Type56Two_Sight)) {
-				TalentSecondSight Sec = Dungeon.hero().buff(TalentSecondSight.class);
+				SecondSightCooldown Sec = Dungeon.hero().buff(SecondSightCooldown.class);
 				if (Sec==null){
-					Buff.affect( Dungeon.hero(), TalentSecondSight.class).Set(0, 0);
-					Sec = Dungeon.hero().buff(TalentSecondSight.class);
+					Buff.affect( Dungeon.hero(), SecondSightCooldown.class).Set(0, 0);
+					Sec = Dungeon.hero().buff(SecondSightCooldown.class);
 					GLog.p(Messages.get(Type561Talent.class, "resight"));
 				}
-				if (Dungeon.level.FirstSight){
-					Dungeon.level.FirstSight = false;
+				if (Sec.isFirstSightAvailable(Dungeon.curFloorCode())){
+					Buff.affect( Dungeon.hero(), SecondSightCooldown.class).consumeFirstSight(Dungeon.curFloorCode());
 					Buff.affect(Dungeon.hero(), MindVision.class, 3);
 					if (Dungeon.hero().pointsInTalent(Talent.Type56Two_Sight) == 2) {
 						Sec.Set(Dungeon.curFloorCode(), 25);
 					}
 				}
 				if (Dungeon.hero().pointsInTalent(Talent.Type56Two_Sight) == 2
-						&& Sec.EndCD(Dungeon.curFloorCode()) && Dungeon.level.SecondSight) {
-					Dungeon.level.SecondSight = false;
+						&& Sec.EndCD(Dungeon.curFloorCode()) && Sec.isSecondSightAvailable(Dungeon.curFloorCode())) {
+					Buff.affect( Dungeon.hero(), SecondSightCooldown.class).consumeSecondSight(Dungeon.curFloorCode());
 					Buff.affect(Dungeon.hero(), MindVision.class, 3);
 				}
 			}
