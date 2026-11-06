@@ -50,6 +50,8 @@ public class Blob extends Actor {
 	public Rect area = new Rect();
 	
 	public boolean alwaysVisible = false;
+	//已探索但当前不可见的格子也发射粒子，并且渲染在战争迷雾之上
+	public boolean visibleThroughFog = false;
 
 	private static final String CUR		= "cur";
 	private static final String START	= "start";

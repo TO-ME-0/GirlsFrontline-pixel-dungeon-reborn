@@ -36,7 +36,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
 public class TestBomb extends Bomb {
@@ -47,11 +46,6 @@ public class TestBomb extends Bomb {
 	}
 
 
-    private boolean outMap(int cell){
-        Point p = Dungeon.level.cellToPoint(cell);
-        return p.x <= 0 || p.y <= 0 || p.x >= Dungeon.level.width() - 1 || p.y >= Dungeon.level.height() - 1;
-    }
-
     @Override
     protected void onThrow( int cell ) {
         explode( cell );
@@ -61,7 +55,7 @@ public class TestBomb extends Bomb {
 	public void explode(int ignore) {
         int length = Dungeon.level.length();
         for (int i = 0; i < length; i++) {
-            if (outMap(i))
+            if (!Dungeon.level.insideMap(i))
                 continue;
             if (Dungeon.level.map[i] == Terrain.ENTRANCE||Dungeon.level.map[i] == Terrain.EXIT||Dungeon.level.map[i] == Terrain.UNLOCKED_EXIT);
             else if(Dungeon.level.map[i] == Terrain.LOCKED_EXIT)
@@ -80,7 +74,7 @@ public class TestBomb extends Bomb {
                     int pos;
                     do {
                         pos = Dungeon.hero().pos + PathFinder.NEIGHBOURS9()[Random.Int(9)];
-                    }while (outMap(pos));
+                    }while (!Dungeon.level.insideMap(pos));
                     ScrollOfTeleportation.appear(target, pos);
                 }
                 else
@@ -95,7 +89,7 @@ public class TestBomb extends Bomb {
         Dungeon.observe();
 
         for (int k = 0; k < length; k++) {
-            if (outMap(k))
+            if (!Dungeon.level.insideMap(k))
                 continue;
             Dungeon.level.flammable[k] = true;
             Heap h = Dungeon.level.heaps.get(k);

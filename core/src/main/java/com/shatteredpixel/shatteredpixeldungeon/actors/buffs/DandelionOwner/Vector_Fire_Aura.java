@@ -48,7 +48,7 @@ public class Vector_Fire_Aura extends Buff implements ActionIndicator.Action {
         if (curTime() % TICK < 0.1F){
             for (AffectAura a : getList()){
                 int cell = a.cellInLevel(Dungeon.level, target);
-                if (outMap(cell))
+                if (!Dungeon.level.insideMap(cell))
                     continue;
                 Char ch = Actor.findChar(cell);
                 if (ch != null && ch.alignment != Char.Alignment.ALLY && !(ch instanceof NPC))
@@ -68,10 +68,6 @@ public class Vector_Fire_Aura extends Buff implements ActionIndicator.Action {
         if (!fireAura.containsKey(Dungeon.curFloorCode()) || fireAura.get(Dungeon.curFloorCode()) == null)
             fireAura.put(Dungeon.curFloorCode(), new ArrayList<>());
         return fireAura.get(Dungeon.curFloorCode());
-    }
-    private static boolean outMap(int cell){
-        Point p = Dungeon.level.cellToPoint(cell);
-        return p.x <= 0 || p.y <= 0 || p.x >= Dungeon.level.width() - 1 || p.y >= Dungeon.level.height() - 1;
     }
     private void effectOnTarget(Char ch){
         CardAffect.fireAllAffect(ch);

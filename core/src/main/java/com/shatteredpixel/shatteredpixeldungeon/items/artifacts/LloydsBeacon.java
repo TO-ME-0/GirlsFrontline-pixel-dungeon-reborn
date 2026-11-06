@@ -59,7 +59,6 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -268,17 +267,13 @@ public class LloydsBeacon extends Artifact {
         lockchB();
 	}
 
-    private boolean outMap(int cell){
-        Point p = Dungeon.level.cellToPoint(cell);
-        return p.x <= 0 || p.y <= 0 || p.x >= Dungeon.level.width() - 1 || p.y >= Dungeon.level.height() - 1;
-    }
     private final CellSelector.Listener caster = new CellSelector.Listener(){
 
         @Override
         public void onSelect(Integer target) {
             if (target == null)
                 return;
-            if (outMap(target))
+            if (!Dungeon.level.insideMap(target))
                 return;
             if (Dungeon.level.solid[target] && !Dungeon.level.passable[target] && !Dungeon.level.avoid[target])
                 return;

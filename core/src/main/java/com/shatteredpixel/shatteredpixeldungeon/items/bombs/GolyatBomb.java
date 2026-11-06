@@ -41,11 +41,6 @@ public class GolyatBomb extends Bomb {
 		image = ItemSpriteSheet.GOLYAT_BOMB;
 	}
 
-    private boolean outMap(int cell){
-        Point p = Dungeon.level.cellToPoint(cell);
-        return p.x <= 0 || p.y <= 0 || p.x >= Dungeon.level.width() - 1 || p.y >= Dungeon.level.height() - 1;
-    }
-	
 	@Override
 	public void explode(int cell) {
 		super.explode(cell);
@@ -58,7 +53,7 @@ public class GolyatBomb extends Bomb {
                 int c = cell + i;
                 if (c >= 0 && c < Dungeon.level.length()-1){
                     if (Dungeon.level.breakable[c]){
-                        if (outMap(c)) {
+                        if (!Dungeon.level.insideMap(c)) {
                             continue;
                         }
                         if ((Dungeon.level instanceof CavesBossLevel)&&(Dungeon.level.map[c] == Terrain.WALL || Dungeon.level.map[c] == Terrain.WALL_DECO)){
@@ -86,7 +81,7 @@ public class GolyatBomb extends Bomb {
             for (int i : PathFinder.NEIGHBOURS9()){
                 //对陷阱的破坏提升到 3*3 范围
                 int d = cell + i;
-                if (outMap(d)) {
+                if (!Dungeon.level.insideMap(d)) {
                     continue;
                 }
                 if ((Dungeon.level.map[d] == Terrain.TRAP) || (Dungeon.level.map[d] == Terrain.INACTIVE_TRAP) || (Dungeon.level.map[d] == Terrain.SECRET_TRAP)) {
@@ -98,7 +93,7 @@ public class GolyatBomb extends Bomb {
             for (int i : PathFinder.NEIGHBOURS25()){
                 //对失效陷阱的破坏提升到 5*5 范围
                 int e = cell + i;
-                if (outMap(e)) {
+                if (!Dungeon.level.insideMap(e)) {
                     continue;
                 }
                 if (Dungeon.level.map[e] == Terrain.INACTIVE_TRAP) {

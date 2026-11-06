@@ -36,6 +36,10 @@ import java.util.ArrayList;
 
 public abstract class WellWater extends Blob {
 
+	{
+		visibleThroughFog = true;
+	}
+
 	@Override
 	protected void evolve() {
 		int cell;

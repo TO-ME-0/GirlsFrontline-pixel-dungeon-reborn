@@ -1080,7 +1080,11 @@ public class GameScene extends PixelScene {
 	
 	private void addBlobSprite( final Blob gas ) {
 		if (gas.emitter == null) {
-			gases.add( new BlobEmitter( gas ) );
+			BlobEmitter emitter = new BlobEmitter( gas );
+			if (gas.visibleThroughFog)
+				overFogEffects.add( emitter );
+			else
+				gases.add( emitter );
 		}
 	}
 	

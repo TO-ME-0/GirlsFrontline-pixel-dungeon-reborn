@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
@@ -71,6 +72,7 @@ public class Heap implements Bundlable {
         MIMIC,
         GOLDEN_MIMIC,
         CRYSTAL_MIMIC,
+        EBOLE_MIMIC,
 		TOMB,
 		SKELETON,
 		REMAINS,
@@ -460,6 +462,9 @@ public class Heap implements Bundlable {
 					break;
 				case CRYSTAL_MIMIC:
 					title = Messages.get(CrystalMimic.class, "name");
+					break;
+				case EBOLE_MIMIC:
+					title = Messages.get(EbonyMimic.class, "name");
 					break;
 				case MISSION_CHEST:
 					title = Messages.get(this, "mission");

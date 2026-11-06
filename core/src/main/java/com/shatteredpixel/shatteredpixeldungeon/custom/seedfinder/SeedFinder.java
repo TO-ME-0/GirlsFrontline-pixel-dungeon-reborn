@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.SksStatue;
@@ -745,6 +746,7 @@ public abstract class SeedFinder implements Runnable {
                     h.items.add(item.identify());
                 if (m.getClass() == GoldenMimic.class) h.type = Type.GOLDEN_MIMIC;
                 else if (m.getClass() == CrystalMimic.class) h.type = Type.CRYSTAL_MIMIC;
+                else if (m.getClass() == EbonyMimic.class) h.type = Type.EBOLE_MIMIC;
                 else h.type = Type.MIMIC;
                 heaps.add(h);
             }

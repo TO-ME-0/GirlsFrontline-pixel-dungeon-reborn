@@ -22,7 +22,6 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Point;
 
 import java.util.ArrayList;
 
@@ -115,10 +114,6 @@ public class ThrowingSkill extends SkillItem {
         {
             image = ItemSpriteSheet.SMOKEUmp45;
         }
-        protected boolean outMap(int cell){
-            Point p = Dungeon.level.cellToPoint(cell);
-            return p.x <= 0 || p.y <= 0 || p.x >= Dungeon.level.width() - 1 || p.y >= Dungeon.level.height() - 1;
-        }
         protected static int[] throwingPos(){
             return hasCard(CommonCard.UNIVERSAL.FAMAS) ?
                     PathFinder.NEIGHBOURS25() :
@@ -137,7 +132,7 @@ public class ThrowingSkill extends SkillItem {
             int size = 0;
             for (int i : throwingPos()){
                 int cell = center + i;
-                if (outMap(cell))
+                if (!Dungeon.level.insideMap(cell))
                     continue;
                 if (Actor.findChar(cell) != null)
                     size++;
@@ -164,7 +159,7 @@ public class ThrowingSkill extends SkillItem {
             ArrayList<Char> list = new ArrayList<>();
             for (int i : throwingPos()){
                 int cell = center + i;
-                if (outMap(cell))
+                if (!Dungeon.level.insideMap(cell))
                     continue;
                 if (Dungeon.level.flammable[cell]) {
                     Dungeon.level.destroy(cell);
@@ -181,7 +176,7 @@ public class ThrowingSkill extends SkillItem {
             
             for (int i : throwingPos()) {
                 int cell = center + i;
-                if (outMap(cell))
+                if (!Dungeon.level.insideMap(cell))
                     continue;
                 CellEmitter.get(cell).burst(SmokeParticle.FACTORY, 5);
             }
