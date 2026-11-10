@@ -47,7 +47,6 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,29 +68,22 @@ public class Mimic extends Mob {
 	
 	public ArrayList<Item> items;
 
-	protected boolean stealthy = false;
-
 	private static final String LEVEL	= "level";
 	private static final String ITEMS	= "items";
-	private static final String STEALTHY= "stealthy";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		if (items != null) bundle.put( ITEMS, items );
 		bundle.put( LEVEL, level );
-		bundle.put( STEALTHY, stealthy );
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
-		if (bundle.contains( ITEMS )) {
-			items = new ArrayList<>((Collection<Item>) ((Collection<?>) bundle.getCollection(ITEMS)));
-		}
+		if (bundle.contains( ITEMS ))
+			items = bundle.getArrayList(ITEMS, Item.class);
 		level = bundle.getInt( LEVEL );
 		adjustStats(level);
-		stealthy = bundle.getBoolean(STEALTHY);
 		super.restoreFromBundle(bundle);
 		if (state != PASSIVE && alignment == Alignment.NEUTRAL){
 			alignment = Alignment.ENEMY;
@@ -129,11 +121,6 @@ public class Mimic extends Mob {
 		} else {
 			return super.description();
 		}
-	}
-
-	//拟态怪之牙饰品：隐秘拟态怪的视觉行为使其更难被察觉（实现见 MimicTooth）
-	public boolean stealthy(){
-		return stealthy;
 	}
 
 	@Override
@@ -316,11 +303,6 @@ public class Mimic extends Mob {
 
 		//generate an extra reward for killing the mimic
 		m.generatePrize();
-
-		//拟态怪之牙饰品：生成的拟态怪变为隐秘状态（实现见 MimicTooth）
-		if (MimicTooth.stealthyMimics()){
-			m.stealthy = true;
-		}
 
 		return m;
 	}
