@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-public class XMasSugar extends Food {
+public class XMasSugar extends Food implements Food.Pastys {
 
 	{
 		image = ItemSpriteSheet.CANDY_CANE;

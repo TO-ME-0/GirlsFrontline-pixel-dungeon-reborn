@@ -38,12 +38,17 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Holidays;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Food extends Item {
+
+	// 标记接口：所有"馅饼系"节日食物（Pasty 及其节日变体）实现本接口，
+	// 便于在合成配方、生成权重等位置统一识别，避免逐个 instanceof 列举。
+	public interface Pastys {}
 
 	public static final float TIME_TO_EAT	= 3f;
 	
@@ -60,11 +65,20 @@ public class Food extends Item {
 		bones = true;
 	}
     public static Food SummonPasty(){
-        // 馅饼分割
-        if(Dungeon.isXMAS()){
+        // 馅饼分割：根据节日返回对应的具体馅饼类
+        if (Dungeon.isXMAS()) {
             return new XMasSugar();
-        }else {
-            return new Pasty();
+        }
+        switch (Holidays.holiday) {
+            case HWEEN:
+                return new PumpkinPie();
+            case BREAD_INDEPENDENT:
+                return new CinnamonRoll();
+            case midAutumnFestival:
+                return new SaltyMooncake();
+            case NONE:
+            default:
+                return new Pasty();
         }
     }
 	
