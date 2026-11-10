@@ -43,7 +43,7 @@ import com.watabou.utils.PointF;
 public class SuperNovaTracker extends Buff {
 
 	public int pos;
-	private int depth = Dungeon.curDepth();
+	private int depth = Dungeon.depth();
 
 	private int turnsLeft = 10;
 	public boolean harmsAllies = true;
@@ -56,7 +56,7 @@ public class SuperNovaTracker extends Buff {
 	@Override
 	public boolean act() {
 
-		if (depth != Dungeon.curDepth()){
+		if (depth != Dungeon.depth()){
 			spend(TICK);
 			return true;
 		}
@@ -142,7 +142,7 @@ public class SuperNovaTracker extends Buff {
 
 	@Override
 	public void fx(boolean on) {
-		if (on && depth == Dungeon.curDepth()
+		if (on && depth == Dungeon.depth()
 				&& (halo == null || halo.parent == null)){
 			halo = new NovaVFX();
 			PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);

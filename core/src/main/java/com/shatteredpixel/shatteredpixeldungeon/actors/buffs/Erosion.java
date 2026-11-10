@@ -104,12 +104,12 @@ public class Erosion extends Buff {
 
 	/** 每回合侵蚀伤害：层数*楼层*0.5 */
 	public int erodedDamage() {
-		return Math.max(1, Math.round(stacks * Dungeon.cur().depth * 0.5f));
+		return Math.max(1, Math.round(stacks * Dungeon.depth() * 0.5f));
 	}
 
 	/** 死亡自爆伤害：12+楼层*1.5 */
 	public static int explosionDamage() {
-		return Math.round(12 + Dungeon.cur().depth * 1.5f);
+		return Math.round(12 + Dungeon.depth() * 1.5f);
 	}
 
 	@Override

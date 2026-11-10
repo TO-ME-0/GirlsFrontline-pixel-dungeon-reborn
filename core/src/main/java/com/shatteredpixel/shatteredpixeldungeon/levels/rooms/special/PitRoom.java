@@ -86,7 +86,7 @@ public class PitRoom extends SpecialRoom {
 		int n = Random.IntRange( 1, 2 );
 		for (int i=0; i < n; i++)
 			level.drop( prize( level ), remains ).setHauntedIfCursed().setRoom(Heap.Room.Pit);
-		level.drop( new CrystalKey( Dungeon.cur().depth ), remains ).setType(Heap.Type.SKELETON).setRoom(Heap.Room.Pit);
+		level.drop( new CrystalKey( Dungeon.depth() ), remains ).setType(Heap.Type.SKELETON).setRoom(Heap.Room.Pit);
 	}
 	
 	private static Item prize( Level level ) {

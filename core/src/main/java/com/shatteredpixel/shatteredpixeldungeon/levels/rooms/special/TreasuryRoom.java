@@ -57,7 +57,7 @@ public class TreasuryRoom extends SpecialRoom {
 			} while (level.map[pos] != Terrain.EMPTY || level.heaps.get( pos ) != null || level.findMob(pos) != null);
 			//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
 			float mimicChance = 1/5f * MimicTooth.mimicChanceMultiplier();
-			if (heapType == Heap.Type.CHEST && Dungeon.cur().depth > 1 && Random.Float() < mimicChance){
+			if (heapType == Heap.Type.CHEST && Dungeon.depth() > 1 && Random.Float() < mimicChance){
 				level.mobs.add(Mimic.spawnAt(pos, item));
 			} else {
 				level.drop( item, pos ).type = heapType;
@@ -75,6 +75,6 @@ public class TreasuryRoom extends SpecialRoom {
 		}
 		
 		entrance().set( Door.Type.LOCKED );
-		level.addItemToSpawn( new IronKey( Dungeon.cur().depth ) );
+		level.addItemToSpawn( new IronKey( Dungeon.depth() ) );
 	}
 }

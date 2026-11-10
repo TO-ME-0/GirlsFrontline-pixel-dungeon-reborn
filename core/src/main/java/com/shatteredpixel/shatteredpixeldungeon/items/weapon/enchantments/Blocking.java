@@ -59,7 +59,7 @@ public class Blocking extends Weapon.Enchantment {
 		public void setBlocking( int blocking ){
 			if (this.blocking < blocking)
 				this.blocking = blocking;
-			else if (this.blocking < Dungeon.cur().depth / 2F)
+			else if (this.blocking < Dungeon.depth() / 2F)
 				this.blocking++;
 			else
 				this.blocking += 0.5F;

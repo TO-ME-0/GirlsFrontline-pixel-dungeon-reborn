@@ -98,7 +98,7 @@ public class GeminiMissile extends Geminis {
                 continue;
             if (ch.alignment == alignment || ch instanceof Geminis)
                 continue;
-            ch.damage(Random.NormalIntRange(0, Dungeon.cur().depth/5), this);
+            ch.damage(Random.NormalIntRange(0, Dungeon.depth()/5), this);
             if (ch instanceof Mob && twin != null)
                 ((Mob) ch).aggro(twin);
         }

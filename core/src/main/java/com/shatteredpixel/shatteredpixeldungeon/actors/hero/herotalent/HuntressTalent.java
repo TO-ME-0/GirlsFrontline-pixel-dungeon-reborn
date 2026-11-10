@@ -273,7 +273,7 @@ public final class HuntressTalent {
 	/** 预知射击：在落点挂揭示区域并进入冷却 */
 	public static void applySeerShot( Hero hero, int cell ){
 		RevealedArea a = Buff.affect(hero, RevealedArea.class, seerShotMaxDuration(hero));
-		a.depth = Dungeon.cur().depth;
+		a.depth = Dungeon.depth();
 		a.pos = cell;
 		Buff.affect(hero, Talent.SeerShotCooldown.class, 20f);
 	}

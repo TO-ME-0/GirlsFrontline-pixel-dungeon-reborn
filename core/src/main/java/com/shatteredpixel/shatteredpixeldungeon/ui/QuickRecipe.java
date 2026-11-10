@@ -270,7 +270,7 @@ public class QuickRecipe extends Component {
 	public static int SPELL = 9;
 	public static ArrayList<QuickRecipe> getRecipes( int pageIdx ){
 		if (Dungeon.hero() == null)
-			Dungeon.cur().hero = new Hero();
+			Dungeon.hero(new Hero());
 		ArrayList<QuickRecipe> result = new ArrayList<>();
 		switch (pageIdx){
 			case 0: default:

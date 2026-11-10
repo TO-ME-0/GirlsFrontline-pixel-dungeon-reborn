@@ -191,7 +191,7 @@ public class Grass extends Item {
                         Dungeon.hero().spend(1);
                     }
                     else if (Dungeon.level.solid[target] && !Dungeon.level.flammable[target] &&
-                            !Dungeon.level.flammableB[target] && Dungeon.cur().depth %5 != 0) {
+                            !Dungeon.level.flammableB[target] && Dungeon.depth() %5 != 0) {
                         Dungeon.level.flammableB[target] = true;
                         removeGrass(costB);
                         Dungeon.hero().spend(1);

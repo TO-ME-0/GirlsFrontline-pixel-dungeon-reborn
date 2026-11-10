@@ -171,13 +171,13 @@ public class GirlsFrontlinePixelDungeon extends Game {
 	}
 	public static void reportException( Throwable tr ) {
 		Game.GameMode = Dungeon.GameMode;
-		Game.Seed = Dungeon.cur().seed;
+		Game.Seed = Dungeon.seed();
 		Game.Challenges = Dungeon.challenges;
 		Game.reportException(tr);
 	}
 	public static void saveCrashReport( Throwable tr ){
 		Game.GameMode = Dungeon.GameMode;
-		Game.Seed = Dungeon.cur().seed;
+		Game.Seed = Dungeon.seed();
 		Game.Challenges = Dungeon.challenges;
 		if (instance != null)
 			Game.saveCrashReport(tr);

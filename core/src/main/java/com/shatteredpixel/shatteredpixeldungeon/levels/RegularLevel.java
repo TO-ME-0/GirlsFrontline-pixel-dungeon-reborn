@@ -136,7 +136,7 @@ public abstract class RegularLevel extends Level {
 			initRooms.add(s);
 		}
 		
-		int secrets = SecretRoom.secretsForFloor(Dungeon.cur().depth);
+		int secrets = SecretRoom.secretsForFloor(Dungeon.depth());
 		//one additional secret for secret levels
 		if (feeling == Feeling.SECRETS) secrets++;
 		for (int i = 0; i < secrets; i++) {
@@ -172,7 +172,7 @@ public abstract class RegularLevel extends Level {
 	protected abstract Painter painter();
 	
 	protected int nTraps() {
-		return Random.NormalIntRange( 2, 3 + (Dungeon.cur().depth/5) );
+		return Random.NormalIntRange( 2, 3 + (Dungeon.depth()/5) );
 	}
 	
 	protected Class<?>[] trapClasses(){
@@ -185,9 +185,9 @@ public abstract class RegularLevel extends Level {
 	
 	@Override
 	public int mobLimit() {
-		if (Dungeon.cur().depth <= 1) return 0;
+		if (Dungeon.depth() <= 1) return 0;
 
-		int mobs = 3 + Dungeon.cur().depth % 5 + Random.Int(3);
+		int mobs = 3 + Dungeon.depth() % 5 + Random.Int(3);
 		if (feeling == Feeling.LARGE){
 			mobs = (int)Math.ceil(mobs * 1.33f);
 		}
@@ -197,7 +197,7 @@ public abstract class RegularLevel extends Level {
 	@Override
 	protected void createMobs() {
 		//on floor 1, 8 pre-set mobs are created so the player can get level 2.
-		int mobsToSpawn = Dungeon.cur().depth == 1 ? 8 : mobLimit();
+		int mobsToSpawn = Dungeon.depth() == 1 ? 8 : mobLimit();
 
 		ArrayList<Room> stdRooms = new ArrayList<>();
 		for (Room room : rooms) {
@@ -231,7 +231,7 @@ public abstract class RegularLevel extends Level {
 				mobs.add(mob);
 
 				//chance to add a second mob to this room, except on floor 1
-				if (Dungeon.cur().depth > 1 && mobsToSpawn > 0 && Random.Int(4) == 0){
+				if (Dungeon.depth() > 1 && mobsToSpawn > 0 && Random.Int(4) == 0){
 					mob = createMob();
 
 					tries = 30;
@@ -351,7 +351,7 @@ public abstract class RegularLevel extends Level {
 				break;
 			case 5:
 				//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
-				if (Dungeon.cur().depth > 1 && findMob(cell) == null
+				if (Dungeon.depth() > 1 && findMob(cell) == null
 						&& Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f)/4f){
 					mobs.add(Mimic.spawnAt(cell, toDrop));
 					continue;
@@ -368,13 +368,13 @@ public abstract class RegularLevel extends Level {
 
 				//拟态怪之牙饰品：增加金宝箱怪生成概率（实现见 MimicTooth）
 				float mimicChance = 1/10f * MimicTooth.mimicChanceMultiplier();
-				if (Dungeon.cur().depth > 1 && Random.Float() < mimicChance && findMob(cell) == null){
+				if (Dungeon.depth() > 1 && Random.Float() < mimicChance && findMob(cell) == null){
 					mobs.add(Mimic.spawnAt(cell, toDrop, GoldenMimic.class));
 				} else {
 					Heap dropped = drop(toDrop, cell);
 					if (heaps.get(cell) == dropped) {
 						dropped.type = Heap.Type.LOCKED_CHEST;
-						addItemToSpawn(new GoldenKey(Dungeon.cur().depth));
+						addItemToSpawn(new GoldenKey(Dungeon.depth()));
 					}
 				}
 			} else {
@@ -392,7 +392,7 @@ public abstract class RegularLevel extends Level {
 			if (item instanceof TrinketCatalyst){
 				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
 				int keyCell = randomDropCell();
-				drop( new GoldenKey(Dungeon.cur().depth), keyCell ).type = Heap.Type.HEAP;
+				drop( new GoldenKey(Dungeon.depth()), keyCell ).type = Heap.Type.HEAP;
 				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
 					map[keyCell] = Terrain.GRASS;
 					losBlocking[keyCell] = false;
@@ -422,7 +422,7 @@ public abstract class RegularLevel extends Level {
 		DriedRose rose = Dungeon.hero().belongings.getItem( DriedRose.class );
 		if (rose != null && rose.isIdentified() && !rose.cursed){
 			//aim to drop 1 petal every 2 floors
-			int petalsNeeded = (int) Math.ceil((float)((Dungeon.cur().depth / 2) - rose.droppedPetals) / 3);
+			int petalsNeeded = (int) Math.ceil((float)((Dungeon.depth() / 2) - rose.droppedPetals) / 3);
 
 			for (int i=1; i <= petalsNeeded; i++) {
 				//the player may miss a single petal and still max their rose.
@@ -507,7 +507,7 @@ public abstract class RegularLevel extends Level {
 		missingPages.remove(Document.GUIDE_SEARCHING);
 
 		//chance to find a page is 0/25/50/75/100% for floors 1/2/3/4/5+
-		float dropChance = 0.25f*(Dungeon.cur().depth-1);
+		float dropChance = 0.25f*(Dungeon.depth()-1);
 		if (!missingPages.isEmpty() && Random.Float() < dropChance){
 			GuidePage p = new GuidePage();
 			p.page(missingPages.get(0));

@@ -522,7 +522,7 @@ public abstract class SeedFinder implements Runnable {
     }
 
     protected boolean testSeed(long seed) {
-        Dungeon.cur().hero = null;
+        Dungeon.hero(null);
         //worker 的 initHero 读取静态 selectedClass：必须与场景所选职业一致，
         //否则天才/盗贼天赋、初始容器（LimitedDrops）都会按错误的英雄生成
         GamesInProgress.selectedClass = heroClass;
@@ -757,7 +757,7 @@ public abstract class SeedFinder implements Runnable {
     protected String logSeedItems(long seed) {
         String seedCode = DungeonSeed.convertToCode(seed);
         SeedFindScene.seedCode = seedCode;
-        Dungeon.cur().hero = null;
+        Dungeon.hero(null);
         GamesInProgress.selectedClass = heroClass;
         Dungeons.cur().init(seedCode);
 

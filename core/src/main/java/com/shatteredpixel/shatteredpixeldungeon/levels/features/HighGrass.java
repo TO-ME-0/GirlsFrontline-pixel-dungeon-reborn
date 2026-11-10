@@ -99,9 +99,9 @@ public class HighGrass {
 
 					//If we're behind: 1/10, if we're on page: 1/30, if we're ahead: 1/90
 					boolean droppingBerry = false;
-					if (Dungeon.cur().depth > targetFloor)        droppingBerry = Random.Int(10) == 0;
-					else if (Dungeon.cur().depth == targetFloor)  droppingBerry = Random.Int(30) == 0;
-					else if (Dungeon.cur().depth < targetFloor)   droppingBerry = Random.Int(90) == 0;
+					if (Dungeon.depth() > targetFloor)        droppingBerry = Random.Int(10) == 0;
+					else if (Dungeon.depth() == targetFloor)  droppingBerry = Random.Int(30) == 0;
+					else if (Dungeon.depth() < targetFloor)   droppingBerry = Random.Int(90) == 0;
 
 					if (droppingBerry){
 						berries.countDown(1);

@@ -74,9 +74,9 @@ public class SecondSightCooldown extends Buff {
         if (level == 0)
             return false;
         int depth = level % 1000;
-        return GameMath.gate(Dungeon.cur().depth-2,
+        return GameMath.gate(Dungeon.depth()-2,
                 depth,
-                Dungeon.cur().depth+2) == depth;
+                Dungeon.depth()+2) == depth;
     }
     public void tintIcon(Image icon) {
         icon.hardlight(1F, 2F, 3F);

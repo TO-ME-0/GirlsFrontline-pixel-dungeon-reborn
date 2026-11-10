@@ -127,7 +127,7 @@ public class WndGameInProgress extends Window {
 				super.onClick();
                 boolean isTest = GamesInProgress.isChallenged(info.challenges,Challenges.TEST_MODE);
                 InterlevelScene.isStart=DeviceCompat.isDebug()|| isTest;
-				Dungeon.cur().hero = null;
+				Dungeon.hero(null);
 				ActionIndicator.clearAll();
 				GamesInProgress.curSlot = slot;
 				InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;

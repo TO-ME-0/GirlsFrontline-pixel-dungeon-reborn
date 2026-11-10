@@ -94,7 +94,7 @@ public class SacrificialFire extends Blob {
 		}
 
 		//a bit brittle, assumes only one tile of sacrificial fire can exist per floor
-		int max = 6 + Dungeon.curDepth() * 4;
+		int max = 6 + Dungeon.depth() * 4;
 		curEmitter.pour( SacrificialParticle.FACTORY, 0.01f + ((volume / (float)max) * 0.09f) );
 	}
 
@@ -104,7 +104,7 @@ public class SacrificialFire extends Blob {
 		curEmitter = emitter;
 
 		//a bit brittle, assumes only one tile of sacrificial fire can exist per floor
-		int max = 6 + Dungeon.curDepth() * 4;
+		int max = 6 + Dungeon.depth() * 4;
 		curEmitter.pour( SacrificialParticle.FACTORY, 0.01f + ((volume / (float)max) * 0.09f) );
 	}
 
@@ -144,11 +144,11 @@ public class SacrificialFire extends Blob {
 			if (ch instanceof Mob) {
 				//same rates as used in wand of corruption, except for swarms
 				if (ch instanceof SksStatue || ch instanceof Mimic){
-					exp = 1 + Dungeon.curDepth();
+					exp = 1 + Dungeon.depth();
 				} else if (ch instanceof Piranha || ch instanceof Bee) {
-					exp = 1 + Dungeon.curDepth()/2;
+					exp = 1 + Dungeon.depth()/2;
 				} else if (ch instanceof Wraith) {
-					exp = 1 + Dungeon.curDepth()/3;
+					exp = 1 + Dungeon.depth()/3;
 				} else if (ch instanceof Swarm && ((Swarm) ch).EXP == 0){
 					//give 1 exp for child swarms, instead of 0
 					exp = 1;

@@ -260,7 +260,7 @@ public class Excutioner extends Mob {
 		Dungeon.level.unseal();
 		
 		GameScene.bossSlain();
-		Dungeon.level.drop( new SkeletonKey( Dungeon.cur().depth ), pos ).sprite.drop();
+		Dungeon.level.drop( new SkeletonKey( Dungeon.depth() ), pos ).sprite.drop();
 
 		Badges.KILL_EXCUTION();
 		

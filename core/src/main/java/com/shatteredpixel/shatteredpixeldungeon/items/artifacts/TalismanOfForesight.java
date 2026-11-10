@@ -387,7 +387,7 @@ public class TalismanOfForesight extends Artifact {
 	public static class HeapAwareness extends FlavourBuff {
 
 		public int pos;
-		public int depth = Dungeon.cur().depth;
+		public int depth = Dungeon.depth();
 
 		private static final String POS = "pos";
 		private static final String DEPTH = "depth";

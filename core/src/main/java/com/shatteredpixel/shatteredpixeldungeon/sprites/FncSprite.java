@@ -67,7 +67,7 @@ public class FncSprite extends MobSprite {
             }
         }
 
-        if(Dungeon.cur().depth==0 && XMAS){
+        if(Dungeon.depth()==0 && XMAS){
             //0层圣诞节锁定皮肤
             id = 2;
         }

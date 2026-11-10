@@ -283,7 +283,7 @@ public class RingOfWealth extends Ring {
 	}
 
     private static Item genEquipmentDrop(int level) {
-        int floorset = (Dungeon.cur().depth + level) / 5;
+        int floorset = (Dungeon.depth() + level) / 5;
         Item result;
         switch (Random.Int(5)) {
             case 0:

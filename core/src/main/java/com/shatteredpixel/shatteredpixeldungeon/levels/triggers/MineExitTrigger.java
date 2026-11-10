@@ -90,7 +90,7 @@ public class MineExitTrigger extends Trigger {
 
 	//返回矿洞对应的主层：returnPos=-3 由 InterlevelScene.returnTo 解析为铁匠房入口格
 	private static void leaveMine(){
-		InterlevelScene.returnDepth = Dungeon.cur().depth;
+		InterlevelScene.returnDepth = Dungeon.depth();
 		InterlevelScene.returnBranch = 0;
 		InterlevelScene.returnPos = -3;
 		InterlevelScene.mode = InterlevelScene.Mode.RETURN;

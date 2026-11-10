@@ -202,7 +202,7 @@ public class ShopRoom extends SpecialRoom {
 		MeleeWeapon w;
         Armor a;
         MissileWeapon m;
-		switch (Dungeon.cur().depth) {
+		switch (Dungeon.depth()) {
 		case 6: default:
 			w = (MeleeWeapon) Generator.random(Generator.wepTiers[1]);
 			m = (MissileWeapon) Generator.random(Generator.misTiers[1]).quantity(2);
@@ -238,14 +238,14 @@ public class ShopRoom extends SpecialRoom {
             itemsToSpawn.add(new Torch());
             break;
 		}
-		if (Dungeon.cur().depth == 25){
+		if (Dungeon.depth() == 25){
 			w.identify(false);
 			m.identify(false);
 			a.identify(false);
 		}
 		w.enchant(null);
 		w.cursed = false;
-        if (Dungeon.cur().depth == 25 && Random.Int(3) == 0) {
+        if (Dungeon.depth() == 25 && Random.Int(3) == 0) {
 			if (Random.Int(3) == 0)
 				w.upgrade();
 		}
@@ -255,7 +255,7 @@ public class ShopRoom extends SpecialRoom {
 
         a.inscribe(null);
         a.cursed = false;
-        if (Dungeon.cur().depth == 25) {
+        if (Dungeon.depth() == 25) {
 			if (Random.Int(3) == 0)
 				a.upgrade();
 		}
@@ -264,7 +264,7 @@ public class ShopRoom extends SpecialRoom {
         itemsToSpawn.add(a);
 
         m.level(0);
-        if (Dungeon.cur().depth==25){
+        if (Dungeon.depth()==25){
             int C = Random.Int(100);
             int lvl = 0;
             if (C < 5) {
@@ -289,7 +289,7 @@ public class ShopRoom extends SpecialRoom {
 		addFixedStock( itemsToSpawn, new PotionOfHealing() );
 		itemsToSpawn.add( Generator.randomUsingDefaults( Generator.Category.POTION ) );
 		itemsToSpawn.add( Generator.randomUsingDefaults( Generator.Category.POTION ) );
-        if (Dungeon.cur().depth == 25) {
+        if (Dungeon.depth() == 25) {
             if (Random.Int(2) == 0) {
                 if (Random.Int(2) == 0) {
                     addFixedStock( itemsToSpawn, new PotionOfExperience() );
@@ -373,7 +373,7 @@ public class ShopRoom extends SpecialRoom {
 			int bags = 0;
 			//creates the given float percent of the remaining bags to be dropped.
 			//this way players who get the hourglass late can still max it, usually.
-			switch (Dungeon.cur().depth) {
+			switch (Dungeon.depth()) {
 				case 6:
 					bags = (int)Math.ceil(( 5-hourglass.sandBags) * 0.20f ); break;
 				case 11:
@@ -396,14 +396,14 @@ public class ShopRoom extends SpecialRoom {
 		switch (Random.Int(10)){
 			case 0:
 				rare = Generator.random( Generator.Category.WAND );
-                if (!(Dungeon.cur().depth == 25)) {
+                if (!(Dungeon.depth() == 25)) {
                     rare.level(0);
                 }
                 rare.identify(false);
 				break;
 			case 1:
 				rare = Generator.random(Generator.Category.RING);
-                if (!(Dungeon.cur().depth == 25)) {
+                if (!(Dungeon.depth() == 25)) {
                     rare.level(0);
                 }
 				break;

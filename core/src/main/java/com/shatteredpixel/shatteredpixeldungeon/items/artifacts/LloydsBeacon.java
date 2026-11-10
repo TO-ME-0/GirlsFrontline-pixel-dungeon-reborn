@@ -134,7 +134,7 @@ public class LloydsBeacon extends Artifact {
 
 		if (action.equals(AC_SET) || action.equals(AC_RETURN)) {
 			
-			if (Dungeon.level.prevent || Dungeon.cur().branch == 0) {
+			if (Dungeon.level.prevent || Dungeon.branch() == 0) {
 				hero.spend( LloydsBeacon.TIME_TO_USE );
 				GLog.w( Messages.get(this, "preventing") );
 				return;
@@ -152,7 +152,7 @@ public class LloydsBeacon extends Artifact {
 		if (action.equals(AC_ZAP) ){
 
 			curUser = hero;
-			int chargesToUse = Dungeon.cur().depth / 20 + 1;
+			int chargesToUse = Dungeon.depth() / 20 + 1;
 
 			if (!isEquipped( hero )) {
 				GLog.i( Messages.get(Artifact.class, "need_to_equip") );
@@ -330,7 +330,7 @@ public class LloydsBeacon extends Artifact {
             if (ch == null) return;
             Sample.INSTANCE.play(Assets.Sounds.ZAP);
             Invisibility.dispel();
-            charge -= Dungeon.cur().depth / 20 + 1;
+            charge -= Dungeon.depth() / 20 + 1;
             updateQuickslot();
             
             PathFinder.buildDistanceMap(Dungeon.level.entrance, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));

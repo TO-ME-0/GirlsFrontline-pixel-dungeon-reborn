@@ -103,7 +103,7 @@ public class SewerLevel extends RegularLevel {
 	
 	@Override
 	protected Class<?>[] trapClasses() {
-		return Dungeon.cur().depth == 1 ?
+		return Dungeon.depth() == 1 ?
 				new Class<?>[]{ WornDartTrap.class } :
 				new Class<?>[]{
 						ChillingTrap.class, ShockingTrap.class, ToxicTrap.class, WornDartTrap.class,
@@ -113,7 +113,7 @@ public class SewerLevel extends RegularLevel {
 
 	@Override
 	protected float[] trapChances() {
-		return Dungeon.cur().depth == 1 ?
+		return Dungeon.depth() == 1 ?
 				new float[]{1} :
 				new float[]{
 						4, 4, 4, 4,
@@ -124,7 +124,7 @@ public class SewerLevel extends RegularLevel {
 	@Override
 	protected void createItems() {
 		Ghost.Quest.cur().spawn( this );
-		if (Dungeon.cur().depth == 1) {
+		if (Dungeon.depth() == 1) {
 			if (SPDSettings.isBirthday())
 				itemsToSpawn.add(new WholeCake(Messages.get(WholeCake.class, "ONWARD"), Messages.get(WholeCake.class, "TO_ME")));
 			if (SPDSettings.isSpecialDay())

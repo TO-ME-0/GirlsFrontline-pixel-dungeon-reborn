@@ -200,125 +200,19 @@ public class Blacksmith extends NPC {
 		return true;
 	}
 
-	/*
-	// ===== 旧版重铸规则（verify/upgrade），照搬 3.3.8 后由 WndBlacksmith.WndReforge 内联实现，此处整段保留备查 =====
-	public static String verify( Item item1, Item item2 ) {
-
-		if (item1 == item2 && (item1.quantity() == 1 && item2.quantity() == 1)) {
-			return Messages.get(Blacksmith.class, "same_item");
-		}
-
-		if (item1 instanceof Armor
-				&& item2 instanceof Armor && ((Armor) item2).tier == ((Armor) item1).tier) {
-			return null;
-		}
-
-		if (item1 instanceof MagesStaff && item2.getClass() == ((MagesStaff) item1).wand.getClass()
-				|| item2 instanceof MagesStaff && item1.getClass() == ((MagesStaff) item2).wand.getClass()) {
-			return null;
-		}
-
-		if (item1.getClass() != item2.getClass()) {
-			return Messages.get(Blacksmith.class, "diff_type");
-		}
-
-		if (!item1.cursedKnown || !item2.cursedKnown) {
-			return Messages.get(Blacksmith.class, "un_ided");
-		}
-
-		if (item1.cursed || item2.cursed ||
-				(item1 instanceof Armor && ((Armor) item1).hasCurseGlyph()) ||
-				(item2 instanceof Armor && ((Armor) item2).hasCurseGlyph()) ||
-				(item1 instanceof Weapon && ((Weapon) item1).hasCurseEnchant()) ||
-				(item2 instanceof Weapon && ((Weapon) item2).hasCurseEnchant())) {
-			return Messages.get(Blacksmith.class, "cursed");
-		}
-
-		if (item1.level() < 0 || item2.level() < 0) {
-			return Messages.get(Blacksmith.class, "degraded");
-		}
-
-		if (!item1.isUpgradable() || !item2.isUpgradable()) {
-			return Messages.get(Blacksmith.class, "cant_reforge");
-		}
-
-		return null;
-	}
-
-	public static void upgrade( ArrayList<Item> items, ArrayList<Class<? extends Item>> itemsClass ) {
-
-		Item first, second;
-		if (itemsClass.contains(ClassArmor.class)){
-			first = items.remove(itemsClass.indexOf(ClassArmor.class));
-			second = items.get(0);
-		}
-		else if (itemsClass.contains(MagesStaff.class)) {
-			first = items.remove(itemsClass.indexOf(MagesStaff.class));
-			second = items.get(0);
-		}
-		else {
-			Item item1 = items.get(0);
-			Item item2 = items.get(1);
-			if (item1.levelKnown && item2.levelKnown) {
-				if (item2.level() > item1.level()) {
-					first = item2;
-					second = item1;
-				} else {
-					first = item1;
-					second = item2;
-				}
-			} else if (!item1.levelKnown) {
-				first = item2;
-				second = item1;
-			} else {
-				first = item1;
-				second = item2;
-			}
-		}
-
-		Sample.INSTANCE.play( Assets.Sounds.EVOKE );
-		ScrollOfUpgrade.upgrade( Dungeon.hero() );
-		Item.evoke( Dungeon.hero() );
-
-		if (second.isEquipped( Dungeon.hero() )) {
-			((EquipableItem)second).doUnequip( Dungeon.hero(), false );
-		}
-		second.detach( Dungeon.hero().belongings.backpack );
-
-		if (second instanceof Armor){
-			BrokenSeal seal = ((Armor) second).checkSeal();
-			if (seal != null){
-				Dungeon.level.drop( seal, Dungeon.hero().pos );
-			}
-		}
-
-		//preserves enchant/glyphs if present
-		if (first instanceof Weapon && ((Weapon) first).hasGoodEnchant()){
-			((Weapon) first).upgrade(true);
-		} else if (first instanceof Armor && ((Armor) first).hasGoodGlyph()){
-			((Armor) first).upgrade(true);
-		} else {
-			first.upgrade();
-		}
-		Catalog.countUse(first.getClass());
-		Dungeon.hero().spendAndNext( 2f );
-		Badges.validateItemLevelAquired( first );
-		Item.updateQuickslot();
-
-		Quest.cur().reforged = true;
-
-		Notes.remove( Notes.Landmark.TROLL );
-	}
-	*/
-
 	public static class Quest {
 
 		public static Quest cur() {
 			return Dungeons.cur().blacksmithQuest;
 		}
-		//仅用于存档读写（始终发生在主线程），避免误序列化 worker 状态
-		public static Quest main() {
-			return Dungeons.MAIN().blacksmithQuest;
+		public static void store( Bundle bundle ) {
+			Dungeons.MAIN().blacksmithQuest.storeInBundle( bundle );
+		}
+		public static void restore( Bundle bundle ) {
+			Dungeons.MAIN().blacksmithQuest.restoreFromBundle( bundle );
+		}
+		public static void reset() {
+			cur().resetAll();
 		}
 
 		//矿洞生成相关房间/关卡使用的任务类型便捷访问（对齐 3.3.8 Quest.Type()）
@@ -363,7 +257,7 @@ public class Blacksmith extends NPC {
 		//旧版任务存档迁移标记（不写入存档）：首次交互时清暗金、补矿洞入口并转接新任务
 		public transient boolean needMigration;
 
-		public void reset() {
+		private void resetAll() {
 			type        = 0;
 
 			spawned		= false;
@@ -411,7 +305,7 @@ public class Blacksmith extends NPC {
 		//旧版存档键，仅用于识别旧存档（REFORGED 在新版中不再写入）
 		private static final String REFORGED	= "reforged";
 
-		public void storeInBundle( Bundle bundle ) {
+		private void storeInBundle( Bundle bundle ) {
 
 			Bundle node = new Bundle();
 
@@ -446,12 +340,12 @@ public class Blacksmith extends NPC {
 			bundle.put( NODE, node );
 		}
 
-		public void restoreFromBundle( Bundle bundle ) {
+		private void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
 
 			if (node.isNull()) {
-				reset();
+				resetAll();
 				return;
 			}
 
@@ -490,7 +384,7 @@ public class Blacksmith extends NPC {
 			//识别旧版任务存档（旧版写 reforged 键，新版不再写）
 			if (node.contains( REFORGED )) {
 				boolean oldReforged = node.getBoolean( REFORGED );
-				reset();
+				resetAll();
 				spawned = true;
 				if (oldReforged) {
 					//已领取旧版重铸奖励：视为新版任务已完成、无剩余 favor
@@ -526,7 +420,7 @@ public class Blacksmith extends NPC {
 		}
 
 		public ArrayList<Room> spawn( ArrayList<Room> rooms ) {
-			if (!spawned && Dungeon.cur().depth > 11 && Random.Int( 15 - Dungeon.cur().depth ) == 0) {
+			if (!spawned && Dungeon.depth() > 11 && Random.Int( 15 - Dungeon.depth() ) == 0) {
 
 				rooms.add(new BlacksmithRoom());
 				spawned = true;
@@ -547,7 +441,7 @@ public class Blacksmith extends NPC {
 		public void generateRewards(){
 			if (smithRewards != null) return;
 			//子种子异或常量（ASCII "SMITH"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.cur().seed ^ 0x534D495448L );
+			Random.pushGenerator( Dungeon.seed() ^ 0x534D495448L );
 			try {
 			smithRewards = new ArrayList<>();
 			smithRewards.add(Generator.randomWeapon(3));
@@ -653,7 +547,7 @@ public class Blacksmith extends NPC {
 			}
 
 			//铁匠任务完成：抽卡冷却 -1000 回合（仅当前间隔生效；种子搜索时跳过）
-			if (!Dungeons.cur().isSearch)
+			if (!Dungeon.isSearch())
 				CardSelector.INSTANCE().coolDown(1000);
 		}
 

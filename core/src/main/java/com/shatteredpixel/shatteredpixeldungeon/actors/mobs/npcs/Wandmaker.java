@@ -182,9 +182,14 @@ public class Wandmaker extends NPC {
 		public static Quest cur() {
 			return Dungeons.cur().wandmakerQuest;
 		}
-		//仅用于存档读写（始终发生在主线程），避免误序列化 worker 状态
-		public static Quest main() {
-			return Dungeons.MAIN().wandmakerQuest;
+		public static void store( Bundle bundle ) {
+			Dungeons.MAIN().wandmakerQuest.storeInBundle( bundle );
+		}
+		public static void restore( Bundle bundle ) {
+			Dungeons.MAIN().wandmakerQuest.restoreFromBundle( bundle );
+		}
+		public static void reset() {
+			cur().resetAll();
 		}
 		private int type;
         public int type(){
@@ -201,7 +206,7 @@ public class Wandmaker extends NPC {
 		public Wand wand1;
 		public Wand wand2;
 		
-		public void reset() {
+		private void resetAll() {
 			spawned = false;
 			type = 0;
 
@@ -219,7 +224,7 @@ public class Wandmaker extends NPC {
 
 		private static final String RITUALPOS	= "ritualpos";
 		
-		public void storeInBundle( Bundle bundle ) {
+		private void storeInBundle( Bundle bundle ) {
 			
 			Bundle node = new Bundle();
 			
@@ -246,11 +251,11 @@ public class Wandmaker extends NPC {
 			bundle.put( NODE, node );
 		}
 		
-		public void restoreFromBundle( Bundle bundle ) {
+		private void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
 			if (node.isNull()) {
-				reset();
+				resetAll();
 				return;
 			}
 
@@ -323,7 +328,7 @@ public class Wandmaker extends NPC {
 		public void genReward() {
 			if (wand1 != null) return;
 			//子种子异或常量（ASCII "WAND"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.cur().seed ^ 0x57414E44L );
+			Random.pushGenerator( Dungeon.seed() ^ 0x57414E44L );
 			try {
 				wand1 = (Wand) Generator.random(Generator.Category.WAND);
 				wand1.cursed = false;
@@ -341,7 +346,7 @@ public class Wandmaker extends NPC {
 		
 		public ArrayList<Room> spawnRoom( ArrayList<Room> rooms) {
 			questRoomSpawned = false;
-			if (!spawned && (type != 0 || (Dungeon.cur().depth > 6 && Random.Int( 10 - Dungeon.cur().depth ) == 0))) {
+			if (!spawned && (type != 0 || (Dungeon.depth() > 6 && Random.Int( 10 - Dungeon.depth() ) == 0))) {
 				
 				// decide between 1,2, or 3 for quest type.
 				if (type == 0) type = Random.Int(3)+1;
@@ -367,7 +372,7 @@ public class Wandmaker extends NPC {
 		public void complete() {
 			wand1 = null;
 			wand2 = null;
-			if (Dungeons.cur().isSearch) return;
+			if (Dungeon.isSearch()) return;
 
 			CardSelector.INSTANCE().coolDown(1000);
 			Notes.remove( Notes.Landmark.WANDMAKER );

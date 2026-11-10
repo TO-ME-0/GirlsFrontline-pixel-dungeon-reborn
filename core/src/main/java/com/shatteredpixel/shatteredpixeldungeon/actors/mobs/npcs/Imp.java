@@ -179,8 +179,14 @@ public class Imp extends NPC {
 		public static Quest cur() {
 			return Dungeons.cur().impQuest;
 		}
-		public static Quest main() {
-			return Dungeons.MAIN().impQuest;
+		public static void store( Bundle bundle ) {
+			Dungeons.MAIN().impQuest.storeInBundle( bundle );
+		}
+		public static void restore( Bundle bundle ) {
+			Dungeons.MAIN().impQuest.restoreFromBundle( bundle );
+		}
+		public static void reset() {
+			cur().resetAll();
 		}
 
 		public boolean spawned;
@@ -210,7 +216,7 @@ public class Imp extends NPC {
 		public boolean mirrorUsed = false;
 		public int score; //非排行榜分数，未计算惩罚
 
-		public void reset() {
+		private void resetAll() {
 			spawned = false;
 			oldQuest = false;
 			given = false;
@@ -242,7 +248,7 @@ public class Imp extends NPC {
 		private static final String VAULT_EQUIP_OPTIONS = "vault_equip_";
 		private static final String MIRROR_USED = "mirror_used";
 
-		public void storeInBundle( Bundle bundle ) {
+		private void storeInBundle( Bundle bundle ) {
 
 			Bundle node = new Bundle();
 
@@ -272,12 +278,12 @@ public class Imp extends NPC {
 			bundle.put( NODE, node );
 		}
 
-		public void restoreFromBundle( Bundle bundle ) {
+		private void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
 
 			if (node.isNull()) {
-				reset();
+				resetAll();
 				return;
 			}
 
@@ -337,7 +343,7 @@ public class Imp extends NPC {
 
 		//新版任务：以 9×9 特殊房间的形式生成于 17~19 层（城市区）
 		public ArrayList<Room> spawn( ArrayList<Room> rooms ) {
-			if (!spawned && Dungeon.cur().depth > 16 && Random.Int( 20 - Dungeon.cur().depth ) == 0) {
+			if (!spawned && Dungeon.depth() > 16 && Random.Int( 20 - Dungeon.depth() ) == 0) {
 
 				rooms.add(new AmbitiousImpRoom());
 				spawned = true;
@@ -362,7 +368,7 @@ public class Imp extends NPC {
 		public void genReward() {
 			if (!rewardOptions.isEmpty()) return;
 			//子种子异或常量（ASCII "IMP4"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.cur().seed ^ 0x494D5034L );
+			Random.pushGenerator( Dungeon.seed() ^ 0x494D5034L );
 			try {
 				//0 位占位：神器项推迟到 spawn 由 genArtifact 填入；
 				//用可序列化的 ArtifactHolder（而非 null）占位，未 spawn 的存档读回后位置不会丢失
@@ -515,7 +521,7 @@ public class Imp extends NPC {
 			completed = true;
 
 			this.score = score;
-			if (Dungeons.cur().isSearch) return;
+			if (Dungeon.isSearch()) return;
 			Statistics.questScores[3] += score;
 			CardSelector.INSTANCE().coolDown(1000);
 			Notes.remove( Notes.Landmark.IMP );

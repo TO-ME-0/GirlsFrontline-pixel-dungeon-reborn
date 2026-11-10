@@ -528,7 +528,7 @@ public class GameScene extends PixelScene {
 			case DESCEND:
 			case FALL:
                 if (!Dungeon.isChallenged(Challenges.TEST_MODE))
-				    switch (Dungeon.cur().depth) {
+				    switch (Dungeon.depth()) {
 					case 1:
 						if(Script.checkChapter(Script.ID_SEWERS)) {
 							GameScene.scene.add(new WndDialog(new LevelPlot_P1()));
@@ -566,7 +566,7 @@ public class GameScene extends PixelScene {
 				break;
 		}
 
-		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.cur().depth );
+		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.depth() );
 		if (dropped != null) {
 			for (Item item : dropped) {
 				int pos = Dungeon.level.randomRespawnCell( null );
@@ -580,10 +580,10 @@ public class GameScene extends PixelScene {
 					Dungeon.level.drop( item, pos );
 				}
 			}
-			Dungeon.droppedItems.remove( Dungeon.cur().depth );
+			Dungeon.droppedItems.remove( Dungeon.depth() );
 		}
 		
-		ArrayList<Item> ported = Dungeon.portedItems.get( Dungeon.cur().depth );
+		ArrayList<Item> ported = Dungeon.portedItems.get( Dungeon.depth() );
 		if (ported != null){
 			//TODO currently items are only ported to boss rooms, so this works well
 			//might want to have a 'near entrance' function if items can be ported elsewhere
@@ -599,7 +599,7 @@ public class GameScene extends PixelScene {
 			}
 			Dungeon.level.heaps.get(pos).type = Heap.Type.CHEST;
 			Dungeon.level.heaps.get(pos).sprite.link(); //sprite reset to show chest
-			Dungeon.portedItems.remove( Dungeon.cur().depth );
+			Dungeon.portedItems.remove( Dungeon.depth() );
 		}
 
 		Dungeon.hero().next();
@@ -617,9 +617,9 @@ public class GameScene extends PixelScene {
 		Camera.main.panTo(hero.center(), 2.5f);
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
-			if (Dungeon.cur().depth == Statistics.deepestFloor
+			if (Dungeon.depth() == Statistics.deepestFloor
 					&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND || InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
-				GLog.h(Messages.get(this, "descend"), Dungeon.cur().depth);
+				GLog.h(Messages.get(this, "descend"), Dungeon.depth());
 				Sample.INSTANCE.play(Assets.Sounds.DESCEND);
 				
 				for (Char ch : Actor.chars()){
@@ -629,7 +629,7 @@ public class GameScene extends PixelScene {
 				}
 
 				int spawnersAbove = Statistics.spawnersAlive;
-				if (spawnersAbove > 0 && Dungeon.cur().depth <= 25) {
+				if (spawnersAbove > 0 && Dungeon.depth() <= 25) {
 					for (Mob m : Dungeon.level.mobs) {
 						if (m instanceof DemonSpawner && ((DemonSpawner) m).spawnRecorded) {
 							spawnersAbove--;
@@ -645,7 +645,7 @@ public class GameScene extends PixelScene {
 					}
 				}
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.RESURRECT) {
-				GLog.h(Messages.get(this, "resurrect"), Dungeon.cur().depth);
+				GLog.h(Messages.get(this, "resurrect"), Dungeon.depth());
 			} else {
 				// 根据当前楼层显示不同的进入消息
 				if (InterlevelScene.mode == InterlevelScene.Mode.ACCESS) {
@@ -666,11 +666,11 @@ public class GameScene extends PixelScene {
                             GLog.h(Messages.get(InterlevelScene.class, "access_workshop"));
                             break;
 						default:
-							GLog.h(Messages.get(this, "return"), Dungeon.cur().depth);
+							GLog.h(Messages.get(this, "return"), Dungeon.depth());
 							break;
 					}
 				} else {
-					GLog.h(Messages.get(this, "return"), Dungeon.cur().depth);
+					GLog.h(Messages.get(this, "return"), Dungeon.depth());
 				}
 			}
 

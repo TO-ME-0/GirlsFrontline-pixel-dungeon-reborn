@@ -66,8 +66,8 @@ public class SksStatue extends Mob {
 			weapon.enchant(Enchantment.random());
 			weapon.update();
 		}
-		HP = HT = 15 + Dungeon.curDepth() * 5;
-		defenseSkill = 4 + Dungeon.curDepth();
+		HP = HT = 15 + Dungeon.depth() * 5;
+		defenseSkill = 4 + Dungeon.depth();
 	}
 	
 	private static final String WEAPON	= "weapon";
@@ -106,7 +106,7 @@ public class SksStatue extends Mob {
 	
 	@Override
 	public int attackSkill( Char target ) {
-		return (int)((9 + Dungeon.curDepth()) * weapon.accuracyFactor(this));
+		return (int)((9 + Dungeon.depth()) * weapon.accuracyFactor(this));
 	}
 	
 	@Override
@@ -121,7 +121,7 @@ public class SksStatue extends Mob {
 
 	@Override
 	public int drRoll() {
-		return Random.NormalIntRange(0, Dungeon.curDepth() + weapon.defenseFactor(this));
+		return Random.NormalIntRange(0, Dungeon.depth() + weapon.defenseFactor(this));
 	}
 	
 	@Override

@@ -36,7 +36,7 @@ public abstract class PatchRoom extends StandardRoom {
 
 		int attempts = 0;
 		if (ensurePath){
-			PathFinder.cur().setMapSize(width()-2, height()-2);
+			PathFinder.setMapSize(width()-2, height()-2);
 			boolean valid;
 			do {
 				patch = Patch.generate(width()-2, height()-2, fill, clustering, true);
@@ -76,7 +76,7 @@ public abstract class PatchRoom extends StandardRoom {
 					attempts = 0;
 				}
 			} while (!valid);
-			PathFinder.cur().setMapSize(level.width(), level.height());
+			PathFinder.setMapSize(level.width(), level.height());
 		} else {
 			patch = Patch.generate(width()-2, height()-2, fill, clustering, true);
 		}

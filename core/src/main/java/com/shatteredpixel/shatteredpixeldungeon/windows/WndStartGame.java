@@ -205,7 +205,7 @@ public class WndStartGame extends Window {
 				if (GamesInProgress.selectedClass == null) return;
 				super.onClick();
 
-				Dungeon.cur().hero = null;
+				Dungeon.hero(null);
 				Dungeon.challenges = 0;
 				ActionIndicator.clearAll();
 				Toolbar.swappedQuickSlots = false; //新游戏重置快捷栏切换状态

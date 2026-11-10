@@ -263,7 +263,7 @@ public class WndRanking extends WndTabbed {
 			pos = statSlot( this, Messages.get(this, "health"), Integer.toString( Dungeon.hero().HT ), pos );
 			pos = statSlot( this, Messages.get(this, "duration"), Integer.toString( (int)Statistics.duration ), pos );
             setButton(pos);
-			pos = statSlot( this, Messages.get(this, "seed"), DungeonSeed.convertToCode(Dungeon.cur().seed) ,pos);
+			pos = statSlot( this, Messages.get(this, "seed"), DungeonSeed.convertToCode(Dungeon.seed()) ,pos);
 			pos = statSlot( this, Messages.get(this, "depth"), Integer.toString( Statistics.deepestFloor ), pos );
 			pos = statSlot( this, Messages.get(this, "enemies"), Integer.toString( Statistics.enemiesSlain ), pos );
 			pos = statSlot( this, Messages.get(this, "gold"), Integer.toString( Statistics.goldCollected ), pos );
@@ -313,7 +313,7 @@ public class WndRanking extends WndTabbed {
                         protected void onSelect(int index) {
                             super.onSelect(index);
                             if (index == 0) {
-                                SPDSettings.seedCode(DungeonSeed.convertToCode(Dungeon.cur().seed));
+                                SPDSettings.seedCode(DungeonSeed.convertToCode(Dungeon.seed()));
                             }
 
                         }

@@ -112,7 +112,7 @@ public class FieldPot extends NPC {
 
     @Override
     public int drRoll() {
-        return Random.NormalIntRange(Dungeon.cur().depth/2,Dungeon.cur().depth);
+        return Random.NormalIntRange(Dungeon.depth()/2,Dungeon.depth());
     }
 	
 	@Override

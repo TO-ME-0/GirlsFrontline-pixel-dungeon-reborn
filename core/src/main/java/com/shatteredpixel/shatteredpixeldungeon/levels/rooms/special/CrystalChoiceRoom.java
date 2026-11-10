@@ -126,10 +126,10 @@ public class CrystalChoiceRoom extends SpecialRoom {
 		));
 		level.drop(hidden, level.pointToCell(room2.center())).setType(Heap.Type.CHEST).setRoom(Heap.Room.Choice);
 
-		level.addItemToSpawn( new CrystalKey( Dungeon.cur().depth ) );
+		level.addItemToSpawn( new CrystalKey( Dungeon.depth() ) );
 
 		entrance().set( Door.Type.LOCKED );
-		level.addItemToSpawn( new IronKey( Dungeon.cur().depth ) );
+		level.addItemToSpawn( new IronKey( Dungeon.depth() ) );
 
 	}
 }

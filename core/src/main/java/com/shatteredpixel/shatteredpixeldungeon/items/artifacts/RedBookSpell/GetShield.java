@@ -22,13 +22,13 @@ public class GetShield extends BookSpell{
 
     @Override
     public void onCast(RedBook book, Hero hero) {
-        Buff.affect(hero, Barrier.class).setShield(5+(int)(Dungeon.cur().depth*0.4F));
+        Buff.affect(hero, Barrier.class).setShield(5+(int)(Dungeon.depth()*0.4F));
         super.onCast(book, hero);
     }
 
     @Override
     public String desc() {
-        String desc = Messages.get(this, "desc", 5+(int)(Dungeon.cur().depth*0.4F));
+        String desc = Messages.get(this, "desc", 5+(int)(Dungeon.depth()*0.4F));
         desc += "\n\n" + Messages.get(BookSpell.class, "charge_cost", chargeUse);
         return desc;
     }

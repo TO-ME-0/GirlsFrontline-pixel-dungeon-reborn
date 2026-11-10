@@ -81,7 +81,7 @@ public class WndGame extends Window {
 		boolean heroDied=(Dungeon.hero() == null || !Dungeon.hero().isAlive());
 		
 		//rankings scene
-		if (heroDied && Dungeon.cur().depth != 0) {
+		if (heroDied && Dungeon.depth() != 0) {
 			addButton( curBtn = new RedButton( Messages.get(this, "rankings") ) {
 				@Override
 				protected void onClick() {

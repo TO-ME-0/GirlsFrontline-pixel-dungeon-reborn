@@ -48,7 +48,7 @@ public class RotGardenRoom extends SpecialRoom {
 
 		Door entrance = entrance();
 		entrance.set(Door.Type.LOCKED);
-		level.addItemToSpawn(new IronKey(Dungeon.cur().depth));
+		level.addItemToSpawn(new IronKey(Dungeon.depth()));
 
 		//define basic terrain, mostly high grass with some chaotically placed wall tiles
 		Painter.fill(level, this, Terrain.WALL);

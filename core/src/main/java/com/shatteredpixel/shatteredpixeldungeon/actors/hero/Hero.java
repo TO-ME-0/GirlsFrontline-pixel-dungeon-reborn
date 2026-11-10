@@ -1213,8 +1213,8 @@ public class Hero extends Char {
 			Heap heap = Dungeon.level.heaps.get( dst );
 			if (heap != null && (heap.type != Type.HEAP && heap.type != Type.FOR_SALE)) {
 				
-				if ((heap.type == Type.LOCKED_CHEST && Notes.keyCount(new GoldenKey(Dungeon.cur().depth)) < 1)
-					|| (heap.type == Type.CRYSTAL_CHEST && Notes.keyCount(new CrystalKey(Dungeon.cur().depth)) < 1)){
+				if ((heap.type == Type.LOCKED_CHEST && Notes.keyCount(new GoldenKey(Dungeon.depth())) < 1)
+					|| (heap.type == Type.CRYSTAL_CHEST && Notes.keyCount(new CrystalKey(Dungeon.depth())) < 1)){
 
 						GLog.w( Messages.get(this, "locked_chest") );
 						ready();
@@ -1260,17 +1260,17 @@ public class Hero extends Char {
 			int door = Dungeon.level.map[doorCell];
 			
 			if (door == Terrain.LOCKED_DOOR
-					&& Notes.keyCount(new IronKey(Dungeon.cur().depth)) > 0) {
+					&& Notes.keyCount(new IronKey(Dungeon.depth())) > 0) {
 				
 				hasKey = true;
 				
 			} else if (door == Terrain.CRYSTAL_DOOR
-					&& Notes.keyCount(new CrystalKey(Dungeon.cur().depth)) > 0) {
+					&& Notes.keyCount(new CrystalKey(Dungeon.depth())) > 0) {
 
 				hasKey = true;
 
 			} else if (door == Terrain.LOCKED_EXIT
-					&& Notes.keyCount(new SkeletonKey(Dungeon.cur().depth)) > 0) {
+					&& Notes.keyCount(new SkeletonKey(Dungeon.depth())) > 0) {
 
 				hasKey = true;
 				
@@ -1488,7 +1488,7 @@ public class Hero extends Char {
 		//TODO this is slightly brittle, it assumes there are no disjointed sets of entrance tiles
 		} else if (Dungeon.level.map[pos] == Terrain.ENTRANCE) {
 			
-			if (Dungeon.cur().depth == 1) {
+			if (Dungeon.depth() == 1) {
 				
 				if (belongings.getItem( Amulet.class ) == null) {
 					Game.runOnRenderThread(new Callback() {
@@ -2065,7 +2065,7 @@ public class Hero extends Char {
 		} else if (Dungeon.level.triggers.get(cell)!=null && Dungeon.level.triggers.get(cell).canBeTouched()){
 			curAction = new HeroAction.InteractTrigger(Dungeon.level.triggers.get(cell));
 		} else if ((cell == Dungeon.level.exit || Dungeon.level.map[cell] == Terrain.EXIT || Dungeon.level.map[cell] == Terrain.UNLOCKED_EXIT)
-		&& Dungeon.cur().depth < Constants.MAX_DEPTH) {
+		&& Dungeon.depth() < Constants.MAX_DEPTH) {
 			curAction = new HeroAction.Descend( cell );
 		} else if (cell == Dungeon.level.entrance || Dungeon.level.map[cell] == Terrain.ENTRANCE) {
 			curAction = new HeroAction.Ascend( cell );
@@ -2509,18 +2509,18 @@ public class Hero extends Char {
 			if (Dungeon.level.distance(pos, doorCell) <= 1) {
 				boolean hasKey = true;
 				if (door == Terrain.LOCKED_DOOR) {
-					hasKey = Notes.remove(new IronKey(Dungeon.cur().depth));
+					hasKey = Notes.remove(new IronKey(Dungeon.depth()));
 					if (hasKey) Level.set(doorCell, Terrain.DOOR);
 				} else if (door == Terrain.CRYSTAL_DOOR) {
-					hasKey = Notes.remove(new CrystalKey(Dungeon.cur().depth));
+					hasKey = Notes.remove(new CrystalKey(Dungeon.depth()));
 					if (hasKey) {
-						Notes.remove(Notes.Landmark.DISTANT_WELL, Dungeon.cur().depth-1);
+						Notes.remove(Notes.Landmark.DISTANT_WELL, Dungeon.depth()-1);
 						Level.set(doorCell, Terrain.EMPTY);
 						Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 						CellEmitter.get( doorCell ).start( Speck.factory( Speck.DISCOVER ), 0.025f, 20 );
 					}
 				} else {
-					hasKey = Notes.remove(new SkeletonKey(Dungeon.cur().depth));
+					hasKey = Notes.remove(new SkeletonKey(Dungeon.depth()));
 					if (hasKey) Level.set(doorCell, Terrain.UNLOCKED_EXIT);
 				}
 
@@ -2540,9 +2540,9 @@ public class Hero extends Char {
 				if (heap.type == Type.SKELETON || heap.type == Type.REMAINS) {
 					Sample.INSTANCE.play( Assets.Sounds.BONES );
 				} else if (heap.type == Type.LOCKED_CHEST){
-					hasKey = Notes.remove(new GoldenKey(Dungeon.cur().depth));
+					hasKey = Notes.remove(new GoldenKey(Dungeon.depth()));
 				} else if (heap.type == Type.CRYSTAL_CHEST){
-					hasKey = Notes.remove(new CrystalKey(Dungeon.cur().depth));
+					hasKey = Notes.remove(new CrystalKey(Dungeon.depth()));
 				}
 
 				if (hasKey) {
@@ -2667,7 +2667,7 @@ public class Hero extends Char {
 							chance *= Type561Talent.trapDetectionMultiplier(this);
 						//unintentional door detection scales from 20% at floor 0 to 0% at floor 25
 						} else {
-							chance=     0.2f*(1f-Dungeon.cur().depth/25f);
+							chance=     0.2f*(1f-Dungeon.depth()/25f);
 						}
 
 						if (Random.Float() < chance) {

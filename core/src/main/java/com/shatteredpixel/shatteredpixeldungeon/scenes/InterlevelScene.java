@@ -123,7 +123,7 @@ public class InterlevelScene extends PixelScene {
 		fadeTime = NORM_FADE;
 		switch (mode){
 			default:
-				loadingDepth = Dungeon.cur().depth;
+				loadingDepth = Dungeon.depth();
 				scrollSpeed = 1;
 				break;
 			case CONTINUE:
@@ -135,7 +135,7 @@ public class InterlevelScene extends PixelScene {
 					loadingDepth = 1;
 					fadeTime = SLOW_FADE;
 				} else {
-					loadingDepth = Dungeon.cur().depth+1;
+					loadingDepth = Dungeon.depth()+1;
 					if (!(Statistics.deepestFloor < loadingDepth)) {
 						fadeTime = FAST_FADE;
 					} else if (loadingDepth == 6 || loadingDepth == 11
@@ -146,17 +146,17 @@ public class InterlevelScene extends PixelScene {
 				scrollSpeed = 5;
 				break;
 			case FALL:
-				loadingDepth = Dungeon.cur().depth+1;
+				loadingDepth = Dungeon.depth()+1;
 				scrollSpeed = 50;
 				break;
 			case ASCEND:
 				fadeTime = FAST_FADE;
-				loadingDepth = Dungeon.cur().depth-1;
+				loadingDepth = Dungeon.depth()-1;
 				scrollSpeed = -5;
 				break;
 			case RETURN:
 				loadingDepth = returnDepth;
-				scrollSpeed = returnDepth > Dungeon.cur().depth ? 15 : -15;
+				scrollSpeed = returnDepth > Dungeon.depth() ? 15 : -15;
 				break;
 		}
 
@@ -329,7 +329,7 @@ public class InterlevelScene extends PixelScene {
                     if (Dungeon.hero() == null){
                         fadeTime = SLOW_FADE;
                     } else {
-                        int loadingDepth = Dungeon.cur().depth + 1;
+                        int loadingDepth = Dungeon.depth() + 1;
                         if (!(Statistics.deepestFloor < loadingDepth)) {
                             fadeTime = FAST_FADE;
                         } else if (loadingDepth == 6 || loadingDepth == 11
@@ -394,7 +394,7 @@ public class InterlevelScene extends PixelScene {
 						error.getMessage().equals("old save")) errorMsg = Messages.get(this, "io_error");
 
 				else throw new RuntimeException("fatal error occured while moving between floors. " +
-							"Seed:" + Dungeon.cur().seed + " depth:" + Dungeon.cur().depth, error);
+							"Seed:" + Dungeon.seed() + " depth:" + Dungeon.depth(), error);
 
 				add( new WndError( errorMsg ) {
 					public void onBackPressed() {
@@ -413,7 +413,7 @@ public class InterlevelScene extends PixelScene {
 				}
 				GirlsFrontlinePixelDungeon.reportException(
 						new RuntimeException("waited more than 10 seconds on levelgen. " +
-								"Seed:" + Dungeon.cur().seed + " depth:" + Dungeon.cur().depth + " trace:" +
+								"Seed:" + Dungeon.seed() + " depth:" + Dungeon.depth() + " trace:" +
 								s)
 				);
 			}
@@ -425,7 +425,8 @@ public class InterlevelScene extends PixelScene {
 		Mob.clearHeldAllies();
 		Dungeon.init("ANEWWORLD",0);
 		GameLog.wipe();
-		Dungeon.cur().depth=Statistics.deepestFloor=-1;
+		Statistics.deepestFloor = -1;
+		Dungeon.depth(-1);
         Level level = Dungeon.newLevel(0, 0);
 		Dungeon.switchLevel(level,level.entrance);
 	}
@@ -444,8 +445,8 @@ public class InterlevelScene extends PixelScene {
         if(null==level){
             level=Dungeon.newLevel(accessDepth,accessBranch);
         }
-        Dungeon.cur().depth=level.levelDepth;
-        Dungeon.cur().branch=level.branch;
+        Dungeon.depth(level.levelDepth);
+        Dungeon.branch(level.branch);
 		Dungeon.switchLevel(level,accessPos);
 	}
 
@@ -461,11 +462,11 @@ public class InterlevelScene extends PixelScene {
         }
 
         Level level;
-        if (Dungeon.cur().depth >= Statistics.deepestFloor) {
-            level = Dungeon.newLevel(Dungeon.cur().depth+1, 0);
+        if (Dungeon.depth() >= Statistics.deepestFloor) {
+            level = Dungeon.newLevel(Dungeon.depth()+1, 0);
         } else {
-            Dungeon.cur().depth++;
-            level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.cur().depth,0,false);
+            Dungeon.depth(Dungeon.depth() + 1);
+            level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.depth(),0,false);
         }
         Dungeon.switchLevel( level, level.entrance );
     }
@@ -477,18 +478,18 @@ public class InterlevelScene extends PixelScene {
         Dungeon.saveAll();
 
         Level level;
-        if (Dungeon.cur().depth >= Statistics.deepestFloor) {
-            level = Dungeon.newLevel(Dungeon.cur().depth+1, 0);
+        if (Dungeon.depth() >= Statistics.deepestFloor) {
+            level = Dungeon.newLevel(Dungeon.depth()+1, 0);
         } else {
-            Dungeon.cur().depth++;
-            level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.cur().depth,0,false);
+            Dungeon.depth(Dungeon.depth() + 1);
+            level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.depth(),0,false);
 
         }
         Dungeon.switchLevel( level, level.fallCell( fallIntoPit ));
     }
     private void reset() throws IOException {
         Actor.fixTime();
-        Level copyLevel = Dungeon.tryLoadLevel(Dungeon.cur().depth, Dungeon.cur().branch,true);
+        Level copyLevel = Dungeon.tryLoadLevel(Dungeon.depth(), Dungeon.branch(),true);
         //重置楼层，所以以当前楼层子标签读取
         if (copyLevel == null) {
             GLog.n("未读取到复制存档，即将重新保存");
@@ -510,7 +511,8 @@ public class InterlevelScene extends PixelScene {
 
 		Dungeon.init("ANEWWORLD",0);
 		GameLog.wipe();
-		Dungeon.cur().depth = Statistics.deepestFloor = -1;
+		Statistics.deepestFloor = -1;
+		Dungeon.depth(-1);
 		Level level = Dungeon.newLevel(0, 0);
 		Dungeon.switchLevel( level, level.entrance );
 	}
@@ -520,8 +522,8 @@ public class InterlevelScene extends PixelScene {
         Mob.holdAllies( Dungeon.level );
 
         Dungeon.saveAll();
-        Dungeon.cur().depth--;
-        Level level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.cur().depth,0,false);
+        Dungeon.depth(Dungeon.depth() - 1);
+        Level level = Dungeon.loadLevel(GamesInProgress.curSlot,Dungeon.depth(),0,false);
         Dungeon.switchLevel( level, level.exit );
     }
 	
@@ -530,8 +532,8 @@ public class InterlevelScene extends PixelScene {
         Mob.holdAllies( Dungeon.level );
 
         Dungeon.saveAll();
-        Dungeon.cur().depth = returnDepth;
-        Dungeon.cur().branch = returnBranch;
+        Dungeon.depth(returnDepth);
+        Dungeon.branch(returnBranch);
         Level level = Dungeon.loadLevel(GamesInProgress.curSlot,returnDepth,returnBranch,false);
         int targetPos = returnPos;
         if (targetPos == -3){
@@ -562,9 +564,9 @@ public class InterlevelScene extends PixelScene {
 
 		GameLog.wipe();
         Dungeon.loadGame( GamesInProgress.curSlot, true );
-        Level level = Dungeon.tryLoadLevel(Dungeon.cur().depth, Dungeon.cur().branch,false);
+        Level level = Dungeon.tryLoadLevel(Dungeon.depth(), Dungeon.branch(),false);
         if (level == null)
-            level = Dungeon.tryLoadLevel(Dungeon.cur().depth, Dungeon.cur().branch,false);
+            level = Dungeon.tryLoadLevel(Dungeon.depth(), Dungeon.branch(),false);
         //读档
 		Dungeon.switchLevel(level,Dungeon.hero().pos);
 	}
@@ -578,7 +580,7 @@ public class InterlevelScene extends PixelScene {
 			ArrayList<Item> preservedItems = Dungeon.level.getItemsToPreserveFromSealedResurrect();
 
 			Dungeon.hero().resurrect();
-            level = Dungeon.newLevel(Dungeon.cur().depth, Dungeon.cur().branch);
+            level = Dungeon.newLevel(Dungeon.depth(), Dungeon.branch());
 			Dungeon.hero().pos = level.randomRespawnCell(Dungeon.hero());
 
 			for (Item i : preservedItems){

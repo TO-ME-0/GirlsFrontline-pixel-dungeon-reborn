@@ -121,7 +121,7 @@ public class WndZeroLevelHeroSelect extends Window {
 			InterlevelScene.mode = InterlevelScene.Mode.RESTART_ZERO;
 			Game.switchScene(InterlevelScene.class);
 		} else {
-			Dungeon.cur().hero = null;
+			Dungeon.hero(null);
 			InterlevelScene.start();
 			Game.switchScene(GameScene.class);
 		}
@@ -145,7 +145,7 @@ public class WndZeroLevelHeroSelect extends Window {
 			//new Hero(...) 不会初始化天赋表（talents 为空 ArrayList），
 			//不补全的话一旦此 Hero 被保存，storeTalentsInBundle 会按下标越界
 			Talent.initClassTalents(placeholder);
-			Dungeon.cur().hero = placeholder;
+			Dungeon.hero(placeholder);
 		}
 		super.onBackPressed();
 	}

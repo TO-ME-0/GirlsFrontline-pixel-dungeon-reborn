@@ -94,7 +94,7 @@ public class EscapeCrystal extends Item {
 					//否则计算部分分数，上限 3000：
 
 					//探索至多 80% 楼层可获得 1000 分（levelExplorePercent 为 VaultLevel 的覆写方法）
-					score += (int) (1000 * ((VaultLevel) Dungeon.level).levelExplorePercent(Dungeon.cur().depth));
+					score += (int) (1000 * ((VaultLevel) Dungeon.level).levelExplorePercent(Dungeon.depth()));
 
 					//收集代币至多 1000 分（每枚 100 分），开门额外奖励 250 分
 					boolean doorOpened = true;
@@ -277,7 +277,7 @@ public class EscapeCrystal extends Item {
 		Imp.Quest.cur().complete(score);
 
 		//以 RETURN 模式返回主层
-		InterlevelScene.returnDepth = Dungeon.cur().depth;
+		InterlevelScene.returnDepth = Dungeon.depth();
 		InterlevelScene.returnBranch = 0;
 		//落点就是进库时记下的入口格：新版是金库传送点格，旧档是小恶魔对话时英雄脚下的格子
 		InterlevelScene.returnPos = vaultEntryPos;

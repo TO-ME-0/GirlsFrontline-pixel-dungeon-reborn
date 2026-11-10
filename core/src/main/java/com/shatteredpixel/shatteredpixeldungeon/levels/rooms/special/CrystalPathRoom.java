@@ -183,12 +183,12 @@ public class CrystalPathRoom extends SpecialRoom {
             }
         }
 
-        level.addItemToSpawn( new CrystalKey( Dungeon.cur().depth ) );
-        level.addItemToSpawn( new CrystalKey( Dungeon.cur().depth ) );
-        level.addItemToSpawn( new CrystalKey( Dungeon.cur().depth ) );
+        level.addItemToSpawn( new CrystalKey( Dungeon.depth() ) );
+        level.addItemToSpawn( new CrystalKey( Dungeon.depth() ) );
+        level.addItemToSpawn( new CrystalKey( Dungeon.depth() ) );
 
         entrance().set( Door.Type.LOCKED );
-        level.addItemToSpawn( new IronKey( Dungeon.cur().depth ) );
+        level.addItemToSpawn( new IronKey( Dungeon.depth() ) );
 
     }
     private void paintB(Level level) {
@@ -344,9 +344,9 @@ public class CrystalPathRoom extends SpecialRoom {
         level.drop(scrolls.remove(0), level.pointToCell(rooms[1].center())).setRoom(Heap.Room.PathNew);
         level.drop(scrolls.remove(0), level.pointToCell(rooms[3].center())).setRoom(Heap.Room.PathNew);
         level.drop(scrolls.remove(0), prize2).setRoom(Heap.Room.PathNew);
-        level.addItemToSpawn(new CrystalKey(Dungeon.cur().depth));
-        level.addItemToSpawn(new CrystalKey(Dungeon.cur().depth));
-        level.addItemToSpawn(new CrystalKey(Dungeon.cur().depth));
+        level.addItemToSpawn(new CrystalKey(Dungeon.depth()));
+        level.addItemToSpawn(new CrystalKey(Dungeon.depth()));
+        level.addItemToSpawn(new CrystalKey(Dungeon.depth()));
         this.entrance().set(Door.Type.UNLOCKED);
     }
     @Override

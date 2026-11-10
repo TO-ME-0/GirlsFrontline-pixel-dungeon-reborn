@@ -72,7 +72,7 @@ public class EntranceRoom extends StandardRoom {
 		Random.pushGenerator();
 
 		//places the first guidebook page on floor 1
-		if (Dungeon.cur().depth == 1 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_INTRO)){
+		if (Dungeon.depth() == 1 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_INTRO)){
 			int pos;
 			do {
 				//can't be on bottom row of tiles
@@ -83,7 +83,7 @@ public class EntranceRoom extends StandardRoom {
 		}
 
 		//places the third guidebook page on floor 2
-		if (Dungeon.cur().depth == 2 && !Document.ADVENTURERS_GUIDE.isPageFound(Document.GUIDE_SEARCHING)){
+		if (Dungeon.depth() == 2 && !Document.ADVENTURERS_GUIDE.isPageFound(Document.GUIDE_SEARCHING)){
 			int pos;
 			do {
 				//can't be on bottom row of tiles

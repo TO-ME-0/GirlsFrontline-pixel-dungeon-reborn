@@ -114,10 +114,10 @@ public enum Rankings {
 		rec.heroClass = Dungeon.hero().heroClass;
 		rec.armorTier = Dungeon.hero().tier();
 		rec.herolevel = Dungeon.hero().lvl;
-		rec.seed      = Dungeon.cur().seed;
+		rec.seed      = Dungeon.seed();
 		// 检查是否使用了自定义种子
 		rec.customSeed = !Dungeon.customSeedText.isEmpty();
-		rec.depth     = Dungeon.curDepth();
+		rec.depth     = Dungeon.depth();
 		rec.version	  = Dungeon.version;
 		rec.gameVersion = currentGameVersion();
 		rec.score     = score( win );
@@ -233,8 +233,8 @@ public enum Rankings {
 
 		Actor.clear();
 		restoreInRanking = true;
-		Dungeon.cur().hero  = null;
-		Dungeon.cur().seed  = rec.seed;
+		Dungeon.hero(null);
+		Dungeon.seed(rec.seed);
 		Dungeon.level = null;
 		Generator.fullReset();
 		Notes.reset();
@@ -248,7 +248,7 @@ public enum Rankings {
 
 		Badges.loadLocal(data.getBundle(BADGES));
 
-		Dungeon.cur().hero = (Hero)data.get(HERO);
+		Dungeon.hero((Hero)data.get(HERO));
 		restoreInRanking = false;
 
 		Statistics.restoreFromBundle(data.getBundle(STATS));

@@ -612,7 +612,7 @@ public class Uro extends Mob {
 					if (PathFinder.distance()[cell] < Integer.MAX_VALUE) {
 						Char ch = Actor.findChar(cell);
 						if (ch != null && !(ch instanceof Uro)) {
-							int dmg = Random.NormalIntRange(5 + Dungeon.curDepth(), 10 + Dungeon.curDepth() * 2);
+							int dmg = Random.NormalIntRange(5 + Dungeon.depth(), 10 + Dungeon.depth() * 2);
 							dmg -= ch.drRoll();
 
 							if (dmg > 0) {
@@ -1026,7 +1026,7 @@ public class Uro extends Mob {
 							
 							Char ch = Actor.findChar(cell);
 							if (ch != null && !(ch instanceof Uro)){
-								ch.damage(2 + Dungeon.curDepth(), new Electricity());
+								ch.damage(2 + Dungeon.depth(), new Electricity());
 								
 								if (ch == Dungeon.hero() && !ch.isAlive()) {
 									Dungeon.fail(Uro.class);

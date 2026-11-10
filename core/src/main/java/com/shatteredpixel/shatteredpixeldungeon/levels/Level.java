@@ -266,17 +266,17 @@ public abstract class Level implements Bundlable {
 				addItemToSpawn( new TrinketCatalyst());
 			}
 			//one scroll of transmutation is guaranteed to spawn somewhere on chapter 2-4
-			int enchChapter = (int)((Dungeon.cur().seed / 10) % 3) + 1;
-			if ( Dungeon.cur().depth / 5 == enchChapter &&
-					Dungeon.cur().seed % 4 + 1 == Dungeon.cur().depth % 5){
+			int enchChapter = (int)((Dungeon.seed() / 10) % 3) + 1;
+			if ( Dungeon.depth() / 5 == enchChapter &&
+					Dungeon.seed() % 4 + 1 == Dungeon.depth() % 5){
 				addItemToSpawn( new StoneOfEnchantment() );
 			}
 			
-			if ( Dungeon.cur().depth == ((Dungeon.cur().seed % 3) + 1)){
+			if ( Dungeon.depth() == ((Dungeon.seed() % 3) + 1)){
 				addItemToSpawn( new StoneOfIntuition() );
 			}
 			
-			if (Dungeon.cur().depth > 1) {
+			if (Dungeon.depth() > 1) {
 				//50% chance of getting a level feeling
 				//~7.15% chance for each feeling
 				switch (Random.Int( 14 )) {
@@ -342,10 +342,8 @@ public abstract class Level implements Bundlable {
 		creating = false;
 
 		for (Integer pos : triggeredPlant.keySet())
-			for (Plant plant : triggeredPlant.get(pos)){
-				Plant.level = this;
+			for (Plant plant : triggeredPlant.get(pos))
 				plant.activate(pos);
-			}
 		triggeredPlant.clear();
 	}
 	
@@ -378,7 +376,7 @@ public abstract class Level implements Bundlable {
 
 		openSpace   = new boolean[length];
 		
-		PathFinder.cur().setMapSize(w, h);
+		PathFinder.setMapSize(w, h);
 	}
 	
 	public void reset() {
@@ -585,11 +583,11 @@ public abstract class Level implements Bundlable {
 	
 	public Mob createMob() {
 		if (mobsToSpawn == null || mobsToSpawn.isEmpty()) {
-			mobsToSpawn = Bestiary.getMobRotation(Dungeon.cur().depth);
+			mobsToSpawn = Bestiary.getMobRotation(Dungeon.depth());
 		}
 
 		Mob m = Reflection.newInstance(mobsToSpawn.remove(0));
-        if(Dungeon.isXMAS() && Random.Int(100)<8&&Dungeon.cur().depth<=5)
+        if(Dungeon.isXMAS() && Random.Int(100)<8&&Dungeon.depth()<=5)
             m = Reflection.newInstance(RatXMAS.class);
         //打开圣诞开关，满足概率，并且楼层是5层以内，直接替换成RatXMAS
 		if (Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES))
@@ -1467,7 +1465,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){
-				if (Dungeon.cur().depth != h.depth) continue;
+				if (Dungeon.depth() != h.depth) continue;
 				for (int i : PathFinder.NEIGHBOURS9()) heroMindFov[h.pos+i] = true;
 			}
 
@@ -1484,7 +1482,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (RevealedArea a : c.buffs(RevealedArea.class)){
-				if (Dungeon.cur().depth != a.depth) continue;
+				if (Dungeon.depth() != a.depth) continue;
 				for (int i : PathFinder.NEIGHBOURS9()) heroMindFov[a.pos+i] = true;
 			}
 

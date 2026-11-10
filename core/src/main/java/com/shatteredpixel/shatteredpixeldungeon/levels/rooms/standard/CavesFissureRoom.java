@@ -62,7 +62,7 @@ public class CavesFissureRoom extends StandardRoom {
 	public void paint(Level level) {
 
 		boolean pathable = true;
-		PathFinder.cur().setMapSize(width()-2, height()-2);
+		PathFinder.setMapSize(width()-2, height()-2);
 
 		do {
 			Painter.fill(level, this, Terrain.WALL);
@@ -121,7 +121,7 @@ public class CavesFissureRoom extends StandardRoom {
 
 			//just become an empty room if we can't make at least 2 lines
 			if (lineAngles.size() < 2) {
-				PathFinder.cur().setMapSize(level.width(), level.height());
+				PathFinder.setMapSize(level.width(), level.height());
 				return;
 			}
 
@@ -225,7 +225,7 @@ public class CavesFissureRoom extends StandardRoom {
 
 		} while (!pathable);
 
-		PathFinder.cur().setMapSize(level.width(), level.height());
+		PathFinder.setMapSize(level.width(), level.height());
 
 	}
 

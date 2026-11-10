@@ -50,13 +50,13 @@ public class PitfallTrap extends Trap {
 	@Override
 	public void activate() {
 
-		if( Dungeon.bossLevel() || Dungeon.curDepth() > 30){
+		if( Dungeon.bossLevel() || Dungeon.depth() > 30){
 			GLog.w(Messages.get(this, "no_pit"));
 			return;
 		}
 
 		DelayedPit p = Buff.append(Dungeon.hero(), DelayedPit.class, 1);
-		p.depth = Dungeon.curDepth();
+		p.depth = Dungeon.depth();
 
 		ArrayList<Integer> positions = new ArrayList<>();
 		for (int i : PathFinder.NEIGHBOURS9()){
@@ -90,7 +90,7 @@ public class PitfallTrap extends Trap {
 		public boolean act() {
 
 			boolean herofell = false;
-			if (depth == Dungeon.curDepth() && positions != null) {
+			if (depth == Dungeon.depth() && positions != null) {
 				for (int cell : positions) {
 
 					if (!Dungeon.level.insideMap(cell)

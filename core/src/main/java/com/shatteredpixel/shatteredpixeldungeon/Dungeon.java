@@ -49,9 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.SaltyZongzi;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.XMasSugar;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
@@ -112,7 +110,8 @@ import java.util.LinkedList;
 public class Dungeon {
 
 	//当前线程的生成上下文（主游戏为 MAIN，查种 worker 为其私有实例）
-	public static Dungeons cur() {
+	//仅限 State 实现方与类内部使用；外部一律走静态门面
+	private static Dungeons cur() {
 		return Dungeons.cur();
 	}
 
@@ -120,6 +119,15 @@ public class Dungeon {
 	//由 Dungeons.cur() 自动在主上下文/查种 worker 上下文间路由
 	public static Hero hero() {
 		return cur().hero;
+	}
+
+	public static void hero( Hero hero ) {
+		cur().hero = hero;
+	}
+
+	//查种上下文标记：生成链中用于区分主世界与查种 worker 的全局开关
+	public static boolean isSearch() {
+		return cur().isSearch;
 	}
 
 	//一键进入查种上下文：本线程此后 Dungeons/Random/PathFinder 全部走独立实例，
@@ -138,7 +146,7 @@ public class Dungeon {
 	}
 
 	public static boolean trinketCataNeeded() {
-		return curDepth() < 5 && !LimitedDrops.TRINKET_CATA.dropped() && Random.Int(4-curDepth()) == 0;
+		return depth() < 5 && !LimitedDrops.TRINKET_CATA.dropped() && Random.Int(4-depth()) == 0;
 	}
 
 	//enum of items which have limited spawns, records how many have spawned
@@ -227,7 +235,7 @@ public class Dungeon {
             if (version < 656){
 				arr[LaboratoryRoom.ordinal()] = Statistics.deepestFloor / 5;
                 if (Statistics.deepestFloor%5 != 0 &&
-                        Statistics.deepestFloor%5 >= (Dungeon.cur().seed%3 + 2))
+                        Statistics.deepestFloor%5 >= (seed()%3 + 2))
 					arr[LaboratoryRoom.ordinal()]++;
 				arr[FairyRoom.ordinal()] = (Statistics.deepestFloor + 1) / 5;
             }
@@ -247,7 +255,6 @@ public class Dungeon {
         WandLock = false;
     }
 
-    public static ArrayList<Class> HolidayFood = new ArrayList<>(Arrays.asList(Pasty.class, XMasSugar.class)) ;
     public static void resetGenerator(){
         boolean hasZongziTalent = Dungeon.hero().hasTalentB(Talent.Type56One_FOOD) || Dungeon.hero().hasTalentB(Talent.BETTER_FOOD);
         for (int j = 0; j < Generator.Category.FOOD.classes.length; j++) {
@@ -255,7 +262,7 @@ public class Dungeon {
 				Generator.Category.FOOD.probs()[j] = hasZongziTalent ? 2 : 4;
             else if( Generator.Category.FOOD.classes[j] == SaltyZongzi.class)
 				Generator.Category.FOOD.probs()[j] = hasZongziTalent ? 2 : 0;
-            else if (HolidayFood.contains(Generator.Category.FOOD.classes[j]))
+            else if (Food.Pastys.class.isAssignableFrom(Generator.Category.FOOD.classes[j]))
                 Generator.Category.FOOD.probs()[j] = Generator.HolidayDiff(Generator.Category.FOOD.classes[j]);
         }
     }
@@ -313,7 +320,7 @@ public class Dungeon {
 					&& !isChallenged(Challenges.CHAMPION_ENEMIES))
 				challenges += Challenges.CHAMPION_ENEMIES;
 		}
-		Game.Seed = cur().seed;
+		Game.Seed = seed();
 		Game.Challenges = challenges;
 		Game.GameMode = GameMode;
 		Actor.resetNextID();
@@ -326,7 +333,7 @@ public class Dungeon {
 		// 简易 init 已在上面统一了种子解析/三 init/任务重置/hero 生成
 		cur().init(seedCode);
 		customSeedText = (seedCode == null) ? "" : seedCode;
-		Game.Seed = cur().seed;
+		Game.Seed = seed();
 
 		// 添加农历节日检测
 		Gregorian.LunarCheckDate();
@@ -345,7 +352,7 @@ public class Dungeon {
 
 		Badges.reset();
 
-        Buff.affect(cur().hero, Hunger.class).satisfy(1000);
+        Buff.affect(hero(), Hunger.class).satisfy(1000);
 	}
 
 	public static boolean isGameMode(WndStartGame.GameMode mode){
@@ -360,22 +367,24 @@ public class Dungeon {
 		Dungeon.level = null;
 		Actor.clear();
 
-		Game.Seed = cur().seed;
+		Game.Seed = seed();
 		Game.Challenges = challenges;
 		Game.GameMode = GameMode;
 
-        cur().depth       = levelDepth;
-        cur().branch      = levelBranch;
-		if (cur().branch == 0 && cur().depth > Statistics.deepestFloor) {
+        depth(levelDepth);
+        branch(levelBranch);
+		if (branch() == 0 && depth() > Statistics.deepestFloor) {
 			Statistics.deepestFloor = levelDepth;
 
             Statistics.completedWithNoKilling = Statistics.qualifiedForNoKilling;
 		}
 		if (levelBranch > Statistics.deepestSub)
 			Statistics.deepestSub = levelBranch;
-
+		//建关期专用：主线程建完后立即清空，运行期一律读静态 Dungeon.level
+		cur().level = level;
 		level.create(levelDepth,levelBranch);
-		if (cur().branch == 0)
+		cur().level = null;
+		if (branch() == 0)
 			Statistics.qualifiedForNoKilling = !bossLevel();
 		return level;
 	}
@@ -432,25 +441,57 @@ public class Dungeon {
         return createLevel(getNewLevel(depth, branch), depth, branch);
     }
 
-	public static int curDepth(){
+	public static int depth(){
 		return cur().depth;
 	}
 
+	public static void depth( int depth ){
+		cur().depth = depth;
+	}
+
+	public static long seed(){
+		return cur().seed;
+	}
+
+	public static void seed( long seed ){
+		cur().seed = seed;
+	}
+
+	public static int branch(){
+		return cur().branch;
+	}
+
+	public static void branch( int branch ){
+		cur().branch = branch;
+	}
+
+	public static int mobsToChampion(){
+		return cur().mobsToChampion;
+	}
+
+	public static void mobsToChampion( int mobsToChampion ){
+		cur().mobsToChampion = mobsToChampion;
+	}
+
+	public static Level curLevel(){
+		return cur().level;
+	}
+
 	public static int floorCode(int depth, int branch){ return depth + 1000*branch; }
-	public static int curFloorCode(){ return floorCode(cur().depth, cur().branch); }
+	public static int curFloorCode(){ return floorCode(depth(), branch()); }
 
 	public static long seedToCreate(){
-		return seedForDepth(cur().depth, cur().branch);
+		return seedForDepth(depth(), branch());
 	}
 
     public static long seedCurLevel(){
-        return seedForDepth(cur().depth, cur().branch);
+        return seedForDepth(depth(), branch());
     }
     public static long seedCurLevel(Level level){
         return seedForDepth(level.levelDepth, level.branch);
     }
 	public static long seedForDepth(int depth,int branch){
-		Random.pushGenerator( cur().seed );
+		Random.pushGenerator( seed() );
         int lookAhead = depth + 30*branch;
         for (int i = 0; i < lookAhead; i ++) {
 				Random.Long(); //we don't care about these values, just need to go through them
@@ -463,11 +504,11 @@ public class Dungeon {
 	}
 	
 	public static boolean shopOnLevel() {
-		return cur().depth == 6 || cur().depth == 11 || cur().depth == 16;
+		return depth() == 6 || depth() == 11 || depth() == 16;
 	}
 	
 	public static boolean bossLevel() {
-		return bossLevel( cur().depth );
+		return bossLevel( depth() );
 	}
 	
 	public static boolean bossLevel( int depth ) {
@@ -482,21 +523,21 @@ public class Dungeon {
 			pos = level.entrance;
 		}
 		
-		PathFinder.cur().setMapSize(level.width(), level.height());
+		PathFinder.setMapSize(level.width(), level.height());
 
         branch=level.branch;
-        cur().depth=level.levelDepth;
-        cur().branch=level.branch;
+        depth(level.levelDepth);
+        branch(level.branch);
 		Dungeon.level = level;
 		Mob.restoreAllies( level, pos );
 		Actor.init();
 
 		level.addRespawner();
 
-		cur().hero.pos = pos;
+		hero().pos = pos;
 		
 		for(Mob m : level.mobs){
-			if (m.pos == cur().hero.pos){
+			if (m.pos == hero().pos){
 				//displace mob
 				for(int i : PathFinder.NEIGHBOURS8()){
 					if (Actor.findChar(m.pos+i) == null && level.passable[m.pos + i]){
@@ -507,10 +548,10 @@ public class Dungeon {
 			}
 		}
 		
-		Light light = cur().hero.buff( Light.class );
-		cur().hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
+		Light light = hero().buff( Light.class );
+		hero().viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
 		
-		cur().hero.curAction = cur().hero.lastAction = null;
+		hero().curAction = hero().lastAction = null;
 		observe();
 		try {
 			saveAll();
@@ -522,7 +563,7 @@ public class Dungeon {
 	}
 
 	public static void dropToChasm( Item item ) {
-		int depth = Dungeon.cur().depth + 1;
+		int depth = depth() + 1;
 		ArrayList<Item> dropped = Dungeon.droppedItems.get( depth );
 		if (dropped == null) {
 			Dungeon.droppedItems.put( depth, dropped = new ArrayList<>() );
@@ -532,10 +573,10 @@ public class Dungeon {
 
 	public static boolean posNeeded() {
 		//2 POS each floor set
-		int posLeftThisSet = 2 - (LimitedDrops.STRENGTH_POTIONS.count() - (cur().depth / 5) * 2);
+		int posLeftThisSet = 2 - (LimitedDrops.STRENGTH_POTIONS.count() - (depth() / 5) * 2);
 		if (posLeftThisSet <= 0) return false;
 
-		int floorThisSet = (cur().depth % 5);
+		int floorThisSet = (depth() % 5);
 
 		//pos drops every two floors, (numbers 1-2, and 3-4) with a 50% chance for the earlier one each time.
 		int targetPOSLeft = 2 - floorThisSet/2;
@@ -550,23 +591,23 @@ public class Dungeon {
 		int souLeftThisSet;
 		//3 SOU each floor set, 1.5 (rounded) on forbidden runes challenge
 		if (isChallenged(Challenges.NO_SCROLLS)){
-			souLeftThisSet = Math.round(1.5f - (LimitedDrops.UPGRADE_SCROLLS.count() - (cur().depth / 5) * 1.5f));
+			souLeftThisSet = Math.round(1.5f - (LimitedDrops.UPGRADE_SCROLLS.count() - (depth() / 5) * 1.5f));
 		} else {
-			souLeftThisSet = 3 - (LimitedDrops.UPGRADE_SCROLLS.count() - (cur().depth / 5) * 3);
+			souLeftThisSet = 3 - (LimitedDrops.UPGRADE_SCROLLS.count() - (depth() / 5) * 3);
 		}
 		if (souLeftThisSet <= 0) return false;
 
-		int floorThisSet = (cur().depth % 5);
+		int floorThisSet = (depth() % 5);
 		//chance is floors left / scrolls left
 		return Random.Int(5 - floorThisSet) < souLeftThisSet;
 	}
 	
 	public static boolean asNeeded() {
 		//1 AS each floor set
-		int asLeftThisSet = 1 - (LimitedDrops.ARCANE_STYLI.count() - (cur().depth / 5));
+		int asLeftThisSet = 1 - (LimitedDrops.ARCANE_STYLI.count() - (depth() / 5));
 		if (asLeftThisSet <= 0) return false;
 
-		int floorThisSet = (cur().depth % 5);
+		int floorThisSet = (depth() % 5);
 		//chance is floors left / scrolls left
 		return Random.Int(5 - floorThisSet) < asLeftThisSet;
 	}
@@ -603,13 +644,13 @@ public class Dungeon {
 
 			version = Game.versionCode;
 			bundle.put( VERSION, version );
-			bundle.put( SEED, cur().seed );
+			bundle.put( SEED, seed() );
             bundle.put( SEED_CODE, customSeedText);
 			bundle.put( CHALLENGES, challenges );
-			bundle.put( MOBS_TO_CHAMPION, cur().mobsToChampion );
-			bundle.put( HERO, cur().hero );
-			bundle.put( DEPTH, cur().depth );
-			bundle.put( BRANCH, cur().branch );
+			bundle.put( MOBS_TO_CHAMPION, mobsToChampion() );
+			bundle.put( HERO, hero() );
+			bundle.put( DEPTH, depth() );
+			bundle.put( BRANCH, branch() );
 			bundle.put( GAME_MODE, GameMode);
 			//持久化主副武器快捷栏切换状态（Toolbar.swappedQuickSlots 为静态全局变量，不保存则读档后丢失）
 			bundle.put( SWAPPED_QUICK_SLOTS, Toolbar.swappedQuickSlots );
@@ -641,18 +682,18 @@ public class Dungeon {
 			bundle.put( CHAPTERS, ids );
 			
 			Bundle quests = new Bundle();
-			Ghost		.Quest.main().storeInBundle( quests );
-			Wandmaker	.Quest.main().storeInBundle( quests );
-			Blacksmith	.Quest.main().storeInBundle( quests );
-			Imp			.Quest.main().storeInBundle( quests );
+			Ghost		.Quest.store( quests );
+			Wandmaker	.Quest.store( quests );
+			Blacksmith	.Quest.store( quests );
+			Imp			.Quest.store( quests );
 			bundle.put( QUESTS, quests );
 			
-			SpecialRoom.storeRoomsInBundle( bundle );
-			SecretRoom.storeRoomsInBundle( bundle );
+			SpecialRoom.store( bundle );
+			SecretRoom.store( bundle );
 			
 			Statistics.storeInBundle( bundle );
 			Notes.storeInBundle( bundle );
-			Generator.storeInBundle( bundle );
+			Generator.store( bundle );
 			
 			Scroll.save( bundle );
 			Potion.save( bundle );
@@ -683,13 +724,13 @@ public class Dungeon {
     }
 	
 	public static void saveAll() throws IOException {
-		if (cur().hero != null && (cur().hero.isAlive() || WndResurrect.instance != null)) {
+		if (hero() != null && (hero().isAlive() || WndResurrect.instance != null)) {
 
 			Actor.fixTime();
 			saveGame( GamesInProgress.curSlot );
 			saveLevel( GamesInProgress.curSlot );
 
-			GamesInProgress.set( GamesInProgress.curSlot, cur().depth, challenges, cur().hero );
+			GamesInProgress.set( GamesInProgress.curSlot, depth(), challenges, hero() );
 		}
 	}
 
@@ -703,8 +744,8 @@ public class Dungeon {
 		branch = bundle.contains( BRANCH ) ? bundle.getInt( BRANCH ) : bundle.getInt( LEVEL_ID )/1000;
 
 		version = bundle.getInt( VERSION );
-		cur().seed = bundle.contains( SEED ) ? bundle.getLong( SEED ) : DungeonSeed.randomSeed();
-		Game.Seed = cur().seed;
+		seed(bundle.contains( SEED ) ? bundle.getLong( SEED ) : DungeonSeed.randomSeed());
+		Game.Seed = seed();
         customSeedText = bundle.contains( SEED_CODE ) ? bundle.getString( SEED_CODE ) : "";
         guessType.clear();
 		if (bundle.contains(GuessType))
@@ -724,11 +765,11 @@ public class Dungeon {
 		QuickSlotButton.reset();
 
 		level = null;
-		cur().depth = -1;
+		depth(-1);
 
 		challenges = bundle.getInt( CHALLENGES );
 		Game.Challenges = challenges;
-		Dungeon.cur().mobsToChampion = bundle.getInt( MOBS_TO_CHAMPION );
+		mobsToChampion(bundle.getInt( MOBS_TO_CHAMPION ));
 		
 		Scroll.restore( bundle );
 		Potion.restore( bundle );
@@ -752,19 +793,19 @@ public class Dungeon {
 			
 			Bundle quests = bundle.getBundle( QUESTS );
 			if (!quests.isNull()) {
-				Ghost.Quest.main().restoreFromBundle( quests );
-				Wandmaker.Quest.main().restoreFromBundle( quests );
-				Blacksmith.Quest.main().restoreFromBundle( quests );
-				Imp.Quest.main().restoreFromBundle( quests );
+				Ghost.Quest.restore( quests );
+				Wandmaker.Quest.restore( quests );
+				Blacksmith.Quest.restore( quests );
+				Imp.Quest.restore( quests );
 			} else {
-				Ghost.Quest.main().reset();
-				Wandmaker.Quest.main().reset();
-				Blacksmith.Quest.main().reset();
-				Imp.Quest.main().reset();
+				Ghost.Quest.reset();
+				Wandmaker.Quest.reset();
+				Blacksmith.Quest.reset();
+				Imp.Quest.reset();
 			}
 			
-			SpecialRoom.restoreRoomsFromBundle(bundle);
-			SecretRoom.restoreRoomsFromBundle(bundle);
+			SpecialRoom.restore(bundle);
+			SecretRoom.restore(bundle);
 		}
 		
 		Bundle badges = bundle.getBundle(BADGES);
@@ -787,14 +828,14 @@ public class Dungeon {
 					item.addOldNote(NoteOfSave.remove(0));
 		}
 
-		cur().hero = null;
-		cur().hero = (Hero)bundle.get( HERO );
-		cur().depth = bundle.getInt( DEPTH );
-		cur().branch = branch;
+		hero(null);
+		hero((Hero)bundle.get( HERO ));
+		depth(bundle.getInt( DEPTH ));
+		branch( branch );
 
 		gold = bundle.getInt( GOLD );
 		energy = bundle.getInt( ENERGY );
-		Generator.restoreFromBundle( bundle );
+		Generator.restore( bundle );
 		resetGenerator();
 
 		droppedItems = new SparseArray<>();
@@ -892,7 +933,7 @@ public class Dungeon {
 	
 	public static void win( Class cause ) {
 
-		cur().hero.belongings.identify();
+		hero().belongings.identify();
 
 		Rankings.INSTANCE.submit( true, cause );
 	}
@@ -923,10 +964,10 @@ public class Dungeon {
 			return;
 		}
 		
-		level.updateFieldOfView(cur().hero, level.heroFOV);
+		level.updateFieldOfView(hero(), level.heroFOV);
 
-		int x = cur().hero.pos % level.width();
-		int y = cur().hero.pos / level.width();
+		int x = hero().pos % level.width();
+		int y = hero().pos / level.width();
 	
 		//left, right, top, bottom
 		int l = Math.max( 0, x - dist );
@@ -946,7 +987,7 @@ public class Dungeon {
 	
 		GameScene.updateFog(l, t, width, height);
 		
-		if (cur().hero.buff(MindVision.class) != null){
+		if (hero().buff(MindVision.class) != null){
 			for (Mob m : level.mobs.toArray(new Mob[0])){
 				BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
 				BArray.or( level.visited, level.heroFOV, m.pos, 3, level.visited );
@@ -956,7 +997,7 @@ public class Dungeon {
 			}
 		}
 		
-		if (cur().hero.buff(Awareness.class) != null){
+		if (hero().buff(Awareness.class) != null){
 			for (Heap h : level.heaps.valueList()){
 				BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
 				BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
@@ -965,7 +1006,7 @@ public class Dungeon {
 			}
 		}
 
-		for (TalismanOfForesight.CharAwareness c : cur().hero.buffs(TalismanOfForesight.CharAwareness.class)){
+		for (TalismanOfForesight.CharAwareness c : hero().buffs(TalismanOfForesight.CharAwareness.class)){
 			Char ch = (Char) Actor.findById(c.charID);
 			if (ch == null || !ch.isAlive()) continue;
 			BArray.or( level.visited, level.heroFOV, ch.pos - 1 - level.width(), 3, level.visited );
@@ -974,16 +1015,16 @@ public class Dungeon {
 			GameScene.updateFog(ch.pos, 2);
 		}
 
-		for (TalismanOfForesight.HeapAwareness h : cur().hero.buffs(TalismanOfForesight.HeapAwareness.class)){
-			if (Dungeon.cur().depth != h.depth) continue;
+		for (TalismanOfForesight.HeapAwareness h : hero().buffs(TalismanOfForesight.HeapAwareness.class)){
+			if (depth() != h.depth) continue;
 			BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
 			GameScene.updateFog(h.pos, 2);
 		}
 
-		for (RevealedArea a : cur().hero.buffs(RevealedArea.class)){
-			if (Dungeon.cur().depth != a.depth) continue;
+		for (RevealedArea a : hero().buffs(RevealedArea.class)){
+			if (depth() != a.depth) continue;
 			BArray.or( level.visited, level.heroFOV, a.pos - 1 - level.width(), 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, a.pos - 1, 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, a.pos - 1 + level.width(), 3, level.visited );

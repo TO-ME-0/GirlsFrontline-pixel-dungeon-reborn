@@ -64,14 +64,14 @@ public class SacrificeRoom extends SpecialRoom {
         if (SeedFinder.SeedFinding)
             level.drop(prize(level), level.pointToCell(c)).setRoom(Heap.Room.Sacrifice);
         else
-            Blob.seed( level.pointToCell(c), 6 + Dungeon.curDepth() * 4, SacrificialFire.class, level, false );
+            Blob.seed( level.pointToCell(c), 6 + Dungeon.depth() * 4, SacrificialFire.class, level, false );
 		door.set( Door.Type.EMPTY );
 	}
 
 	public static Item prize( Level level ) {
         Random.pushGenerator(Dungeon.seedCurLevel(level));
 		//1 floor set higher than normal
-		Weapon prize = Generator.randomWeapon( (Dungeon.curDepth() / 5) + 1);
+		Weapon prize = Generator.randomWeapon( (Dungeon.depth() / 5) + 1);
 
 		if (Challenges.isItemBlocked(prize)){
 			return new Gold().random();

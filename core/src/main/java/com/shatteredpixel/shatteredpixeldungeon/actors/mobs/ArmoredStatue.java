@@ -59,7 +59,7 @@ public class ArmoredStatue extends SksStatue {
 		else
 			armor = new PlateArmor();
 		//double HP
-		HP = HT = 30 + Dungeon.curDepth() * 10;
+		HP = HT = 30 + Dungeon.depth() * 10;
 	}
 
 	private static final String ARMOR	= "armor";

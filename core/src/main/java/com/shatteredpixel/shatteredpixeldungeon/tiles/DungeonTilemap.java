@@ -118,7 +118,7 @@ public abstract class DungeonTilemap extends Tilemap {
 		}
 
 		//洞穴区（10~15 层）的区域装饰视觉上近似墙体，也参与墙体辅助；reborn 暂无 REGION_DECO_ALT
-		int depth = Dungeon.cur().depth;
+		int depth = Dungeon.depth();
 		if (depth >= 10 && depth <= 15 && map[cell] == Terrain.REGION_DECO) {
 			return true;
 		}

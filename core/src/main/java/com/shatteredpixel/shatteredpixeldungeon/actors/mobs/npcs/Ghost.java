@@ -223,12 +223,17 @@ public class Ghost extends NPC {
 		public static Quest cur() {
 			return Dungeons.cur().ghostQuest;
 		}
-		//仅用于存档读写（始终发生在主线程），避免误序列化 worker 状态
-		public static Quest main() {
-			return Dungeons.MAIN().ghostQuest;
+		public static void store( Bundle bundle ) {
+			Dungeons.MAIN().ghostQuest.storeInBundle( bundle );
+		}
+		public static void restore( Bundle bundle ) {
+			Dungeons.MAIN().ghostQuest.restoreFromBundle( bundle );
+		}
+		public static void reset() {
+			cur().resetAll();
 		}
 		public boolean active(){
-			return spawned && given && !processed && depth == Dungeon.cur().depth;
+			return spawned && given && !processed && depth == Dungeon.depth();
 		}
 		public boolean spawned;
 
@@ -244,7 +249,7 @@ public class Ghost extends NPC {
 		public Weapon.Enchantment enchant;
 		public Armor.Glyph glyph;
 		
-		public void reset() {
+		private void resetAll() {
 			spawned = false;
 			
 			weapon = null;
@@ -265,7 +270,7 @@ public class Ghost extends NPC {
 		private static final String ENCHANT		= "enchant";
 		private static final String GLYPH		= "glyph";
 		
-		public void storeInBundle( Bundle bundle ) {
+		private void storeInBundle( Bundle bundle ) {
 			
 			Bundle node = new Bundle();
 			
@@ -291,12 +296,12 @@ public class Ghost extends NPC {
 			bundle.put( NODE, node );
 		}
 		
-		public void restoreFromBundle( Bundle bundle ) {
+		private void restoreFromBundle( Bundle bundle ) {
 			
 			Bundle node = bundle.getBundle( NODE );
 
 			if (node.isNull()) {
-				reset();
+				resetAll();
 				return;
 			}
 
@@ -328,7 +333,7 @@ public class Ghost extends NPC {
 		}
 		
 		public void spawn( SewerLevel level ) {
-			if (!spawned && Dungeon.cur().depth > 1 && Random.Int( 5 - Dungeon.cur().depth ) == 0) {
+			if (!spawned && Dungeon.depth() > 1 && Random.Int( 5 - Dungeon.depth() ) == 0) {
 
 				Ghost ghost = new Ghost();
 				do {
@@ -339,11 +344,11 @@ public class Ghost extends NPC {
 				spawned = true;
 				//dungeon depth determines type of quest.
 				//depth2=fetid rat, 3=gnoll trickster, 4=great crab
-				type = Dungeon.cur().depth-1;
+				type = Dungeon.depth()-1;
 
 				given = false;
 				processed = false;
-				depth = Dungeon.cur().depth;
+				depth = Dungeon.depth();
 
 				//奖励已在 init 预生成则直接使用，否则（旧存档/读档缺失）现场补生成
 				genReward();
@@ -356,7 +361,7 @@ public class Ghost extends NPC {
 		public void genReward() {
 			if (weapon != null) return;
 			//子种子异或常量（ASCII "GHOST"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.cur().seed ^ 0x47484F5354L );
+			Random.pushGenerator( Dungeon.seed() ^ 0x47484F5354L );
 			try {
 				//50%:tier2, 30%:tier3, 15%:tier4, 5%:tier5
 				switch (Random.chances(new float[]{0, 0, 10, 6, 3, 1})){
@@ -404,7 +409,7 @@ public class Ghost extends NPC {
 		}
 		
 		public void process() {
-			if (spawned && given && !processed && (depth == Dungeon.cur().depth)) {
+			if (spawned && given && !processed && (depth == Dungeon.depth())) {
 				GLog.n( Messages.get(Ghost.class, "find_me") );
 				Sample.INSTANCE.play( Assets.Sounds.GHOST );
 				processed = true;
@@ -414,7 +419,7 @@ public class Ghost extends NPC {
 		public void complete() {
 			weapon = null;
 			armor = null;
-			if (Dungeons.cur().isSearch) return;
+			if (Dungeon.isSearch()) return;
 			CardSelector.INSTANCE().coolDown(1000);
 			
 			Notes.remove( Notes.Landmark.GHOST );

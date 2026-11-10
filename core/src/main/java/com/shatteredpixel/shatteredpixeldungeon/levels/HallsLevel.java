@@ -62,7 +62,7 @@ public class HallsLevel extends RegularLevel {
 
 	{
 		
-		viewDistance = Math.min( 31 - Dungeon.curDepth(), viewDistance );
+		viewDistance = Math.min( 31 - Dungeon.depth(), viewDistance );
 		
 		color1 = 0x801500;
 		color2 = 0xa68521;
@@ -86,7 +86,7 @@ public class HallsLevel extends RegularLevel {
     @Override
     protected boolean build() {
         boolean b =super.build();
-        if (b&&Dungeon.cur().depth==26)
+        if (b&&Dungeon.depth()==26)
             placeTrigger(new Teleporter().create(entrance,LastShopLevel.exit,1025));
         return b;
     }

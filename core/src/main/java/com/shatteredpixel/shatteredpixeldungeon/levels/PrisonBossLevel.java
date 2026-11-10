@@ -663,7 +663,7 @@ public class PrisonBossLevel extends Level {
 		Point tenguPoint = cellToPoint(tengu.pos);
 		Point heroPoint = cellToPoint(Dungeon.hero().pos);
 		
-		PathFinder.cur().setMapSize(7, 7);
+		PathFinder.setMapSize(7, 7);
 		
 		int tenguPos = tenguPoint.x-(tenguCell.left+1) + (tenguPoint.y-(tenguCell.top+1))*7;
 		int heroPos = heroPoint.x-(tenguCell.left+1) + (heroPoint.y-(tenguCell.top+1))*7;
@@ -693,7 +693,7 @@ public class PrisonBossLevel extends Level {
 				|| (PathFinder.distance()[heroPos] > Math.ceil(4 + 4*fill))));
 		System.out.println(tries);
 
-		PathFinder.cur().setMapSize(width(), height());
+		PathFinder.setMapSize(width(), height());
 		
 		for (int i = 0; i < trapsPatch.length; i++){
 			if (trapsPatch[i]) {

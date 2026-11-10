@@ -99,11 +99,11 @@ public abstract class ChampionEnemy extends Buff {
 	}
 
 	public static void rollForChampion(Mob m){
-		if (Dungeon.cur().mobsToChampion <= 0) Dungeon.cur().mobsToChampion = 8;
+		if (Dungeon.mobsToChampion() <= 0) Dungeon.mobsToChampion(8);
 
-		Dungeon.cur().mobsToChampion--;
+		Dungeon.mobsToChampion(Dungeon.mobsToChampion() - 1);
 
-		if (Dungeon.cur().mobsToChampion <= 0){
+		if (Dungeon.mobsToChampion() <= 0){
 			switch (Random.Int(6)){
 				case 0: default:    Buff.affect(m, Blazing.class);      break;
 				case 1:             Buff.affect(m, Projecting.class);   break;

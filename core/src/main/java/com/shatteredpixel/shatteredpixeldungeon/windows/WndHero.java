@@ -197,7 +197,7 @@ public class WndHero extends WndTabbed {
 			statSlot( Messages.get(this, "gold"), Statistics.goldCollected );
 			statSlot( Messages.get(this, "depth"), Statistics.deepestFloor );
             setButton(pos);
-			String seedText = DungeonSeed.convertToCode(Dungeon.cur().seed);
+			String seedText = DungeonSeed.convertToCode(Dungeon.seed());
 			if (!Dungeon.customSeedText.isEmpty())
 				seedText = Messages.format("_%s_", seedText);
 			statSlot( Messages.get(this, "seed"), seedText);
@@ -242,7 +242,7 @@ public class WndHero extends WndTabbed {
                                 protected void onSelect(int index) {
                                     super.onSelect(index);
                                     if (index == 0) {
-                                        SPDSettings.seedCode(DungeonSeed.convertToCode(Dungeon.cur().seed));
+                                        SPDSettings.seedCode(DungeonSeed.convertToCode(Dungeon.seed()));
                                     }
 
                                 }

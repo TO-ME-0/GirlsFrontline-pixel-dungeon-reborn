@@ -12,15 +12,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.watabou.utils.Random;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 public class Dungeons {
 
@@ -57,56 +52,21 @@ public class Dungeons {
     public long seed;
     public final int[] limitedDrops = new int[LimitedDrops.values().length];
 
-    //Generator 生成池的每局状态
-    public boolean genUsingFirstDeck;
-    public HashMap<Generator.Category, Float> genCategoryProbs;
-    public float[][] genCatProbs;
+    // === 新增：生成链专用上下文标记 ===
+    // 当本实例作为当前线程的生成上下文时，为 true
+    // 用于区分"游戏主上下文"与"查种子线程上下文"
+    public boolean isSearch;
 
-    //Generator 牌堆系统的每局状态：每类别的固定种子与已掉落次数（seed 为 null 表示该类未启用牌堆）
-    public Long[] genCatSeeds;
-    public int[] genCatDropped;
-
-    //双牌堆类别（如药水/卷轴）本局正使用第 2 套牌堆概率
-    public boolean[] genCatUsing2ndProbs;
-
-    //四个任务 NPC 的每局状态
+    public final SpecialRoom.State specialRoom = new SpecialRoom.State();
+    public final SecretRoom.State secretRoom = new SecretRoom.State();
+    public final Generator.State generator = new Generator.State();
     public final Ghost.Quest ghostQuest = new Ghost.Quest();
     public final Wandmaker.Quest wandmakerQuest = new Wandmaker.Quest();
     public final Blacksmith.Quest blacksmithQuest = new Blacksmith.Quest();
     public final Imp.Quest impQuest = new Imp.Quest();
 
-    //SpecialRoom / SecretRoom 的每局池
-    public ArrayList<Class<? extends Room>> spRunSpecials = new ArrayList<>();
-    public ArrayList<Class<? extends Room>> spFloorSpecials = new ArrayList<>();
-    public int spPitNeededDepth = -1;
-
-    public ArrayList<Class<? extends SecretRoom>> secRunSecrets = new ArrayList<>();
-    public int[] secRegionSecretsThisRun = new int[SecretRoom.BASE_REGION_SECRETS_LEN];
-    public float[] secRegionSecretsThisRandom = new float[SecretRoom.BASE_REGION_SECRETS_LEN];
-
-    // === 新增：生成链专用上下文标记 ===
-    // 当本实例作为当前线程的生成上下文时，为 true
-    // 用于区分"游戏主上下文"与"查种子线程上下文"
-    public boolean isSearch;
     public Dungeons(boolean isSearch) {
         this.isSearch = isSearch;
-        reset();
-    }
-
-    public void reset() {
-        depth = 0;
-        branch = 0;
-
-        //从 Category 的静态模板克隆每局独立的生成概率数组
-        genCategoryProbs = new LinkedHashMap<>();
-        Generator.Category[] cats = Generator.Category.values();
-        genCatProbs = new float[cats.length][];
-        genCatSeeds = new Long[cats.length];
-        genCatDropped = new int[cats.length];
-        genCatUsing2ndProbs = new boolean[cats.length];
-        for (Generator.Category cat : cats) {
-            genCatProbs[cat.ordinal()] = (cat.probs != null) ? cat.probs.clone() : null;
-        }
     }
 
     //简易 init：不含 challenges/GameMode 修饰（IDENTIFY 强制挑战、圣诞节彩蛋）
@@ -141,10 +101,10 @@ public class Dungeons {
 
         LimitedDrops.reset();
 
-        Ghost.Quest.cur().reset();
-        Wandmaker.Quest.cur().reset();
-        Blacksmith.Quest.cur().reset();
-        Imp.Quest.cur().reset();
+        Ghost.Quest.reset();
+        Wandmaker.Quest.reset();
+        Blacksmith.Quest.reset();
+        Imp.Quest.reset();
 
         hero = new Hero();
         hero.live();

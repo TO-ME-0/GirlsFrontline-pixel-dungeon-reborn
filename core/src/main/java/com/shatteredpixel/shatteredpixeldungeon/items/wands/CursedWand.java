@@ -324,7 +324,7 @@ public class CursedWand {
 			if (origin instanceof Wand){
 				wand.upgrade(origin.level());
 			} else {
-				wand.upgrade(Dungeon.curDepth()/5);
+				wand.upgrade(Dungeon.depth()/5);
 			}
 			wand.levelKnown = false;
 			wand.onZap(bolt);
@@ -424,7 +424,7 @@ public class CursedWand {
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			final Char target = Actor.findChar( bolt.collisionPos );
 			if (target != null) {
-				int damage = Dungeon.curDepth() * 2;
+				int damage = Dungeon.depth() * 2;
 				Char toHeal, toDamage;
 
 				//can only harm target if positive only
@@ -524,7 +524,7 @@ public class CursedWand {
 				//does not harm allies if positive only
 				if (ch.alignment != Char.Alignment.ALLY || !positiveOnly){
 					//shocking dart damage and a little stun
-					ch.damage(Random.NormalIntRange(5 + Dungeon.curDepth() / 4, 10 + Dungeon.curDepth() / 4), new Electricity());
+					ch.damage(Random.NormalIntRange(5 + Dungeon.depth() / 4, 10 + Dungeon.depth() / 4), new Electricity());
 					if (ch.isAlive()) {
 						Buff.affect(ch, Paralysis.class, Paralysis.DURATION / 2f);
 					} else if (ch == Dungeon.hero()){
@@ -672,12 +672,12 @@ public class CursedWand {
 
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			if (!positiveOnly && Dungeon.curDepth() > 1 && !Dungeon.bossLevel() && user == Dungeon.hero()) {
+			if (!positiveOnly && Dungeon.depth() > 1 && !Dungeon.bossLevel() && user == Dungeon.hero()) {
 
 				//starting from 10 floors up (or floor 1), each floor has 1 more weight
-				float[] depths = new float[Dungeon.curDepth()-1];
-				int start = Math.max(1, Dungeon.curDepth()-10);
-				for (int i = start; i < Dungeon.curDepth(); i++) {
+				float[] depths = new float[Dungeon.depth()-1];
+				int start = Math.max(1, Dungeon.depth()-10);
+				for (int i = start; i < Dungeon.depth(); i++) {
 					depths[i-1] = i-start+1;
 				}
 				int depth = 1+Random.chances(depths);
@@ -734,7 +734,7 @@ public class CursedWand {
 						Char ch = Actor.findChar(i);
 						Burning burning = Buff.affect(ch, Burning.class);
 						burning.reignite(ch);
-						int dmg = Random.NormalIntRange(5 + Dungeon.curDepth(), 10 + Dungeon.curDepth()*2);
+						int dmg = Random.NormalIntRange(5 + Dungeon.depth(), 10 + Dungeon.depth()*2);
 						ch.damage(dmg, burning);
 					}
 					if (Dungeon.level.flammable[i]){
@@ -814,7 +814,7 @@ public class CursedWand {
 					continue;
 				} else {
 
-					int dmg = Random.NormalIntRange(5 + Dungeon.curDepth(), 10 + Dungeon.curDepth()*2);
+					int dmg = Random.NormalIntRange(5 + Dungeon.depth(), 10 + Dungeon.depth()*2);
 					switch (Random.Int(5)){
 						case 0: default:
 							Burning burning = Buff.affect(ch, Burning.class);
@@ -829,7 +829,7 @@ public class CursedWand {
 							break;
 						case 2:
 							Poison poison = Buff.affect(ch, Poison.class);
-							poison.set(3 + Dungeon.curDepth() / 2);
+							poison.set(3 + Dungeon.depth() / 2);
 							ch.damage(dmg, poison);
 							ch.sprite.emitter().burst(PoisonParticle.SPLASH, 20);
 							break;
@@ -1052,7 +1052,7 @@ public class CursedWand {
 		@Override
 		public boolean valid(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			//can't happen on floors where chasms aren't allowed
-			if( Dungeon.bossLevel() || Dungeon.curDepth() > 25){
+			if( Dungeon.bossLevel() || Dungeon.depth() > 25){
 				return false;
 			}
 			return true;
@@ -1079,7 +1079,7 @@ public class CursedWand {
 					}
 				}
 				PitfallTrap.DelayedPit p = Buff.append(Dungeon.hero(), PitfallTrap.DelayedPit.class, 1);
-				p.depth = Dungeon.curDepth();
+				p.depth = Dungeon.depth();
 				p.setPositions(positions);
 
 				//effect does not harm hero/allies if positive only

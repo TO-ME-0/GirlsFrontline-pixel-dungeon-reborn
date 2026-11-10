@@ -63,7 +63,7 @@ public class Shopkeeper extends NPC {
         return Notes.Landmark.SHOP;
     }
     private static Class<? extends ShopkeeperSprite> ShopKeeperSprite(){
-        if ((Dungeon.cur().depth-1)/5< Statistics.deepestFloor/5&&Dungeon.cur().depth!=16)
+        if ((Dungeon.depth()-1)/5< Statistics.deepestFloor/5&&Dungeon.depth()!=16)
             return ShopkeeperSprite.MirrorShopkeeper.class;
         return ShopkeeperSprite.class;
     }
@@ -172,7 +172,7 @@ public class Shopkeeper extends NPC {
         if(Dungeon.hero().hasTalent(Talent.BARGAIN_SKILLS) && item instanceof Food)
             rate -= 0.2F * Dungeon.hero().pointsInTalent(Talent.BARGAIN_SKILLS);
 
-        int mul = Dungeon.cur().depth/5 + 1;
+        int mul = Dungeon.depth()/5 + 1;
         //乘数等效于下一个boss层的楼层数
 
         return Math.max( item.value() * 2, (int)(item.value() * rate * (mul * 5) ));

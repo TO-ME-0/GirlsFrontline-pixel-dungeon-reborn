@@ -76,7 +76,7 @@ public class SecretMazeRoom extends SecretRoom {
 			}
 		}
 		
-		PathFinder.cur().setMapSize(width(), height());
+		PathFinder.setMapSize(width(), height());
 		Point entrance = entrance();
 		int entrancePos = (entrance.x - left) + width()*(entrance.y - top);
 		
@@ -97,9 +97,9 @@ public class SecretMazeRoom extends SecretRoom {
 		//1 floor set higher in probability, never cursed
 		do {
 			if (Random.Int(2) == 0) {
-				prize = Generator.randomWeapon((Dungeon.curDepth() / 5) + 1);
+				prize = Generator.randomWeapon((Dungeon.depth() / 5) + 1);
 			} else {
-				prize = Generator.randomArmor((Dungeon.curDepth() / 5) + 1);
+				prize = Generator.randomArmor((Dungeon.depth() / 5) + 1);
 			}
 		} while (prize.cursed || Challenges.isItemBlocked(prize));
 		prize.cursedKnown = true;
@@ -111,7 +111,7 @@ public class SecretMazeRoom extends SecretRoom {
 		
 		level.drop(prize, level.pointToCell(bestDistP)).setType(Heap.Type.CHEST).setRoom(Heap.Room.Secret_Maze);
 		
-		PathFinder.cur().setMapSize(level.width(), level.height());
+		PathFinder.setMapSize(level.width(), level.height());
 
 		entrance().setHidden();
 	}

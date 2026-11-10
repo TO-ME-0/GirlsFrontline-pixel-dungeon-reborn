@@ -57,8 +57,6 @@ public abstract class Plant implements Bundlable {
 	public int image;
 	public int pos;
 	protected Class<? extends Plant.Seed> seedClass;
-	public static Level level;
-
 	public Seed seed(){
 		return Reflection.newInstance(seedClass);
 	}
@@ -86,15 +84,9 @@ public abstract class Plant implements Bundlable {
 		activate(ch);
 	}
 	public Level activateLevel(){
-		if (Dungeon.cur().isSearch) {
-			Plant.level = null;
-			return Dungeon.cur().level;
-		}
-		else if (Plant.level != null){
-			Level level = Plant.level;
-			Plant.level = null;
+		Level level = Dungeon.curLevel();
+		if (level != null)
 			return level;
-		}
 		return Dungeon.level;
 	}
 	

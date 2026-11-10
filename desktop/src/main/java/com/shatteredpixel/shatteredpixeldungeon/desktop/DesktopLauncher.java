@@ -88,7 +88,7 @@ public class DesktopLauncher {
                             Messages.get(DesktopLauncher.class, "crash_message") + "\n\n" +
                                     Messages.get(DesktopLauncher.class, "crash_log_saved") + "\n\n" +
                                     Messages.get(DesktopLauncher.class, "version") + ": " + Game.version + "\n\n" +
-                                    Messages.get(DesktopLauncher.class, "seed") + ": " + Dungeon.cur().seed + "\n\n",
+                                    Messages.get(DesktopLauncher.class, "seed") + ": " + Dungeon.seed() + "\n\n",
                             JOptionPane.ERROR_MESSAGE,
                             JOptionPane.DEFAULT_OPTION);
 

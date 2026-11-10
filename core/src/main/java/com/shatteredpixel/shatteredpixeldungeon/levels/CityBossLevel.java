@@ -24,7 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeons;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Disloli;
@@ -228,7 +227,7 @@ public class CityBossLevel extends Level {
 
 	public void create(int levelDepth, int levelBranch){
 		super.create(levelDepth, levelBranch);
-		if (Dungeons.cur().isSearch)
+		if (Dungeon.isSearch())
 			spawnShop();
 	}
 	//returns a random pedestal that doesn't already have a summon inbound on it

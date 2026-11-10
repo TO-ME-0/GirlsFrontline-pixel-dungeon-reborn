@@ -59,12 +59,12 @@ public class RatKing extends NPC {
     {        
         spriteClass = FncSprite.class;
         
-        state =Dungeon.cur().depth==0?PASSIVE: SLEEPING;
+        state =Dungeon.depth()==0?PASSIVE: SLEEPING;
     }
 
     @Override
     public Notes.Landmark landmark() {
-        return Dungeon.cur().depth == 5 ? Notes.Landmark.RAT_KING : null;
+        return Dungeon.depth() == 5 ? Notes.Landmark.RAT_KING : null;
     }
     // 添加统一的礼物计数器，用于跟踪鼠王是否已经给予过玩家物品
     public static class GiftTracker extends CounterBuff {
@@ -117,11 +117,11 @@ public class RatKing extends NPC {
     @Override
     protected void onAdd() {
         super.onAdd();
-        if (Dungeon.cur().depth == 0){
+        if (Dungeon.depth() == 0){
             //0层营地FNC：使用独立占位文本
             yell(Messages.get(this, "zero_spawn"));
         }
-        else if (Dungeon.cur().depth != 5){
+        else if (Dungeon.depth() != 5){
             yell(Messages.get(this, "confused"));
         }
     }
@@ -130,10 +130,10 @@ public class RatKing extends NPC {
 
     @Override
     protected boolean act() {
-        if(Dungeon.cur().depth==0){
+        if(Dungeon.depth()==0){
             state = PASSIVE;
         }else
-        if(Dungeon.cur().depth!=5){
+        if(Dungeon.depth()!=5){
             state = WANDERING;
         }
         return super.act();
@@ -181,7 +181,7 @@ public class RatKing extends NPC {
             yell( Messages.get(this, "not_sleeping") );
             state = WANDERING;
         }
-        else if (Dungeon.cur().depth == 0) {
+        else if (Dungeon.depth() == 0) {
             //0层营地FNC：不直接开启新存档，仅指引玩家前往右侧消毒通道
             if (hintCount < 3) {
                 yell(Messages.get(this, "zero_" + hintCount));

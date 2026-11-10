@@ -75,8 +75,8 @@ public class Carpet extends CustomTilemap {
 	public Tilemap create() {
 		Tilemap v = super.create();
 		int[] data = new int[tileW*tileH];
-		// 搬运适配：reborn 用 Dungeon.cur().depth，而非 Dungeon.depth 字段
-		int curDepth = Dungeon.cur() == null ? 1 : Dungeon.cur().depth;
+		// 搬运适配：reborn 通过 Dungeon.depth() 门面读取当前楼层
+		int curDepth = Dungeon.depth();
 		int regionOfs = 16 * (int)((curDepth-1)/5);
 		int i = 0;
 		for (int y = 0; y < tileH; y++){

@@ -87,7 +87,7 @@ public class DEL extends NPC {
 	protected boolean act() {
 		if (!seenBefore && Dungeon.level.heroFOV[pos]){
             seenBefore = true;
-            if (Dungeon.cur().depth == 0){
+            if (Dungeon.depth() == 0){
                 RatKing.HintTracker count = Buff.affect(this, RatKing.HintTracker.class);
                 count.countDown(count.count());
                 if (GamesInProgress.firstEmpty() != -1)
@@ -145,7 +145,7 @@ public class DEL extends NPC {
 			return true;
 		}
 
-        if (Dungeon.cur().depth == 0){
+        if (Dungeon.depth() == 0){
             RatKing.HintTracker count = Buff.affect(this, RatKing.HintTracker.class);
             if (count.count() >= 3){
                 if (GamesInProgress.firstEmpty() == -1)
@@ -239,7 +239,7 @@ public class DEL extends NPC {
         }
     }
     public static int getMissionGold(int mission){
-        int curBossDepth = (int) Math.ceil(Dungeon.cur().depth / 5F) * 5;
+        int curBossDepth = (int) Math.ceil(Dungeon.depth() / 5F) * 5;
         int nextBossDepth = curBossDepth + 5;
         switch (mission){
             case 0: default: return  new ScrollOfRemoveCurse().value() * (nextBossDepth - 1);

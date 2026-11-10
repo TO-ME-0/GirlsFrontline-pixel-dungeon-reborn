@@ -72,7 +72,7 @@ public class LevelTeleporter extends TestItem {
     public void execute( Hero hero, String action ) {
         super.execute( hero, action );
         if(action.equals(AC_DESCEND)) {
-            if(Dungeon.hero().buff(LockedFloor.class) != null || Dungeon.cur().depth>= Constants.MAX_DEPTH) {
+            if(Dungeon.hero().buff(LockedFloor.class) != null || Dungeon.depth()>= Constants.MAX_DEPTH) {
                 GLog.w(Messages.get(this,"cannot_send"));
                 return;
             }
@@ -83,7 +83,7 @@ public class LevelTeleporter extends TestItem {
             InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
             Game.switchScene( InterlevelScene.class );
         } else if(action.equals(AC_ASCEND)){
-            if(Dungeon.hero().buff(LockedFloor.class) != null || Dungeon.cur().depth<=1) {
+            if(Dungeon.hero().buff(LockedFloor.class) != null || Dungeon.depth()<=1) {
                 GLog.w(Messages.get(this,"cannot_send"));
                 return;
             }

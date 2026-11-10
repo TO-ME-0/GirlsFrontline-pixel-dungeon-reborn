@@ -134,7 +134,7 @@ public class WndJournal extends WndTabbed {
 		}
 
 		if (Dungeon.hero() == null)
-			Dungeon.cur().hero = new Hero();
+			Dungeon.hero(new Hero());
 		
 		int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
 		int height = PixelScene.landscape() ? HEIGHT_L : HEIGHT_P;
@@ -284,7 +284,7 @@ public class WndJournal extends WndTabbed {
 				depth.text(Integer.toString(d));
 				depth.measure();
 
-				if (d == Dungeon.cur().depth) {
+				if (d == Dungeon.depth()) {
 					label.hardlight(TITLE_COLOR);
 					depth.hardlight(TITLE_COLOR);
 				}

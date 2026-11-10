@@ -25,7 +25,7 @@ public class IntensifySkill extends SkillItem {
         updateQuickslot();
     }
     private static void intensify_INSTANCE( Hero hero ){
-        int shield = (int) (Math.ceil(Dungeon.curDepth() / 5F) * 3);
+        int shield = (int) (Math.ceil(Dungeon.depth() / 5F) * 3);
         if (hasCard(CommonCard.UNIVERSAL.LWMMG))
             shield += 8;
         Buff.affect(hero, HS2000_Shield.class).incShield(shield);

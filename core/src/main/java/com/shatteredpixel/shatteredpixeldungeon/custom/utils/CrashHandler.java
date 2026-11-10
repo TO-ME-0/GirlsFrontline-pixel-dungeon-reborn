@@ -144,7 +144,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             sb.append("OS: ").append(System.getProperty("os.name")).append(" ").append(System.getProperty("os.version")).append("\n\n");
         }
         
-        sb.append("GameSeed: ").append(Dungeon.cur().seed).append("\n");
+        sb.append("GameSeed: ").append(Dungeon.seed()).append("\n");
         sb.append("Challenges: ").append(Dungeon.challenges).append("\n\n");
 
         sb.append("Exception Type: ").append(ex.getClass().getName()).append("\n");

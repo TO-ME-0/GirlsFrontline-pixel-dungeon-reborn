@@ -112,7 +112,7 @@ public class Wraith extends Mob {
 			} else {
 				w = new Wraith();
 			}
-			w.adjustStats( Dungeon.cur().depth );
+			w.adjustStats( Dungeon.depth() );
 			w.pos = pos;
 			w.state = w.HUNTING;
 			GameScene.add( w, SPAWN_DELAY );

@@ -65,7 +65,7 @@ public class ImpShopkeeper extends Shopkeeper {
         Game.runOnRenderThread(new Callback() {
             @Override
             public void call() {
-                if (Dungeon.cur().depth==20)
+                if (Dungeon.depth()==20)
                     Shopkeeper.sell();
                 else {
                     ImpShopkeeper impShopkeeper = ImpShopkeeper.this;
