@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.watabou.utils.Point;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 public class SacrificeRoom extends SpecialRoom {
@@ -69,25 +70,25 @@ public class SacrificeRoom extends SpecialRoom {
 	}
 
 	public static Item prize( Level level ) {
-        Random.pushGenerator(Dungeon.seedCurLevel(level));
-		//1 floor set higher than normal
-		Weapon prize = Generator.randomWeapon( (Dungeon.depth() / 5) + 1);
+		try (Rng.Sub s = Rng.levelStream(level)) {
+			//1 floor set higher than normal
+			Weapon prize = Generator.randomWeapon( (Dungeon.depth() / 5) + 1);
 
-		if (Challenges.isItemBlocked(prize)){
-			return new Gold().random();
-		}
-
-		//if it isn't already cursed, give it a free upgrade
-		if (!prize.cursed){
-			prize.upgrade();
-			//curse the weapon, unless it has a glyph
-			if (!prize.hasGoodEnchant()){
-				prize.enchant(Weapon.Enchantment.randomCurse());
+			if (Challenges.isItemBlocked(prize)){
+				return new Gold().random();
 			}
+
+			//if it isn't already cursed, give it a free upgrade
+			if (!prize.cursed){
+				prize.upgrade();
+				//curse the weapon, unless it has a glyph
+				if (!prize.hasGoodEnchant()){
+					prize.enchant(Weapon.Enchantment.randomCurse());
+				}
+			}
+			prize.cursed = prize.cursedKnown = true;
+			return prize;
 		}
-		prize.cursed = prize.cursedKnown = true;
-        Random.popGenerator();
-		return prize;
 	}
 
 }

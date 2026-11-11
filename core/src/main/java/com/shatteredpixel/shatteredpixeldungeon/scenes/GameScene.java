@@ -141,6 +141,7 @@ import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
 
@@ -687,11 +688,11 @@ public class GameScene extends PixelScene {
 				}
 
 				//50%/100% chance, use level's seed so that we get the same result for the same level
-				Random.pushGenerator(Dungeon.seedCurLevel());
+				try (Rng.Sub s = Rng.levelStream()) {
 					if (reqSecrets && RogueTalent.rollRoguesForesightHint(Dungeon.hero())){
 						GLog.p(Messages.get(this, "secret_hint"));
 					}
-				Random.popGenerator();
+				}
 			}
 
 			boolean unspentTalents = false;

@@ -47,6 +47,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
 
@@ -365,12 +366,12 @@ public class CityBossLevel extends Level {
 	public void spawnShop(){
 		if (impShop.shopSpawned())
 			return;
-		Random.pushGenerator( Dungeon.seedCurLevel(this) );
-		while (impShop.itemCount() >= 7*(impShop.height()-2)){
-			impShop.bottom++;
+		try (Rng.Sub s = Rng.levelStream(this)) {
+			while (impShop.itemCount() >= 7*(impShop.height()-2)){
+				impShop.bottom++;
+			}
+			impShop.spawnShop(this);
 		}
-		impShop.spawnShop(this);
-		Random.popGenerator();
 	}
 
 	@Override

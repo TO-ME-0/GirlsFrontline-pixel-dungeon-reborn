@@ -109,6 +109,7 @@ import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Callback;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -667,16 +668,16 @@ public class VaultLevel extends CityLevel {
 
 		//若开启“深入黑暗”挑战则额外生成 2 支火把。用独立随机种子避免影响楼层生成的其他部分
 		if (Dungeon.isChallenged(Challenges.DARKNESS)){
-			Random.pushGenerator(Random.Long());
-			for (int i = 0; i < 2; i++){
-				int cell = randomDropCell();
-				drop( new Torch(), cell ).type = Heap.Type.HEAP;
-				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-					map[cell] = Terrain.GRASS;
-					losBlocking[cell] = false;
+			try (Rng.Sub s = Rng.nextSubstream()) {
+				for (int i = 0; i < 2; i++){
+					int cell = randomDropCell();
+					drop( new Torch(), cell ).type = Heap.Type.HEAP;
+					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+						map[cell] = Terrain.GRASS;
+						losBlocking[cell] = false;
+					}
 				}
 			}
-			Random.popGenerator();
 		}
 
 	}

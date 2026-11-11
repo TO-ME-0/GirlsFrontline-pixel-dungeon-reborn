@@ -75,6 +75,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndStartGame;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -522,7 +523,7 @@ abstract public class Weapon extends KindOfWeapon {
 
 		//we use a separate RNG here so that variance due to things like parchment scrap
 		//does not affect levelgen
-		Random.pushGenerator(Random.Long());
+		try (Rng.Sub s = Rng.nextSubstream()) {
 
 			//30% chance to be cursed
 			//10% chance to be enchanted
@@ -535,7 +536,7 @@ abstract public class Weapon extends KindOfWeapon {
 				enchant();
 			}
 
-		Random.popGenerator();
+		}
 
 		return this;
 	}

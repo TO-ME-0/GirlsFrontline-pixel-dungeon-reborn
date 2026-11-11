@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndQuest;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -441,54 +442,51 @@ public class Blacksmith extends NPC {
 		public void generateRewards(){
 			if (smithRewards != null) return;
 			//子种子异或常量（ASCII "SMITH"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.seed() ^ 0x534D495448L );
-			try {
-			smithRewards = new ArrayList<>();
-			smithRewards.add(Generator.randomWeapon(3));
-			smithRewards.add(Generator.randomWeapon(3));
-			//两件武器不能同 class
-			while (smithRewards.get(0).getClass() == smithRewards.get(1).getClass()) {
-				smithRewards.remove(1);
+			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x534D495448L )) {
+				smithRewards = new ArrayList<>();
 				smithRewards.add(Generator.randomWeapon(3));
-			}
-			smithRewards.add(Generator.randomMissile(3));
-			smithRewards.add(Generator.randomArmor(3));
-
-			//30%:+0, 45%:+1, 20%:+2, 5%:+3
-			int rewardLevel;
-			float itemLevelRoll = Random.Float();
-			if (itemLevelRoll < 0.3f){
-				rewardLevel = 0;
-			} else if (itemLevelRoll < 0.75f){
-				rewardLevel = 1;
-			} else if (itemLevelRoll < 0.95f){
-				rewardLevel = 2;
-			} else {
-				rewardLevel = 3;
-			}
-
-			for (Item i : smithRewards){
-				i.level(rewardLevel);
-				if (i instanceof Weapon) {
-					((Weapon) i).enchant(null);
-				} else if (i instanceof Armor){
-					((Armor) i).inscribe(null);
+				smithRewards.add(Generator.randomWeapon(3));
+				//两件武器不能同 class
+				while (smithRewards.get(0).getClass() == smithRewards.get(1).getClass()) {
+					smithRewards.remove(1);
+					smithRewards.add(Generator.randomWeapon(3));
 				}
-				i.cursed = false;
-			}
+				smithRewards.add(Generator.randomMissile(3));
+				smithRewards.add(Generator.randomArmor(3));
 
-			// 30% 基础附魔/铭文概率，单独存储以免提前暴露
-			//先生成再判定置空，保证 RNG 消耗次数与 3.3.8 一致
-			smithEnchant = Weapon.Enchantment.random();
-			smithGlyph = Armor.Glyph.random();
+				//30%:+0, 45%:+1, 20%:+2, 5%:+3
+				int rewardLevel;
+				float itemLevelRoll = Random.Float();
+				if (itemLevelRoll < 0.3f){
+					rewardLevel = 0;
+				} else if (itemLevelRoll < 0.75f){
+					rewardLevel = 1;
+				} else if (itemLevelRoll < 0.95f){
+					rewardLevel = 2;
+				} else {
+					rewardLevel = 3;
+				}
 
-			float enchantRoll = Random.Float();
-			if (enchantRoll > 0.3f * ParchmentScrap.enchantChanceMultiplier()){
-				smithEnchant = null;
-				smithGlyph = null;
-			}
-			} finally {
-				Random.popGenerator();
+				for (Item i : smithRewards){
+					i.level(rewardLevel);
+					if (i instanceof Weapon) {
+						((Weapon) i).enchant(null);
+					} else if (i instanceof Armor){
+						((Armor) i).inscribe(null);
+					}
+					i.cursed = false;
+				}
+
+				// 30% 基础附魔/铭文概率，单独存储以免提前暴露
+				//先生成再判定置空，保证 RNG 消耗次数与 3.3.8 一致
+				smithEnchant = Weapon.Enchantment.random();
+				smithGlyph = Armor.Glyph.random();
+
+				float enchantRoll = Random.Float();
+				if (enchantRoll > 0.3f * ParchmentScrap.enchantChanceMultiplier()){
+					smithEnchant = null;
+					smithGlyph = null;
+				}
 			}
 
 		}

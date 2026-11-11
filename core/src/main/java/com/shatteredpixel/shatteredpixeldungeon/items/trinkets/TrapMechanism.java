@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class TrapMechanism extends Trinket {
 			return Level.Feeling.NONE;
 		}
 		if (mech.levelFeels.isEmpty()){
-			Random.pushGenerator(Dungeon.seedCurLevel()+1);
+			try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
 				mech.levelFeels.add(true);
 				mech.levelFeels.add(true);
 				mech.levelFeels.add(true);
@@ -97,7 +98,7 @@ public class TrapMechanism extends Trinket {
 					Random.shuffle(mech.levelFeels);
 				}
 				mech.shuffles++;
-			Random.popGenerator();
+			}
 		}
 
 		return mech.levelFeels.remove(0) ? Level.Feeling.TRAPS : Level.Feeling.CHASM;

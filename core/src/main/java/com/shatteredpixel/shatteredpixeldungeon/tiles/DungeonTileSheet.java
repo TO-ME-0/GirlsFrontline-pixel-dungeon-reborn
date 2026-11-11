@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.SparseArray;
 
@@ -443,14 +444,12 @@ public class DungeonTileSheet {
 	public static byte[] tileVariance;
 
 	public static void setupVariance(int size, long seed){
-		Random.pushGenerator( seed );
-
+		try (Rng.Sub s = Rng.substream(seed)) {
 			tileVariance = new byte[size];
 			for (int i = 0; i < tileVariance.length; i++) {
 				tileVariance[i] = (byte) Random.Int(100);
 			}
-
-		Random.popGenerator();
+		}
 	}
 
 	//These alt visuals will trigger 50% of the time (45% of the time if a rare alt is also present)

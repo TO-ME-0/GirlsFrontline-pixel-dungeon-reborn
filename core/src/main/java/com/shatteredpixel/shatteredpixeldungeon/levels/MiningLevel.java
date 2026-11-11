@@ -52,6 +52,7 @@ import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Tilemap;
 import com.watabou.noosa.audio.Music;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class MiningLevel extends CavesLevel {
 	//mod 的 Bones.get() 返回单个 Item（3.3.8 返回列表）
 	@Override
 	protected void createItems() {
-		Random.pushGenerator(Random.Long());
+		try (Rng.Sub s = Rng.nextSubstream()) {
 			Item bonesItem = Bones.get();
 			if (bonesItem != null) {
 				int cell = randomDropCell();
@@ -178,7 +179,7 @@ public class MiningLevel extends CavesLevel {
 				}
 				drop(bonesItem, cell).setHauntedIfCursed().type = Heap.Type.REMAINS;
 			}
-		Random.popGenerator();
+		}
 
 		int cell = randomDropCell();
 		if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {

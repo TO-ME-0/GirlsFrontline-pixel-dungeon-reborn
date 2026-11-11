@@ -47,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndQuest;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -368,8 +369,7 @@ public class Imp extends NPC {
 		public void genReward() {
 			if (!rewardOptions.isEmpty()) return;
 			//子种子异或常量（ASCII "IMP4"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.seed() ^ 0x494D5034L );
-			try {
+			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x494D5034L )) {
 				//0 位占位：神器项推迟到 spawn 由 genArtifact 填入；
 				//用可序列化的 ArtifactHolder（而非 null）占位，未 spawn 的存档读回后位置不会丢失
 				rewardOptions.add(new Holder.ArtifactHolder().level(-10));
@@ -442,8 +442,6 @@ public class Imp extends NPC {
 					if (i != null)
 						i.cursed = false;
 				genVaultEquip();
-			} finally {
-				Random.popGenerator();
 			}
 		}
 

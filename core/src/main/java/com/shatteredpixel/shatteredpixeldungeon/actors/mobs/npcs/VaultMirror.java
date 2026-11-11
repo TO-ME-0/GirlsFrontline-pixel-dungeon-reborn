@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 public class VaultMirror extends NPC {
@@ -64,7 +65,7 @@ public class VaultMirror extends NPC {
 
 	public void createReward(HeroClass cls){
 		//这里新建一个随机数生成器，因为有的英雄职业会在此消耗 RNG 而有的不会
-		Random.pushGenerator(Random.Long());
+		try (Rng.Sub s = Rng.nextSubstream()) {
 			switch (cls) {
 				case WARRIOR:
 					reward = new BrokenSeal().upgrade().identify(false);
@@ -84,7 +85,7 @@ public class VaultMirror extends NPC {
 					break;
 					//reborn 无 DUELIST/CLERIC 职业，也无 Greatsword/HolyTome 物品，对应奖励分支已删除
 			}
-		Random.popGenerator();
+		}
 	}
 
 	@Override

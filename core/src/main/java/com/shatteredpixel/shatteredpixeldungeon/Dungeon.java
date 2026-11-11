@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
@@ -491,16 +492,9 @@ public class Dungeon {
         return seedForDepth(level.levelDepth, level.branch);
     }
 	public static long seedForDepth(int depth,int branch){
-		Random.pushGenerator( seed() );
-        int lookAhead = depth + 30*branch;
-        for (int i = 0; i < lookAhead; i ++) {
-				Random.Long(); //we don't care about these values, just need to go through them
-			}
-			long result = Random.Long();
-            //过掉楼层深度个随机数，以获得即将要使用的随机数
-
-		Random.popGenerator();
-		return result;
+		try (Rng.Sub s = Rng.substream(seed(), depth + 30 * branch)) {
+			return Random.Long();
+		}
 	}
 	
 	public static boolean shopOnLevel() {

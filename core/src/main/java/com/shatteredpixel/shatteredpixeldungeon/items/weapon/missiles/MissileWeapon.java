@@ -53,6 +53,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.security.SecureRandom;
@@ -416,7 +417,7 @@ abstract public class MissileWeapon extends Weapon {
 
 		//we use a separate RNG here so that variance due to things like parchment scrap
 		//does not affect levelgen
-		Random.pushGenerator(Random.Long());
+		try (Rng.Sub s = Rng.nextSubstream()) {
 
 			//30% chance to be cursed
 			//10% chance to be enchanted
@@ -428,7 +429,7 @@ abstract public class MissileWeapon extends Weapon {
 				enchant();
 			}
 
-		Random.popGenerator();
+		}
 
 		return this;
 	}

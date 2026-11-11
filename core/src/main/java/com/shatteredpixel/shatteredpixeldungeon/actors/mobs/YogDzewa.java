@@ -62,6 +62,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -111,7 +112,7 @@ public class YogDzewa extends Mob {
 	private ArrayList<Class> fistSummons = new ArrayList<>();
 	private ArrayList<Class> challengeSummons = new ArrayList<>();
 	{
-		Random.pushGenerator(Dungeon.seedCurLevel());
+		try (Rng.Sub s = Rng.levelStream()) {
 			fistSummons.add(Random.Int(2) == 0 ? YogFist.BurningFist.class : YogFist.SoiledFist.class);
 			fistSummons.add(Random.Int(2) == 0 ? YogFist.RottingFist.class : YogFist.RustedFist.class);
 			fistSummons.add(Random.Int(2) == 0 ? YogFist.BrightFist.class : YogFist.DarkFist.class);
@@ -126,7 +127,7 @@ public class YogDzewa extends Mob {
 				challengeSummons.add(getPairedFist(fistSummons.get(0)));
 				challengeSummons.add(getPairedFist(fistSummons.get(1)));
 			}
-		Random.popGenerator();
+		}
 	}
 
 	private ArrayList<Class> regularSummons = new ArrayList<>();

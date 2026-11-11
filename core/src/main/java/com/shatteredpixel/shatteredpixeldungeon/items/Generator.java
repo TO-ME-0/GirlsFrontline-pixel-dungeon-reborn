@@ -234,6 +234,7 @@ import com.shatteredpixel.shatteredpixeldungeon.plants.Starflower;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Stormvine;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Sungrass;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
@@ -835,20 +836,16 @@ public class Generator {
 					return item != null ? item : random(Category.RING, floorSet);
 				default:
 					//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
-					if (cat.defaultProbs != null && seed(cat) != null) {
-						Random.pushGenerator(seed(cat));
-						for (int i = 0; i < dropped(cat); i++) Random.Long();
-					}
-
-					int i = Random.chances(probs(cat));
-					if (i == -1) {
-						reset(cat);
+					boolean decked = cat.defaultProbs != null && seed(cat) != null;
+					int i;
+					try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 						i = Random.chances(probs(cat));
+						if (i == -1) {
+							reset(cat);
+							i = Random.chances(probs(cat));
+						}
 					}
-					if (cat.defaultProbs != null && seed(cat) != null) {
-						Random.popGenerator();
-						setDropped(cat, dropped(cat) + 1);
-					}
+					if (decked) setDropped(cat, dropped(cat) + 1);
 
 					if (cat.defaultProbs != null) probs(cat)[i]--;
 					Class<?> itemCls = cat.classes[i];
@@ -935,16 +932,13 @@ public class Generator {
 		public Artifact randomArtifact() {
 			Category cat = Category.ARTIFACT;
 			//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
-			if (cat.defaultProbs != null && seed(cat) != null) {
-				Random.pushGenerator(seed(cat));
-				for (int i = 0; i < dropped(cat); i++) Random.Long();
+			boolean decked = cat.defaultProbs != null && seed(cat) != null;
+			int i, j;
+			try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
+				i = Random.chances(probs(cat));
+				j = Random.chances(probs(cat));
 			}
-			int i = Random.chances(probs(cat));
-			int j = Random.chances(probs(cat));
-			if (cat.defaultProbs != null && seed(cat) != null) {
-				Random.popGenerator();
-				setDropped(cat, dropped(cat) + 1);
-			}
+			if (decked) setDropped(cat, dropped(cat) + 1);
 
 			//if no artifacts are left, return null
 			if (i == -1) {

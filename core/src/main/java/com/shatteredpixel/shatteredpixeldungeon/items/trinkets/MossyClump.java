@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class MossyClump extends Trinket {
 			return Level.Feeling.NONE;
 		}
 		if (clump.levelFeels.isEmpty()){
-			Random.pushGenerator(Dungeon.seedCurLevel()+1);
+			try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
 				clump.levelFeels.add(true);
 				clump.levelFeels.add(true);
 				clump.levelFeels.add(false);
@@ -85,7 +86,7 @@ public class MossyClump extends Trinket {
 					Random.shuffle(clump.levelFeels);
 				}
 				clump.shuffles++;
-			Random.popGenerator();
+			}
 		}
 
 		return clump.levelFeels.remove(0) ? Level.Feeling.GRASS : Level.Feeling.WATER;

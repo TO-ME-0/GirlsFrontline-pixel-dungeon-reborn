@@ -102,6 +102,7 @@ import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 import com.watabou.utils.SparseArray;
@@ -225,120 +226,119 @@ public abstract class Level implements Bundlable {
 		this.levelDepth=levelDepth;
 		this.branch   =levelBranch;
 		creating = true;
-		Random.pushGenerator( Dungeon.seedToCreate() );
+		try (Rng.Sub lv = Rng.levelStream(levelDepth, levelBranch)) {
+
+			if (!(Dungeon.bossLevel()) && levelBranch == 0) {
+
+				addItemToSpawn(Generator.random(Generator.Category.FOOD));
+
+				if (Dungeon.isChallenged(Challenges.DARKNESS)){
+					addItemToSpawn( new Torch() );
+				}
+
+				if (Dungeon.posNeeded()) {
+					addItemToSpawn( new PotionOfStrength() );
+					Dungeon.LimitedDrops.STRENGTH_POTIONS.used();
+					//章节配额：章内第1-2层与第3-4层各恰好产出一瓶力量药水；配额规则已知，立即激活
+					int posBase = (Dungeon.floorCode(levelDepth, levelBranch) / 5) * 5;
+					int posFirst = Dungeon.floorCode(levelDepth, levelBranch) % 5 <= 2 ? posBase + 1 : posBase + 3;
+					AutoIdentify.tagFloor(new int[]{posFirst, posFirst + 1}, IdentifyKnowledge.Category.POTION,
+							new Class[]{PotionOfStrength.class}, 1, 1,
+							IdentifyKnowledge.Origin.RUN, "章节固定配额的力量药水：每对相邻楼层中恰好一瓶。");
+				}
+				if (Dungeon.souNeeded()) {
+					addItemToSpawn( new ScrollOfUpgrade() );
+					Dungeon.LimitedDrops.UPGRADE_SCROLLS.used();
+					//章节配额：每章固定产出升级卷轴（本张在本章楼层中至少一张）；配额规则已知，立即激活
+					int souChapter = Dungeon.floorCode(levelDepth, levelBranch) / 5;
+					int[] souFloors = souChapter == 0
+							? new int[]{1, 2, 3, 4}
+							: new int[]{souChapter * 5, souChapter * 5 + 1, souChapter * 5 + 2, souChapter * 5 + 3, souChapter * 5 + 4};
+					AutoIdentify.tagFloor(souFloors, IdentifyKnowledge.Category.SCROLL,
+							new Class[]{ScrollOfUpgrade.class}, 1, -1,
+							IdentifyKnowledge.Origin.RUN, "章节固定配额的升级卷轴：本章楼层中至少一张。");
+				}
+				if (Dungeon.asNeeded()) {
+					addItemToSpawn( new Stylus() );
+					Dungeon.LimitedDrops.ARCANE_STYLI.used();
+				}
+				if ( Dungeon.trinketCataNeeded() ){
+					Dungeon.LimitedDrops.TRINKET_CATA.drop();
+					addItemToSpawn( new TrinketCatalyst());
+				}
+				//one scroll of transmutation is guaranteed to spawn somewhere on chapter 2-4
+				int enchChapter = (int)((Dungeon.seed() / 10) % 3) + 1;
+				if ( Dungeon.depth() / 5 == enchChapter &&
+						Dungeon.seed() % 4 + 1 == Dungeon.depth() % 5){
+					addItemToSpawn( new StoneOfEnchantment() );
+				}
+			
+				if ( Dungeon.depth() == ((Dungeon.seed() % 3) + 1)){
+					addItemToSpawn( new StoneOfIntuition() );
+				}
+			
+				if (Dungeon.depth() > 1) {
+					//50% chance of getting a level feeling
+					//~7.15% chance for each feeling
+					switch (Random.Int( 14 )) {
+						case 0:
+							feeling = Feeling.CHASM;
+							break;
+						case 1:
+							feeling = Feeling.WATER;
+							break;
+						case 2:
+							feeling = Feeling.GRASS;
+							break;
+						case 3:
+							feeling = Feeling.DARK;
+							addItemToSpawn(new Torch());
+
+							viewDistance = Math.round(viewDistance/2f);
+							break;
+						case 4:
+							feeling = Feeling.LARGE;
+							addItemToSpawn(Generator.random(Generator.Category.FOOD));
+							break;
+						case 5:
+							feeling = Feeling.TRAPS;
+							break;
+						case 6:
+							feeling = Feeling.SECRETS;
+							break;
+					}
+
+					//苔藓团/陷阱机关饰品：可将普通层改写为对应生态层（实现见 MossyClump/TrapMechanism）
+					if (feeling == Feeling.NONE && Random.Float() < MossyClump.overrideNormalLevelChance()){
+						feeling = MossyClump.getNextFeeling();
+					} else if (feeling == Feeling.NONE && Random.Float() < TrapMechanism.overrideNormalLevelChance()){
+						feeling = TrapMechanism.getNextFeeling();
+					}
+				}
+			}
 		
-		if (!(Dungeon.bossLevel()) && levelBranch == 0) {
+			do {
+				width = height = length = 0;
 
-            addItemToSpawn(Generator.random(Generator.Category.FOOD));
-
-			if (Dungeon.isChallenged(Challenges.DARKNESS)){
-				addItemToSpawn( new Torch() );
-			}
-
-			if (Dungeon.posNeeded()) {
-				addItemToSpawn( new PotionOfStrength() );
-				Dungeon.LimitedDrops.STRENGTH_POTIONS.used();
-				//章节配额：章内第1-2层与第3-4层各恰好产出一瓶力量药水；配额规则已知，立即激活
-				int posBase = (Dungeon.floorCode(levelDepth, levelBranch) / 5) * 5;
-				int posFirst = Dungeon.floorCode(levelDepth, levelBranch) % 5 <= 2 ? posBase + 1 : posBase + 3;
-				AutoIdentify.tagFloor(new int[]{posFirst, posFirst + 1}, IdentifyKnowledge.Category.POTION,
-						new Class[]{PotionOfStrength.class}, 1, 1,
-						IdentifyKnowledge.Origin.RUN, "章节固定配额的力量药水：每对相邻楼层中恰好一瓶。");
-			}
-			if (Dungeon.souNeeded()) {
-				addItemToSpawn( new ScrollOfUpgrade() );
-				Dungeon.LimitedDrops.UPGRADE_SCROLLS.used();
-				//章节配额：每章固定产出升级卷轴（本张在本章楼层中至少一张）；配额规则已知，立即激活
-				int souChapter = Dungeon.floorCode(levelDepth, levelBranch) / 5;
-				int[] souFloors = souChapter == 0
-						? new int[]{1, 2, 3, 4}
-						: new int[]{souChapter * 5, souChapter * 5 + 1, souChapter * 5 + 2, souChapter * 5 + 3, souChapter * 5 + 4};
-				AutoIdentify.tagFloor(souFloors, IdentifyKnowledge.Category.SCROLL,
-						new Class[]{ScrollOfUpgrade.class}, 1, -1,
-						IdentifyKnowledge.Origin.RUN, "章节固定配额的升级卷轴：本章楼层中至少一张。");
-			}
-			if (Dungeon.asNeeded()) {
-				addItemToSpawn( new Stylus() );
-				Dungeon.LimitedDrops.ARCANE_STYLI.used();
-			}
-			if ( Dungeon.trinketCataNeeded() ){
-				Dungeon.LimitedDrops.TRINKET_CATA.drop();
-				addItemToSpawn( new TrinketCatalyst());
-			}
-			//one scroll of transmutation is guaranteed to spawn somewhere on chapter 2-4
-			int enchChapter = (int)((Dungeon.seed() / 10) % 3) + 1;
-			if ( Dungeon.depth() / 5 == enchChapter &&
-					Dungeon.seed() % 4 + 1 == Dungeon.depth() % 5){
-				addItemToSpawn( new StoneOfEnchantment() );
-			}
+				mobs = new HashSet<>();
+				heaps = new SparseArray<>();
+				blobs = new HashMap<>();
+				plants = new SparseArray<>();
+				traps = new SparseArray<>();
+				triggers = new SparseArray<>();
+				customTiles = new HashSet<>();
+				customWalls = new HashSet<>();
+				customTerrain = new HashSet<>();
+				triggeredPlant = new HashMap<>();
 			
-			if ( Dungeon.depth() == ((Dungeon.seed() % 3) + 1)){
-				addItemToSpawn( new StoneOfIntuition() );
-			}
-			
-			if (Dungeon.depth() > 1) {
-				//50% chance of getting a level feeling
-				//~7.15% chance for each feeling
-				switch (Random.Int( 14 )) {
-					case 0:
-						feeling = Feeling.CHASM;
-						break;
-					case 1:
-						feeling = Feeling.WATER;
-						break;
-					case 2:
-						feeling = Feeling.GRASS;
-						break;
-					case 3:
-						feeling = Feeling.DARK;
-						addItemToSpawn(new Torch());
-
-						viewDistance = Math.round(viewDistance/2f);
-						break;
-					case 4:
-						feeling = Feeling.LARGE;
-						addItemToSpawn(Generator.random(Generator.Category.FOOD));
-						break;
-					case 5:
-						feeling = Feeling.TRAPS;
-						break;
-					case 6:
-						feeling = Feeling.SECRETS;
-						break;
-				}
-
-				//苔藓团/陷阱机关饰品：可将普通层改写为对应生态层（实现见 MossyClump/TrapMechanism）
-				if (feeling == Feeling.NONE && Random.Float() < MossyClump.overrideNormalLevelChance()){
-					feeling = MossyClump.getNextFeeling();
-				} else if (feeling == Feeling.NONE && Random.Float() < TrapMechanism.overrideNormalLevelChance()){
-					feeling = TrapMechanism.getNextFeeling();
-				}
-			}
+			} while (!build());
+		
+			buildFlagMaps();
+			cleanWalls();
+		
+			createMobs();
+			createItems();
 		}
-		
-		do {
-			width = height = length = 0;
-
-			mobs = new HashSet<>();
-			heaps = new SparseArray<>();
-			blobs = new HashMap<>();
-			plants = new SparseArray<>();
-			traps = new SparseArray<>();
-			triggers = new SparseArray<>();
-			customTiles = new HashSet<>();
-			customWalls = new HashSet<>();
-			customTerrain = new HashSet<>();
-			triggeredPlant = new HashMap<>();
-			
-		} while (!build());
-		
-		buildFlagMaps();
-		cleanWalls();
-		
-		createMobs();
-		createItems();
-
-		Random.popGenerator();
 		creating = false;
 
 		for (Integer pos : triggeredPlant.keySet())

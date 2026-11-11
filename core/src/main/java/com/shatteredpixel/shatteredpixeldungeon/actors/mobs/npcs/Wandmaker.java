@@ -51,6 +51,7 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Point;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -328,8 +329,7 @@ public class Wandmaker extends NPC {
 		public void genReward() {
 			if (wand1 != null) return;
 			//子种子异或常量（ASCII "WAND"），保证与其他任务的奖励流互不相同
-			Random.pushGenerator( Dungeon.seed() ^ 0x57414E44L );
-			try {
+			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x57414E44L )) {
 				wand1 = (Wand) Generator.random(Generator.Category.WAND);
 				wand1.cursed = false;
 				wand1.upgrade();
@@ -339,8 +339,6 @@ public class Wandmaker extends NPC {
 				} while (wand2.getClass().equals(wand1.getClass()));
 				wand2.cursed = false;
 				wand2.upgrade();
-			} finally {
-				Random.popGenerator();
 			}
 		}
 		

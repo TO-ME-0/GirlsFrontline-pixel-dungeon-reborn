@@ -68,6 +68,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
+import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -407,7 +408,19 @@ public abstract class RegularLevel extends Level {
 		}
 
 		//use a separate generator for this to prevent held items, meta progress, and talents from affecting levelgen
-		Random.pushGenerator( Dungeon.seedToCreate() );
+		try (Rng.Sub lv = Rng.levelStream(levelDepth, branch)) {
+			createItemsCore();
+			try (Rng.Sub s1 = Rng.nextSubstream()) {
+				ebonyMimic();
+			}
+			try (Rng.Sub s2 = Rng.nextSubstream()) {
+				extraSpyglassLoot();
+			}
+		}
+
+	}
+
+	private void createItemsCore() {
 
 		Item item = Bones.get();
 		if (item != null) {
@@ -519,10 +532,9 @@ public abstract class RegularLevel extends Level {
 			drop( p, cell );
 		}
 
-		Random.popGenerator();
+	}
 
-		//ebony mimics >:)
-		Random.pushGenerator(Random.Long());
+	private void ebonyMimic() {
 			if (Random.Float() < MimicTooth.ebonyMimicChance()){
 				ArrayList<Integer> candidateCells = new ArrayList<>();
 				if (Random.Int(2) == 0){
@@ -550,10 +562,10 @@ public abstract class RegularLevel extends Level {
 				int pos = Random.element(candidateCells);
 				mobs.add(Mimic.spawnAt(pos, new ArrayList<>(), EbonyMimic.class));
 			}
-		Random.popGenerator();
 
-		//extra spyglass loot
-		Random.pushGenerator(Random.Long());
+	}
+
+	private void extraSpyglassLoot() {
 			for (int i = 0; i < CrackedSpyglass.extraLootChance(); i++){
 				int cell = randomDropCell();
 				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
@@ -562,9 +574,7 @@ public abstract class RegularLevel extends Level {
 				}
 				drop( Generator.randomUsingDefaults(), cell);
 			}
-		Random.popGenerator();
-
-	}
+		}
 	
 	public ArrayList<Room> rooms() {
 		return new ArrayList<>(rooms);
