@@ -33,8 +33,6 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollingGridPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-import java.util.function.BooleanSupplier;
-
 //储存仓库窗口（0层）：以图标网格管理已解锁道具的局内生成开关
 //点击图标切换启用状态，绿色高亮表示已启用（与种子查询器遗物选中样式一致）
 public class WndWarehouse extends Window {
@@ -73,15 +71,17 @@ public class WndWarehouse extends Window {
 		grid.scrollTo(0, 0);
 	}
 
+	private interface BoolQuery { boolean test(); }   // 替代 API 24 的 BooleanSupplier
+
 	//单个生成开关格：未解锁时暗红底+半透明图标；已解锁后点击切换，启用时绿色高亮
 	private static class SpawnToggleItem extends ScrollingGridPane.GridItem {
 
 		private final Item item;
-		private final BooleanSupplier unlocked;
-		private final BooleanSupplier enabled;
+		private final BoolQuery unlocked;
+		private final BoolQuery enabled;
 		private final Runnable toggle;
 
-		SpawnToggleItem(Item item, BooleanSupplier unlocked, BooleanSupplier enabled, Runnable toggle) {
+		SpawnToggleItem(Item item, BoolQuery unlocked, BoolQuery enabled, Runnable toggle) {
 			super(new ItemSprite(item));
 			this.item = item;
 			this.unlocked = unlocked;
@@ -92,11 +92,11 @@ public class WndWarehouse extends Window {
 		@Override
 		public void update() {
 			super.update();
-			if (!unlocked.getAsBoolean()) {
+			if (!unlocked.test()) {
 				//未解锁：暗红底色 + 图标半透明
 				hardLightBG(0.4f, 0.2f, 0.2f);
 				icon.alpha(0.4f);
-			} else if (enabled.getAsBoolean()) {
+			} else if (enabled.test()) {
 				//已启用：绿色高亮，与种子查询器选中样式一致
 				hardLightBG(0.25f, 0.7f, 0.3f);
 				icon.alpha(1f);
@@ -109,14 +109,14 @@ public class WndWarehouse extends Window {
 		@Override
 		public void onClick() {
 			super.onClick();
-			if (!unlocked.getAsBoolean()) {
+			if (!unlocked.test()) {
 				GLog.w(Messages.get(WndWarehouse.class, "locked_hint", item.name()));
 				return;
 			}
 			toggle.run();
 			//立即刷新生成池权重，使下一局生效
 			Generator.refreshUnlockables();
-			if (enabled.getAsBoolean()) {
+			if (enabled.test()) {
 				GLog.i(Messages.get(WndWarehouse.class, "toggle_on", item.name()));
 			} else {
 				GLog.p(Messages.get(WndWarehouse.class, "toggle_off", item.name()));
