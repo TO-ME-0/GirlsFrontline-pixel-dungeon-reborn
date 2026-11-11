@@ -33,9 +33,54 @@ public class GameMath {
 		
 		return speed;
 	}
-	
+
 	public static float gate( float var1, float value, float var2 ) {
 		float min, max;
+		if (var1 < var2) {
+			min = var1;
+			max = var2;
+		}
+		else {
+			min = var2;
+			max = var1;
+		}
+		if (value < min)
+			return min;
+		else
+			return Math.min(value, max);
+	}
+	public static int gate( int var1, int value, int var2 ) {
+		int min, max;
+		if (var1 < var2) {
+			min = var1;
+			max = var2;
+		}
+		else {
+			min = var2;
+			max = var1;
+		}
+		if (value < min)
+			return min;
+		else
+			return Math.min(value, max);
+	}
+	public static double gate( double var1, double value, double var2 ) {
+		double min, max;
+		if (var1 < var2) {
+			min = var1;
+			max = var2;
+		}
+		else {
+			min = var2;
+			max = var1;
+		}
+		if (value < min)
+			return min;
+		else
+			return Math.min(value, max);
+	}
+	public static long gate( long var1, long value, long var2 ) {
+		long min, max;
 		if (var1 < var2) {
 			min = var1;
 			max = var2;

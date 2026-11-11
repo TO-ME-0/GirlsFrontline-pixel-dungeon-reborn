@@ -80,7 +80,7 @@ public class GameSettings {
 		try {
 			long i = get().getLong( key, defValue );
 			if (i < min || i > max){
-				long val = (long)GameMath.gate(min, i, max);
+				long val = GameMath.gate(min, i, max);
 				put(key, val);
 				return val;
 			} else {
