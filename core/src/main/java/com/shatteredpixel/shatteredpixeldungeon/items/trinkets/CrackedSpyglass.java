@@ -23,6 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.Random;
 
 public class CrackedSpyglass extends Trinket{
 
@@ -57,8 +59,19 @@ public class CrackedSpyglass extends Trinket{
 		if (level <= -1){
 			return 0;
 		} else {
-			return 0.375f*(level+1);
+			return 4;
 		}
+	}
+
+	public static float opacity() {
+		return opacity(trinketLevel(CrackedSpyglass.class));
+	}
+
+	public static float opacity( int level ) {
+		float opacity = Random.NormalFloat(2);
+		if (level <= -1)
+			return 1F;
+		return opacity * (0.3F + level * 0.2F);
 	}
 
 }

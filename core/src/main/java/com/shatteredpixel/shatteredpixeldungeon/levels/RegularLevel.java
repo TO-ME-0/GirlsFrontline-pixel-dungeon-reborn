@@ -548,20 +548,19 @@ public abstract class RegularLevel extends Level {
 				}
 
 				int pos = Random.element(candidateCells);
-				mobs.add(Mimic.spawnAt(pos, new ArrayList<Item>(), EbonyMimic.class));
+				mobs.add(Mimic.spawnAt(pos, new ArrayList<>(), EbonyMimic.class));
 			}
 		Random.popGenerator();
 
 		//extra spyglass loot
 		Random.pushGenerator(Random.Long());
-			int items = (int)(Random.Float() + CrackedSpyglass.extraLootChance());
-			for (int i = 0; i < items; i++){
+			for (int i = 0; i < CrackedSpyglass.extraLootChance(); i++){
 				int cell = randomDropCell();
 				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 					map[cell] = Terrain.GRASS;
 					losBlocking[cell] = false;
 				}
-				drop( Generator.randomUsingDefaults(), cell).opacity = Random.NormalFloat( 0.1F, 0.2F );
+				drop( Generator.randomUsingDefaults(), cell);
 			}
 		Random.popGenerator();
 

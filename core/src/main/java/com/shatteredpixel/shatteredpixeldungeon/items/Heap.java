@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfWealth;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.CrackedSpyglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -112,7 +113,7 @@ public class Heap implements Bundlable {
 	public ItemSprite sprite;
 	public boolean seen = false;
 	public boolean haunted = false;
-	public float opacity = 1f; //物品不透明度，1=完全可见
+	public float opacity = CrackedSpyglass.opacity(); //物品不透明度，1=完全可见
 	
 	public LinkedList<Item> items = new LinkedList<>();
 	
@@ -194,7 +195,6 @@ public class Heap implements Bundlable {
 	}
 	
 	public void drop( Item item ) {
-		opacity = 1f;
 		
 		if (item.stackable && type != Type.FOR_SALE) {
 			
@@ -221,7 +221,6 @@ public class Heap implements Bundlable {
 	}
 	
 	public void replace( Item a, Item b ) {
-		opacity = 1f;
 		int index = items.indexOf( a );
 		if (index != -1) {
 			items.remove( index );
@@ -236,7 +235,6 @@ public class Heap implements Bundlable {
 	}
 	
 	public void remove( Item a ){
-		opacity = 1f;
 		items.remove(a);
 		if (items.isEmpty()){
 			destroy();
@@ -246,8 +244,6 @@ public class Heap implements Bundlable {
 	}
 	
 	public void burn() {
-		opacity = 1f;
-
 		if (type != Type.HEAP) {
 			return;
 		}
@@ -310,8 +306,6 @@ public class Heap implements Bundlable {
 
 	//Note: should not be called to initiate an explosion, but rather by an explosion that is happening.
 	public void explode() {
-		opacity = 1f;
-
 		//breaks open most standard containers, mimics die.
 		if (type == Type.CHEST || type == Type.SKELETON || type == Type.MISSION_CHEST) {
 			type = Type.HEAP;
@@ -574,7 +568,8 @@ public class Heap implements Bundlable {
 		}
 		
 		haunted = bundle.getBoolean( HAUNTED );
-		opacity = bundle.contains( OPACITY ) ? bundle.getFloat( OPACITY ) : 1f;
+		if (bundle.contains(OPACITY))
+			opacity = bundle.getFloat( OPACITY );
 		
 	}
 
