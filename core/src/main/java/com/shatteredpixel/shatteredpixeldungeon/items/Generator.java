@@ -698,6 +698,8 @@ public class Generator {
 	public static final class State {
 		boolean usingFirstDeck;
 		LinkedHashMap<Category, Float> categoryProbs;
+		//类别权重的默认值（两套牌堆之和），不受当前牌堆消耗情况影响
+		LinkedHashMap<Category, Float> defaultCatProbs;
 		float[][] catProbs;
 		Long[] catSeeds;
 		int[] catDropped;
@@ -706,6 +708,7 @@ public class Generator {
 		public State() {
 			//从 Category 的静态模板克隆每局独立的生成概率数组
 			categoryProbs = new LinkedHashMap<>();
+			defaultCatProbs = new LinkedHashMap<>();
 			Category[] cats = Category.values();
 			catProbs = new float[cats.length][];
 			catSeeds = new Long[cats.length];
@@ -713,6 +716,9 @@ public class Generator {
 			catUsing2ndProbs = new boolean[cats.length];
 			for (Category cat : cats) {
 				catProbs[cat.ordinal()] = (cat.probs != null) ? cat.probs.clone() : null;
+				//构造时即填好默认权重：牌堆清空到下一次 random() 翻转之间的窗口内，
+				//randomUsingDefaults() 仍能取到有效类别（否则 chances 返回 null 会 NPE）
+				defaultCatProbs.put(cat, cat.firstProb + cat.secondProb);
 			}
 		}
 
@@ -771,6 +777,7 @@ public class Generator {
 		public void generalReset() {
 			for (Category cat : Category.values()) {
 				categoryProbs.put(cat, usingFirstDeck ? cat.firstProb : cat.secondProb);
+				defaultCatProbs.put(cat, cat.firstProb + cat.secondProb);
 			}
 		}
 
@@ -866,7 +873,8 @@ public class Generator {
 		}
 
 		public Item randomUsingDefaults(int floorSet) {
-			return randomUsingDefaults(Random.chances(categoryProbs), floorSet);
+			//用独立的默认权重选类别：既不受牌堆剩余量影响，也不会在牌堆耗尽窗口内取到 null
+			return randomUsingDefaults(Random.chances(defaultCatProbs), floorSet);
 		}
 
 		//overrides any deck systems and always uses default probs
