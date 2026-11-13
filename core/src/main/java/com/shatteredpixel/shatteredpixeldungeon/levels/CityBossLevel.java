@@ -366,7 +366,7 @@ public class CityBossLevel extends Level {
 	public void spawnShop(){
 		if (impShop.shopSpawned())
 			return;
-		try (Rng.Sub s = Rng.levelStream(this)) {
+		try (Rng.Scope s = Rng.levelStream(this)) {
 			while (impShop.itemCount() >= 7*(impShop.height()-2)){
 				impShop.bottom++;
 			}

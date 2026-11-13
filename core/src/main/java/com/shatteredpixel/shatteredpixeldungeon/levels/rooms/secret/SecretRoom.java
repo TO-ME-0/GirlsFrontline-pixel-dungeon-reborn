@@ -55,8 +55,8 @@ public abstract class SecretRoom extends SpecialRoom {
 
 	public static final class State {
 		ArrayList<Class<? extends SecretRoom>> runSecrets = new ArrayList<>();
-		int[] regionSecretsThisRun = new int[baseRegionSecrets.length];
-		float[] regionSecretsThisRandom = new float[baseRegionSecrets.length];
+		int[] regionSecretsThisRun = new int[BASE_REGION_SECRETS_LEN];
+		float[] regionSecretsThisRandom = new float[BASE_REGION_SECRETS_LEN];
 
 		private void initForRun(){
 			float[] regionChances = baseRegionSecrets.clone();
@@ -71,7 +71,7 @@ public abstract class SecretRoom extends SpecialRoom {
 		}
 
 		private int secretsForFloor(int depth){
-			if (depth == 1 || depth > baseRegionSecrets.length*5 ) return 0;
+			if (depth == 1 || depth > BASE_REGION_SECRETS_LEN * 5 ) return 0;
 
 			int region = depth/5;
 			int floor = depth%5;
@@ -81,7 +81,7 @@ public abstract class SecretRoom extends SpecialRoom {
 			float secrets= regionSecretsThisRun[region];
 
 			// so that it will not change old files
-			if (!(regionSecretsThisRandom.length > baseRegionSecrets.length)) {
+			if (regionSecretsThisRandom.length != BASE_REGION_SECRETS_LEN) {
 				float regionRandom = regionSecretsThisRandom[region];
 				float choice = baseRegionSecrets[region] % 1F;
 				if (Dungeon.hero().hasTalentB(Talent.ROGUES_FORESIGHT) ||
@@ -141,7 +141,7 @@ public abstract class SecretRoom extends SpecialRoom {
 				if (bundle.contains(RANDOM))
 					regionSecretsThisRandom = bundle.getFloatArray(RANDOM);
 				else
-					regionSecretsThisRandom = new float[baseRegionSecrets.length+1];
+					regionSecretsThisRandom = new float[0];
 			} else {
 				initForRun();
 				GirlsFrontlinePixelDungeon.reportException(new Exception("secrets array didn't exist!"));

@@ -14,7 +14,7 @@
 
 | # | 结论 | 依据 |
 |---|---|---|
-| 1 | 采用 `try (Rng.Sub s = Rng.substream(seed)) { … }` | 实测与手写 push/pop + try/finally 等价（交错 9 轮取 min：79.69 / 79.94 / 80.14 ns，差 <1%；轮间噪声 ±14 ns）。见附录 A |
+| 1 | 采用 `try (Rng.Scope s = Rng.substream(seed)) { … }` | 实测与手写 push/pop + try/finally 等价（交错 9 轮取 min：79.69 / 79.94 / 80.14 ns，差 <1%；轮间噪声 ±14 ns）。见附录 A |
 | 2 | 不用 lambda / 三档 Calling API | body 里的 `return`、局部变量赋值、受检异常都被挡住；且 27 个回调类汇到单点调用是 megamorphic（+8~14 ns）。见附录 B |
 | 3 | 不启用 `coreLibraryDesugaringEnabled` | +1~2 MB APK、反射看到 `j$` 名、官方支持下限 API 21 > 本项目 minSdk 19。见附录 C |
 | 4 | 不保留旧种子 | 版本间种子本就已大幅变化；只要求**本版本内自洽** |
@@ -63,7 +63,7 @@
 
 ### 三条不变式
 
-1. `Sub` 只能出自 `Rng` 工厂，只能出现在 `try` 头部，**不得手动 `close()`**。
+1. `Scope` 只能出自 `Rng` 工厂，只能出现在 `try` 头部，**不得手动 `close()`**。
 2. 级别生成路径上**禁止无种子子流**。
 3. 子流内部**禁止 `Random.resetGenerators()`**（清空整栈 → `close()` 下溢）。
 
@@ -163,7 +163,7 @@ Select-String -Recurse -Include *.java -Path core -Pattern 'java\.util\.function
 
 ```java
 // 前                                  // 后
-Random.pushGenerator(Random.Long());   try (Rng.Sub s = Rng.nextSubstream()) {
+Random.pushGenerator(Random.Long());   try (Rng.Scope s = Rng.nextSubstream()) {
     …body…                                …body…
 Random.popGenerator();                 }
 ```
@@ -184,7 +184,7 @@ Random.popGenerator();                 }
 **EntranceRoom 特别注意**：原来是无种子 `pushGenerator()`（不可复现）。改 `nextSubstream()` 后，`Random.Long()` 在 try 头部**无条件**消耗，所以「玩家是否读过书页」不会再让楼层后续取值位移。
 
 ```java
-try (Rng.Sub s = Rng.nextSubstream()) {
+try (Rng.Scope s = Rng.nextSubstream()) {
 	if (Dungeon.depth() == 1 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_INTRO)) { … }
 	if (Dungeon.depth() == 2 && !Document.ADVENTURERS_GUIDE.isPageFound(Document.GUIDE_SEARCHING)) { … }
 }
@@ -202,7 +202,7 @@ try (Rng.Sub s = Rng.nextSubstream()) {
 default:
 	boolean decked = cat.defaultProbs != null && seed(cat) != null;
 	int i;
-	try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
+	try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 		i = Random.chances(probs(cat));
 		if (i == -1) { reset(cat); i = Random.chances(probs(cat)); }
 	}
@@ -215,7 +215,7 @@ default:
 ```java
 boolean decked = cat.defaultProbs != null && seed(cat) != null;
 int i, j;
-try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
+try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 	i = Random.chances(probs(cat));
 	j = Random.chances(probs(cat));
 }
@@ -243,7 +243,7 @@ Random.pushGenerator( Dungeon.seed() ^ 0x47484F5354L );
 try { …body… } finally { Random.popGenerator(); }
 
 // 后（try/finally 整体删除）
-try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) { …body… }
+try (Rng.Scope s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) { …body… }
 ```
 
 ⚠️ **漏删 `finally` = 双 pop** → 父流少一层，后续取值全错。这是本阶段唯一严重陷阱。
@@ -252,7 +252,7 @@ try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) { …body… }
 
 ```java
 // MossyClump.java:77 / TrapMechanism.java:89
-try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) { … }
+try (Rng.Scope s = Rng.substream(Dungeon.seedCurLevel() + 1)) { … }
 ```
 
 #### 3.3 地形贴图
@@ -260,7 +260,7 @@ try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) { … }
 ```java
 // DungeonTileSheet.java:445-454
 public static void setupVariance(int size, long seed){
-	try (Rng.Sub s = Rng.substream(seed)) {
+	try (Rng.Scope s = Rng.substream(seed)) {
 		tileVariance = new byte[size];
 		for (int i = 0; i < tileVariance.length; i++) tileVariance[i] = (byte) Random.Int(100);
 	}
@@ -276,7 +276,7 @@ public static void setupVariance(int size, long seed){
 ```java
 // Dungeon.java:493-504
 public static long seedForDepth(int depth, int branch){
-	try (Rng.Sub s = Rng.substream(seed(), depth + 30 * branch)) {
+	try (Rng.Scope s = Rng.substream(seed(), depth + 30 * branch)) {
 		return Random.Long();
 	}
 }
@@ -308,7 +308,7 @@ public void create(int levelDepth, int levelBranch){
 	this.branch    = levelBranch;
 	creating = true;
 
-	try (Rng.Sub lv = Rng.levelStream(levelDepth, levelBranch)) {
+	try (Rng.Scope lv = Rng.levelStream(levelDepth, levelBranch)) {
 		…原 230–340 全部逻辑…
 		createItems();
 	}
@@ -349,10 +349,10 @@ pop
 ```java
 @Override
 protected void createItems() {
-	try (Rng.Sub lv = Rng.levelStream(levelDepth, branch)) {
+	try (Rng.Scope lv = Rng.levelStream(levelDepth, branch)) {
 		createItemsCore();                                              // 原 410–522
-		try (Rng.Sub s1 = Rng.nextSubstream()) { ebonyMimic(); }        // 原 525–553
-		try (Rng.Sub s2 = Rng.nextSubstream()) { extraSpyglassLoot(); } // 原 556–566
+		try (Rng.Scope s1 = Rng.nextSubstream()) { ebonyMimic(); }        // 原 525–553
+		try (Rng.Scope s2 = Rng.nextSubstream()) { extraSpyglassLoot(); } // 原 556–566
 	}
 }
 ```
@@ -430,7 +430,7 @@ import com.watabou.utils.Random;
  *
  * 一个子流 = push 种子 -> 在独立 RNG 上跑一段 -> pop。用法固定为：
  *
- *     try (Rng.Sub s = Rng.substream(seed)) { …原逻辑原样放这里… }
+ *     try (Rng.Scope s = Rng.substream(seed)) { …原逻辑原样放这里… }
  *
  * 语义分类（名字不同，避免误用）：
  *   substream(seed[, skip])  种子由调用方给出（任务子种子 / 牌堆种子 / seedForDepth 跳数）
@@ -438,7 +438,7 @@ import com.watabou.utils.Random;
  *   levelStream(…)           楼层种子，body 直接跑在该种子上（种子回放）
  *
  * 约束：
- *  1. Sub 只能出自本类工厂，且只能出现在 try-with-resources 头部；不得手动 close()；
+ *  1. Scope 只能出自本类工厂，且只能出现在 try-with-resources 头部；不得手动 close()；
  *  2. 级别生成路径上禁止使用无种子子流（会让同一颗种子每次求值结果不同）；
  *  3. 子流内部不得调用 Random.resetGenerators()（会清空整栈，使 close() 下溢）；
  *  4. 依赖 java.lang.AutoCloseable（API 19，与 minSdk 完全对齐，零余量）；
@@ -450,44 +450,44 @@ public final class Rng {
 	private Rng(){}
 
 	/** 已压栈的子流句柄；close() = pop。无状态，全局复用一个实例（零分配）。 */
-	public static final class Sub implements AutoCloseable {
-		Sub(){}
+	public static final class Scope implements AutoCloseable {
+		Scope(){}
 		@Override public void close(){
 			Random.popGenerator();
 		}
 	}
 
-	private static final Sub HANDLE = new Sub();
+	private static final Scope HANDLE = new Scope();
 
 	/** 以 seed 开一个子流。 */
-	public static Sub substream(long seed){
+	public static Scope substream(long seed){
 		Random.pushGenerator(seed);
 		return HANDLE;
 	}
 
 	/** 以 seed 开子流，并先空转 skip 个 Long（牌堆重放 / seedForDepth 的跳数）。 */
-	public static Sub substream(long seed, int skip){
+	public static Scope substream(long seed, int skip){
 		Random.pushGenerator(seed);
 		for (int i = 0; i < skip; i++) Random.Long();
 		return HANDLE;
 	}
 
 	/** 从当前流取下一个 Long 作种子：楼层内的第 k 段。 */
-	public static Sub nextSubstream(){
+	public static Scope nextSubstream(){
 		return substream(Random.Long());
 	}
 
 	// ---------------------------------------------------------------- 楼层
 
-	public static Sub levelStream(){
+	public static Scope levelStream(){
 		return levelStream(Dungeon.depth(), Dungeon.branch());
 	}
 
-	public static Sub levelStream(Level level){
+	public static Scope levelStream(Level level){
 		return levelStream(level.levelDepth, level.branch);
 	}
 
-	public static Sub levelStream(int depth, int branch){
+	public static Scope levelStream(int depth, int branch){
 		return substream(Dungeon.seedForDepth(depth, branch));
 	}
 }
@@ -497,16 +497,16 @@ public final class Rng {
 
 ```java
 // (a) 从当前流派生
-try (Rng.Sub s = Rng.nextSubstream()) { … }
+try (Rng.Scope s = Rng.nextSubstream()) { … }
 
 // (b) 显式种子
-try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) { … }
+try (Rng.Scope s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) { … }
 
 // (c) 楼层种子
-try (Rng.Sub s = Rng.levelStream(levelDepth, branch)) { … }
+try (Rng.Scope s = Rng.levelStream(levelDepth, branch)) { … }
 
 // (d) 条件性子流（资源可为 null，body 只写一份）
-try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) { … }
+try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) { … }
 ```
 
 ---
@@ -533,7 +533,7 @@ java -cp $d8 com.android.tools.r8.D8 --min-api 19 `
      --lib "F:\aa\SDK\platforms\android-34\android.jar" `
      --classpath "core\build\classes\java\main" --classpath "SPD-classes\build\classes\java\main" `
      --output core\build\tmp\verify\dex "core\build\classes\java\main\com\shatteredpixel\shatteredpixeldungeon\utils\Rng.class" `
-     "core\build\classes\java\main\com\shatteredpixel\shatteredpixeldungeon\utils\Rng`$Sub.class"
+     "core\build\classes\java\main\com\shatteredpixel\shatteredpixeldungeon\utils\Rng`$Scope.class"
 # 期望 exit=0，生成 core\build\tmp\verify\dex\classes.dex
 ```
 
@@ -549,7 +549,7 @@ java -cp $d8 com.android.tools.r8.D8 --min-api 19 `
   Select-String -Recurse -Include *.java -Path core -Pattern 'java\.util\.function'
   # 期望：无匹配（WndBlackMarket 里 2 条解释性注释除外）
   ```
-- [ ] 缩进自检：每个 `try (Rng.Sub` 的 body 首行缩进 > try 缩进，闭合 `}` 缩进 == try 缩进
+- [ ] 缩进自检：每个 `try (Rng.Scope` 的 body 首行缩进 > try 缩进，闭合 `}` 缩进 == try 缩进
   （27 处已全部通过；`Level.java` 原第 232 行的 12 空格缩进已归一为 4 tab）
 - [ ] 功能回归：仓库界面、4 个 NPC 奖励、Boss 层、宝库层、商场层
 - [ ] 查种器：单线程 2 分钟 + 四线程 2 分钟，无 `workerErrors`，两边命中结果一致
@@ -603,7 +603,7 @@ java -cp $d8 com.android.tools.r8.D8 --min-api 19 `
 |---|---|---|---|
 | 无保护 `push/pop` | 79.69 | 85.63 | 89.57 |
 | `try/finally` | 79.94 | 84.29 | 93.89 |
-| `try (Rng.Sub)` | 80.14 | 85.36 | 86.61 |
+| `try (Rng.Scope)` | 80.14 | 85.36 | 86.61 |
 
 min 差 **0.6%**；同一变体轮间波动达 **18%**（79.7~93.9）。→ **三者等价，任何 <5% 的差都不能解释。**
 
@@ -649,7 +649,7 @@ body 只有一条 `sink += 1` 时：裸写法 29.20，`try/finally` 41.39，工�
 | megamorphic | 27 个回调类汇到单点 `c.call()`，实测 +8~14 ns（16 类） |
 | class 文件 | 匿名类方案每站点 +1 个 `.class`（实测 4 个匿名类 → 4 个文件） |
 
-`try (Rng.Sub)` 无以上任何一条。
+`try (Rng.Scope)` 无以上任何一条。
 
 ---
 

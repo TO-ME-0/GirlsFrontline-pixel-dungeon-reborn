@@ -70,7 +70,7 @@ public class EntranceRoom extends StandardRoom {
 		Painter.set( level, level.entrance, Terrain.ENTRANCE );
 
 		//use a separate generator here so meta progression doesn't affect levelgen
-		try (Rng.Sub s = Rng.nextSubstream()) {
+		try (Rng.Scope s = Rng.nextSubstream()) {
 
 			//places the first guidebook page on floor 1
 			if (Dungeon.depth() == 1 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_INTRO)){

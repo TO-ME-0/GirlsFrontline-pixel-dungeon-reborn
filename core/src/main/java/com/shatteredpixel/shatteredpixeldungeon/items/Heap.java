@@ -105,7 +105,8 @@ public class Heap implements Bundlable {
         Secret_Library,
         Secret_Maze,
         Secret_Runestone,
-        Secret_Summoning
+        Secret_Summoning,
+		Glass
     }
     public Room room = Room.NONE;
 	public int pos = 0;
@@ -480,7 +481,7 @@ public class Heap implements Bundlable {
     public static String RoomName(Type type, Room room){
         String desc = "";
 
-        if (type!=Type.NONE && room!=Room.NONE) {
+        if (type != Type.NONE && room != Room.NONE) {
             desc+="/";
         }
         switch (room){
@@ -508,6 +509,7 @@ public class Heap implements Bundlable {
             case Secret_Maze: desc += "迷宫房";break;
             case Secret_Runestone: desc += "附魔石房";break;
             case Secret_Summoning: desc += "经验房";break;
+			case Glass: desc += Messages.get(CrackedSpyglass.class, "name");break;
         }
         return desc;
     }

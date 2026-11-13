@@ -668,7 +668,7 @@ public class VaultLevel extends CityLevel {
 
 		//若开启“深入黑暗”挑战则额外生成 2 支火把。用独立随机种子避免影响楼层生成的其他部分
 		if (Dungeon.isChallenged(Challenges.DARKNESS)){
-			try (Rng.Sub s = Rng.nextSubstream()) {
+			try (Rng.Scope s = Rng.nextSubstream()) {
 				for (int i = 0; i < 2; i++){
 					int cell = randomDropCell();
 					drop( new Torch(), cell ).type = Heap.Type.HEAP;

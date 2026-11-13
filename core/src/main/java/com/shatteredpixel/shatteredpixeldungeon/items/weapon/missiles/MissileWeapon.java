@@ -417,7 +417,7 @@ abstract public class MissileWeapon extends Weapon {
 
 		//we use a separate RNG here so that variance due to things like parchment scrap
 		//does not affect levelgen
-		try (Rng.Sub s = Rng.nextSubstream()) {
+		try (Rng.Scope s = Rng.nextSubstream()) {
 
 			//30% chance to be cursed
 			//10% chance to be enchanted

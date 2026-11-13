@@ -442,7 +442,7 @@ public class Blacksmith extends NPC {
 		public void generateRewards(){
 			if (smithRewards != null) return;
 			//子种子异或常量（ASCII "SMITH"），保证与其他任务的奖励流互不相同
-			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x534D495448L )) {
+			try (Rng.Scope s = Rng.substream( Dungeon.seed() ^ 0x534D495448L )) {
 				smithRewards = new ArrayList<>();
 				smithRewards.add(Generator.randomWeapon(3));
 				smithRewards.add(Generator.randomWeapon(3));

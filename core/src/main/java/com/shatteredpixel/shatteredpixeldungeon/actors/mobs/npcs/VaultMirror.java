@@ -65,7 +65,7 @@ public class VaultMirror extends NPC {
 
 	public void createReward(HeroClass cls){
 		//这里新建一个随机数生成器，因为有的英雄职业会在此消耗 RNG 而有的不会
-		try (Rng.Sub s = Rng.nextSubstream()) {
+		try (Rng.Scope s = Rng.nextSubstream()) {
 			switch (cls) {
 				case WARRIOR:
 					reward = new BrokenSeal().upgrade().identify(false);

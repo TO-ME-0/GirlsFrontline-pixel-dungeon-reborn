@@ -444,7 +444,7 @@ public class DungeonTileSheet {
 	public static byte[] tileVariance;
 
 	public static void setupVariance(int size, long seed){
-		try (Rng.Sub s = Rng.substream(seed)) {
+		try (Rng.Scope s = Rng.substream(seed)) {
 			tileVariance = new byte[size];
 			for (int i = 0; i < tileVariance.length; i++) {
 				tileVariance[i] = (byte) Random.Int(100);

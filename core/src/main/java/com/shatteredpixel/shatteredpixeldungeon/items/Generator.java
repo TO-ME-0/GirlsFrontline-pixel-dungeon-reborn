@@ -838,7 +838,7 @@ public class Generator {
 					//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
 					boolean decked = cat.defaultProbs != null && seed(cat) != null;
 					int i;
-					try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
+					try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 						i = Random.chances(probs(cat));
 						if (i == -1) {
 							reset(cat);
@@ -934,7 +934,7 @@ public class Generator {
 			//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
 			boolean decked = cat.defaultProbs != null && seed(cat) != null;
 			int i, j;
-			try (Rng.Sub s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
+			try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 				i = Random.chances(probs(cat));
 				j = Random.chances(probs(cat));
 			}

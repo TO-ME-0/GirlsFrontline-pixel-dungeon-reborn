@@ -492,7 +492,7 @@ public class Dungeon {
         return seedForDepth(level.levelDepth, level.branch);
     }
 	public static long seedForDepth(int depth,int branch){
-		try (Rng.Sub s = Rng.substream(seed(), depth + 30 * branch)) {
+		try (Rng.Scope s = Rng.substream(seed(), depth + 30 * branch)) {
 			return Random.Long();
 		}
 	}

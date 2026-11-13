@@ -169,7 +169,7 @@ public class MiningLevel extends CavesLevel {
 	//mod 的 Bones.get() 返回单个 Item（3.3.8 返回列表）
 	@Override
 	protected void createItems() {
-		try (Rng.Sub s = Rng.nextSubstream()) {
+		try (Rng.Scope s = Rng.nextSubstream()) {
 			Item bonesItem = Bones.get();
 			if (bonesItem != null) {
 				int cell = randomDropCell();

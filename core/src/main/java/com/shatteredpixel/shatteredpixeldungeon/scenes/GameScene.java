@@ -688,7 +688,7 @@ public class GameScene extends PixelScene {
 				}
 
 				//50%/100% chance, use level's seed so that we get the same result for the same level
-				try (Rng.Sub s = Rng.levelStream()) {
+				try (Rng.Scope s = Rng.levelStream()) {
 					if (reqSecrets && RogueTalent.rollRoguesForesightHint(Dungeon.hero())){
 						GLog.p(Messages.get(this, "secret_hint"));
 					}

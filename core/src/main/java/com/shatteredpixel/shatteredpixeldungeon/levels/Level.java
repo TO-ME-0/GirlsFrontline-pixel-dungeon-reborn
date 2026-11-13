@@ -226,7 +226,7 @@ public abstract class Level implements Bundlable {
 		this.levelDepth=levelDepth;
 		this.branch   =levelBranch;
 		creating = true;
-		try (Rng.Sub lv = Rng.levelStream(levelDepth, levelBranch)) {
+		try (Rng.Scope lv = Rng.levelStream(levelDepth, levelBranch)) {
 
 			if (!(Dungeon.bossLevel()) && levelBranch == 0) {
 

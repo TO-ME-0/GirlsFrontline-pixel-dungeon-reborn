@@ -329,7 +329,7 @@ public class Wandmaker extends NPC {
 		public void genReward() {
 			if (wand1 != null) return;
 			//子种子异或常量（ASCII "WAND"），保证与其他任务的奖励流互不相同
-			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x57414E44L )) {
+			try (Rng.Scope s = Rng.substream( Dungeon.seed() ^ 0x57414E44L )) {
 				wand1 = (Wand) Generator.random(Generator.Category.WAND);
 				wand1.cursed = false;
 				wand1.upgrade();

@@ -70,7 +70,7 @@ public class SacrificeRoom extends SpecialRoom {
 	}
 
 	public static Item prize( Level level ) {
-		try (Rng.Sub s = Rng.levelStream(level)) {
+		try (Rng.Scope s = Rng.levelStream(level)) {
 			//1 floor set higher than normal
 			Weapon prize = Generator.randomWeapon( (Dungeon.depth() / 5) + 1);
 

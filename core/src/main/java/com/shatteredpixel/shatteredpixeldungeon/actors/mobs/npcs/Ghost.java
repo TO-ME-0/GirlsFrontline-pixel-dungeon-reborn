@@ -362,7 +362,7 @@ public class Ghost extends NPC {
 		public void genReward() {
 			if (weapon != null) return;
 			//子种子异或常量（ASCII "GHOST"），保证与其他任务的奖励流互不相同
-			try (Rng.Sub s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) {
+			try (Rng.Scope s = Rng.substream( Dungeon.seed() ^ 0x47484F5354L )) {
 				//50%:tier2, 30%:tier3, 15%:tier4, 5%:tier5
 				switch (Random.chances(new float[]{0, 0, 10, 6, 3, 1})){
 					default:

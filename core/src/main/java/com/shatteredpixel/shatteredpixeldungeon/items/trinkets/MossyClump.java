@@ -75,7 +75,7 @@ public class MossyClump extends Trinket {
 			return Level.Feeling.NONE;
 		}
 		if (clump.levelFeels.isEmpty()){
-			try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
+			try (Rng.Scope s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
 				clump.levelFeels.add(true);
 				clump.levelFeels.add(true);
 				clump.levelFeels.add(false);

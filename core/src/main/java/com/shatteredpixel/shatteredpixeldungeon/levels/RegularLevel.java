@@ -408,12 +408,12 @@ public abstract class RegularLevel extends Level {
 		}
 
 		//use a separate generator for this to prevent held items, meta progress, and talents from affecting levelgen
-		try (Rng.Sub lv = Rng.levelStream(levelDepth, branch)) {
+		try (Rng.Scope lv = Rng.levelStream(levelDepth, branch)) {
 			createItemsCore();
-			try (Rng.Sub s1 = Rng.nextSubstream()) {
+			try (Rng.Scope s1 = Rng.nextSubstream()) {
 				ebonyMimic();
 			}
-			try (Rng.Sub s2 = Rng.nextSubstream()) {
+			try (Rng.Scope s2 = Rng.nextSubstream()) {
 				extraSpyglassLoot();
 			}
 		}
@@ -572,7 +572,7 @@ public abstract class RegularLevel extends Level {
 					map[cell] = Terrain.GRASS;
 					losBlocking[cell] = false;
 				}
-				drop( Generator.randomUsingDefaults(), cell);
+				drop( Generator.randomUsingDefaults(), cell).setRoom(Heap.Room.Glass);
 			}
 		}
 	

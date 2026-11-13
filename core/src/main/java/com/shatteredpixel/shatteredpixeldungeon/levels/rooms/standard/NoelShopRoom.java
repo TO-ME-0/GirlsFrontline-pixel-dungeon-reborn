@@ -84,7 +84,7 @@ public class NoelShopRoom extends ShopRoom {
         placeItems( level, center, list );
     }
     public void PlaceShopRandom(Level level, int center, ArrayList<Integer> list){
-        try (Rng.Sub s = Rng.levelStream(level)) {
+        try (Rng.Scope s = Rng.levelStream(level)) {
             placeShopkeeper(level, center);
             placeItems( level, center, list );
         }

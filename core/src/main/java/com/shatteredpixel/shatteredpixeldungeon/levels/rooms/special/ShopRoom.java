@@ -423,7 +423,7 @@ public class ShopRoom extends SpecialRoom {
 			throw new RuntimeException("Shop attempted to carry more than 63 items!");
 
 		//use a new generator here to prevent items in shop stock affecting levelgen RNG (e.g. sandbags)
-		try (Rng.Sub s = Rng.nextSubstream()) {
+		try (Rng.Scope s = Rng.nextSubstream()) {
 			Random.shuffle(itemsToSpawn);
 		}
 

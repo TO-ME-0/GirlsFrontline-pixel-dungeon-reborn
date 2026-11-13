@@ -87,7 +87,7 @@ public class TrapMechanism extends Trinket {
 			return Level.Feeling.NONE;
 		}
 		if (mech.levelFeels.isEmpty()){
-			try (Rng.Sub s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
+			try (Rng.Scope s = Rng.substream(Dungeon.seedCurLevel() + 1)) {
 				mech.levelFeels.add(true);
 				mech.levelFeels.add(true);
 				mech.levelFeels.add(true);
