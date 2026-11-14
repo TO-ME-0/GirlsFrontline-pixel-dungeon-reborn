@@ -81,7 +81,7 @@ public class Dart extends MissileWeapon {
 
 	@Override
 	public int defaultQuantity(){
-		return 2;
+		return 1;
 	}
 	@Override
 	public int min(int lvl) {

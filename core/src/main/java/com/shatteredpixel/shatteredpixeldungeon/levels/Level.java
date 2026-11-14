@@ -308,36 +308,49 @@ public abstract class Level implements Bundlable {
 							break;
 					}
 
-					//苔藓团/陷阱机关饰品：可将普通层改写为对应生态层（实现见 MossyClump/TrapMechanism）
-					if (feeling == Feeling.NONE && Random.Float() < MossyClump.overrideNormalLevelChance()){
-						feeling = MossyClump.getNextFeeling();
-					} else if (feeling == Feeling.NONE && Random.Float() < TrapMechanism.overrideNormalLevelChance()){
-						feeling = TrapMechanism.getNextFeeling();
+					try (Rng.Scope lw = Rng.nextSubstream()) {
+						//苔藓团/陷阱机关饰品：可将普通层改写为对应生态层（实现见 MossyClump/TrapMechanism）
+						if (feeling == Feeling.NONE && Random.Float() < MossyClump.overrideNormalLevelChance()) {
+							feeling = MossyClump.getNextFeeling();
+						} else if (feeling == Feeling.NONE && Random.Float() < TrapMechanism.overrideNormalLevelChance()) {
+							feeling = TrapMechanism.getNextFeeling();
+						}
 					}
 				}
 			}
-		
-			do {
-				width = height = length = 0;
 
-				mobs = new HashSet<>();
-				heaps = new SparseArray<>();
-				blobs = new HashMap<>();
-				plants = new SparseArray<>();
-				traps = new SparseArray<>();
-				triggers = new SparseArray<>();
-				customTiles = new HashSet<>();
-				customWalls = new HashSet<>();
-				customTerrain = new HashSet<>();
-				triggeredPlant = new HashMap<>();
-			
-			} while (!build());
-		
-			buildFlagMaps();
-			cleanWalls();
-		
-			createMobs();
-			createItems();
+			try (Rng.Scope lw = Rng.nextSubstream()) {
+				do {
+					width = height = length = 0;
+
+					mobs = new HashSet<>();
+					heaps = new SparseArray<>();
+					blobs = new HashMap<>();
+					plants = new SparseArray<>();
+					traps = new SparseArray<>();
+					triggers = new SparseArray<>();
+					customTiles = new HashSet<>();
+					customWalls = new HashSet<>();
+					customTerrain = new HashSet<>();
+					triggeredPlant = new HashMap<>();
+
+				} while (!build());
+
+				buildFlagMaps();
+				cleanWalls();
+			}
+
+			try (Rng.Scope lw = Rng.nextSubstream()) {
+				createMobs();
+			}
+			try (Rng.Scope lw = Rng.nextSubstream()) {
+				createItems();
+			}
+			try (Rng.Scope lw = Rng.nextSubstream()) {
+				if (!Dungeon.isSearch())
+					for (Heap heap : heaps.values())
+						heap.opacity();
+			}
 		}
 		creating = false;
 

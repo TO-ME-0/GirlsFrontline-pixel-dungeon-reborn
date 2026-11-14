@@ -222,7 +222,7 @@ public class ItemSprite extends MovieClip {
 				view( 0, null ); break;
 		}
 
-		alpha( heap.opacity );
+		alpha( heap.opacity() );
 
 		return this;
 	}

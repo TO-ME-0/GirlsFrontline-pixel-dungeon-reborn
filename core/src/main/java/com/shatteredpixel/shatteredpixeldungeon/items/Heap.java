@@ -114,8 +114,10 @@ public class Heap implements Bundlable {
 	public ItemSprite sprite;
 	public boolean seen = false;
 	public boolean haunted = false;
-	public float opacity = CrackedSpyglass.opacity(); //物品不透明度，1=完全可见
-	
+	public float opacity; //物品不透明度，1=完全可见
+	public float opacity() {
+		return opacity == 0 ? opacity = CrackedSpyglass.opacity() : opacity;
+	}
 	public LinkedList<Item> items = new LinkedList<>();
 	
 	public void open( Hero hero ) {

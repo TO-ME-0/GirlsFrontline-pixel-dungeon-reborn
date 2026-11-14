@@ -327,83 +327,87 @@ public abstract class RegularLevel extends Level {
 		if (feeling == Feeling.LARGE){
 			nItems += 2;
 		}
-		
-		for (int i=0; i < nItems; i++) {
 
-			Item toDrop = Generator.random();
-			if (toDrop == null) continue;
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			for (int i = 0; i < nItems; i++) {
 
-			int cell = randomDropCell();
-			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-				map[cell] = Terrain.GRASS;
-				losBlocking[cell] = false;
-			}
+				Item toDrop = Generator.random();
+				if (toDrop == null) continue;
 
-			Heap.Type type = null;
-			switch (Random.Int( 20 )) {
-			case 0:
-				type = Heap.Type.SKELETON;
-				break;
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-				type = Heap.Type.CHEST;
-				break;
-			case 5:
-				//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
-				if (Dungeon.depth() > 1 && findMob(cell) == null
-						&& Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f)/4f){
-					mobs.add(Mimic.spawnAt(cell, toDrop));
-					continue;
+				int cell = randomDropCell();
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
 				}
-				type = Heap.Type.CHEST;
-				break;
-			default:
-				type = Heap.Type.HEAP;
-				break;
-			}
 
-			if ((toDrop instanceof Artifact && Random.Int(2) == 0) ||
-					(toDrop.isUpgradable() && Random.Int(4 - toDrop.level()) == 0)){
+				Heap.Type type = null;
+				switch (Random.Int(20)) {
+					case 0:
+						type = Heap.Type.SKELETON;
+						break;
+					case 1:
+					case 2:
+					case 3:
+					case 4:
+						type = Heap.Type.CHEST;
+						break;
+					case 5:
+						//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
+						if (Dungeon.depth() > 1 && findMob(cell) == null
+								&& Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f) / 4f) {
+							mobs.add(Mimic.spawnAt(cell, toDrop));
+							continue;
+						}
+						type = Heap.Type.CHEST;
+						break;
+					default:
+						type = Heap.Type.HEAP;
+						break;
+				}
 
-				//拟态怪之牙饰品：增加金宝箱怪生成概率（实现见 MimicTooth）
-				float mimicChance = 1/10f * MimicTooth.mimicChanceMultiplier();
-				if (Dungeon.depth() > 1 && Random.Float() < mimicChance && findMob(cell) == null){
-					mobs.add(Mimic.spawnAt(cell, toDrop, GoldenMimic.class));
+				if ((toDrop instanceof Artifact && Random.Int(2) == 0) ||
+						(toDrop.isUpgradable() && Random.Int(4 - toDrop.level()) == 0)) {
+
+					//拟态怪之牙饰品：增加金宝箱怪生成概率（实现见 MimicTooth）
+					float mimicChance = 1 / 10f * MimicTooth.mimicChanceMultiplier();
+					if (Dungeon.depth() > 1 && Random.Float() < mimicChance && findMob(cell) == null) {
+						mobs.add(Mimic.spawnAt(cell, toDrop, GoldenMimic.class));
+					} else {
+						Heap dropped = drop(toDrop, cell);
+						if (heaps.get(cell) == dropped) {
+							dropped.type = Heap.Type.LOCKED_CHEST;
+							addItemToSpawn(new GoldenKey(Dungeon.depth()));
+						}
+					}
 				} else {
 					Heap dropped = drop(toDrop, cell);
-					if (heaps.get(cell) == dropped) {
-						dropped.type = Heap.Type.LOCKED_CHEST;
-						addItemToSpawn(new GoldenKey(Dungeon.depth()));
+					dropped.type = type;
+					if (type == Heap.Type.SKELETON) {
+						dropped.setHauntedIfCursed();
 					}
 				}
-			} else {
-				Heap dropped = drop( toDrop, cell );
-				dropped.type = type;
-				if (type == Heap.Type.SKELETON){
-					dropped.setHauntedIfCursed();
-				}
+
 			}
-			
 		}
 
-		for (Item item : itemsToSpawn) {
-			int cell = randomDropCell();
-			if (item instanceof TrinketCatalyst){
-				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
-				int keyCell = randomDropCell();
-				drop( new GoldenKey(Dungeon.depth()), keyCell ).type = Heap.Type.HEAP;
-				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
-					map[keyCell] = Terrain.GRASS;
-					losBlocking[keyCell] = false;
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			for (Item item : itemsToSpawn) {
+				int cell = randomDropCell();
+				if (item instanceof TrinketCatalyst) {
+					drop(item, cell).type = Heap.Type.LOCKED_CHEST;
+					int keyCell = randomDropCell();
+					drop(new GoldenKey(Dungeon.depth()), keyCell).type = Heap.Type.HEAP;
+					if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+						map[keyCell] = Terrain.GRASS;
+						losBlocking[keyCell] = false;
+					}
+				} else {
+					drop(item, cell).type = Heap.Type.HEAP;
 				}
-			} else {
-				drop( item, cell ).type = Heap.Type.HEAP;
-			}
-			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-				map[cell] = Terrain.GRASS;
-				losBlocking[cell] = false;
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
+				}
 			}
 		}
 
@@ -422,159 +426,172 @@ public abstract class RegularLevel extends Level {
 
 	private void createItemsCore() {
 
-		Item item = Bones.get();
-		if (item != null) {
-			int cell = randomDropCell();
-			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-				map[cell] = Terrain.GRASS;
-				losBlocking[cell] = false;
-			}
-			drop( item, cell ).setHauntedIfCursed().type = Heap.Type.REMAINS;
-		}
-
-		DriedRose rose = Dungeon.hero().belongings.getItem( DriedRose.class );
-		if (rose != null && rose.isIdentified() && !rose.cursed){
-			//aim to drop 1 petal every 2 floors
-			int petalsNeeded = (int) Math.ceil((float)((Dungeon.depth() / 2) - rose.droppedPetals) / 3);
-
-			for (int i=1; i <= petalsNeeded; i++) {
-				//the player may miss a single petal and still max their rose.
-				if (rose.droppedPetals < 11) {
-					item = new DriedRose.Petal();
-					int cell = randomDropCell();
-					drop( item, cell ).type = Heap.Type.HEAP;
-					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-						map[cell] = Terrain.GRASS;
-						losBlocking[cell] = false;
-					}
-					rose.droppedPetals++;
-				}
-			}
-		}
-
-        CounterBuff dropped;
-        dropped = Dungeon.hero().buff(Talent.CachedRationsDropped.class);
-		//cached rations try to drop in a special room on floors 2/3/4/6/7/8, to a max of 4/6
-		if (dropped!=null){
-			if (dropped.count() > 0){
-				int cell;
-				int tries = 100;
-				boolean valid;
-				do {
-					cell = randomDropCell(SpecialRoom.class);
-					valid = cell != -1 && !(room(cell) instanceof SecretRoom)
-							&& !(room(cell) instanceof ShopRoom)
-							&& map[cell] != Terrain.EMPTY_SP
-							&& map[cell] != Terrain.WATER
-							&& map[cell] != Terrain.PEDESTAL;
- 				} while (tries-- > 0 && !valid);
-				if (valid) {
-					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-						map[cell] = Terrain.GRASS;
-						losBlocking[cell] = false;
-					}
-					drop(new SmallRation(), cell).type = Heap.Type.CHEST;
-					dropped.countDown(1);
-                    if (dropped.count()<=0)
-                        dropped.detach();
-				}
-			}
-		}
-        dropped = Dungeon.hero().buff(Talent.ZongziDropped.class);
-        if (dropped!=null){
-            if (dropped.count() > 0){
-                int cell;
-                int tries = 100;
-                boolean valid;
-                do {
-                    cell = randomDropCell(SpecialRoom.class);
-                    valid = cell != -1 && !(room(cell) instanceof SecretRoom)
-                            && !(room(cell) instanceof ShopRoom)
-                            && map[cell] != Terrain.EMPTY_SP
-                            && map[cell] != Terrain.WATER
-                            && map[cell] != Terrain.PEDESTAL;
-                } while (tries-- > 0 && !valid);
-                if (valid) {
-                    if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-                        map[cell] = Terrain.GRASS;
-                        losBlocking[cell] = false;
-                    }
-                    drop(new SugarZongzi(), cell).type = Heap.Type.CHEST;
-                    dropped.countDown(1);
-                    if (dropped.count()<=0)
-                        dropped.detach();
-                }
-            }
-        }
-
-		//guide pages
-		Collection<String> allPages = Document.ADVENTURERS_GUIDE.pageNames();
-		ArrayList<String> missingPages = new ArrayList<>();
-		for ( String page : allPages){
-			if (!Document.ADVENTURERS_GUIDE.isPageFound(page)){
-				missingPages.add(page);
-			}
-		}
-
-		//a total of 6 pages drop randomly, the rest are specially dropped or are given at the start
-		missingPages.remove(Document.GUIDE_SEARCHING);
-
-		//chance to find a page is 0/25/50/75/100% for floors 1/2/3/4/5+
-		float dropChance = 0.25f*(Dungeon.depth()-1);
-		if (!missingPages.isEmpty() && Random.Float() < dropChance){
-			GuidePage p = new GuidePage();
-			p.page(missingPages.get(0));
-			int cell = randomDropCell();
-			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-				map[cell] = Terrain.GRASS;
-				losBlocking[cell] = false;
-			}
-			drop( p, cell );
-		}
-
-	}
-
-	private void ebonyMimic() {
-			if (Random.Float() < MimicTooth.ebonyMimicChance()){
-				ArrayList<Integer> candidateCells = new ArrayList<>();
-				if (Random.Int(2) == 0){
-					for (Heap h : heaps.valueList()){
-						if (h.type == Heap.Type.HEAP
-								&& !(room(h.pos) instanceof SpecialRoom)
-								&& findMob(h.pos) == null){
-							candidateCells.add(h.pos);
-						}
-					}
-				}
-
-				if (candidateCells.isEmpty()) {
-					if (Random.Int(5) == 0 && findMob(exit) == null) {
-						candidateCells.add(exit);
-					} else {
-						for (int i = 0; i < length(); i++) {
-							if (map[i] == Terrain.DOOR && findMob(i) == null) {
-								candidateCells.add(i);
-							}
-						}
-					}
-				}
-
-				int pos = Random.element(candidateCells);
-				mobs.add(Mimic.spawnAt(pos, new ArrayList<>(), EbonyMimic.class));
-			}
-
-	}
-
-	private void extraSpyglassLoot() {
-			for (int i = 0; i < CrackedSpyglass.extraLootChance(); i++){
+		Item item;
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			item = Bones.get();
+			if (item != null) {
 				int cell = randomDropCell();
 				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 					map[cell] = Terrain.GRASS;
 					losBlocking[cell] = false;
 				}
-				drop( Generator.randomUsingDefaults(), cell).setRoom(Heap.Room.Glass);
+				drop(item, cell).setHauntedIfCursed().type = Heap.Type.REMAINS;
 			}
 		}
+
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			DriedRose rose = Dungeon.hero().belongings.getItem(DriedRose.class);
+			if (rose != null && rose.isIdentified() && !rose.cursed) {
+				//aim to drop 1 petal every 2 floors
+				int petalsNeeded = (int) Math.ceil((float) ((Dungeon.depth() / 2) - rose.droppedPetals) / 3);
+
+				for (int i = 1; i <= petalsNeeded; i++) {
+					//the player may miss a single petal and still max their rose.
+					if (rose.droppedPetals < 11) {
+						item = new DriedRose.Petal();
+						int cell = randomDropCell();
+						drop(item, cell).type = Heap.Type.HEAP;
+						if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+							map[cell] = Terrain.GRASS;
+							losBlocking[cell] = false;
+						}
+						rose.droppedPetals++;
+					}
+				}
+			}
+		}
+
+		CounterBuff dropped;
+
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			dropped = Dungeon.hero().buff(Talent.CachedRationsDropped.class);
+			//cached rations try to drop in a special room on floors 2/3/4/6/7/8, to a max of 4/6
+			if (dropped != null) {
+				if (dropped.count() > 0) {
+					int cell;
+					int tries = 100;
+					boolean valid;
+					do {
+						cell = randomDropCell(SpecialRoom.class);
+						valid = cell != -1 && !(room(cell) instanceof SecretRoom)
+								&& !(room(cell) instanceof ShopRoom)
+								&& map[cell] != Terrain.EMPTY_SP
+								&& map[cell] != Terrain.WATER
+								&& map[cell] != Terrain.PEDESTAL;
+					} while (tries-- > 0 && !valid);
+					if (valid) {
+						if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+							map[cell] = Terrain.GRASS;
+							losBlocking[cell] = false;
+						}
+						drop(new SmallRation(), cell).type = Heap.Type.CHEST;
+						dropped.countDown(1);
+						if (dropped.count() <= 0)
+							dropped.detach();
+					}
+				}
+			}
+		}
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			dropped = Dungeon.hero().buff(Talent.ZongziDropped.class);
+			if (dropped != null) {
+				if (dropped.count() > 0) {
+					int cell;
+					int tries = 100;
+					boolean valid;
+					do {
+						cell = randomDropCell(SpecialRoom.class);
+						valid = cell != -1 && !(room(cell) instanceof SecretRoom)
+								&& !(room(cell) instanceof ShopRoom)
+								&& map[cell] != Terrain.EMPTY_SP
+								&& map[cell] != Terrain.WATER
+								&& map[cell] != Terrain.PEDESTAL;
+					} while (tries-- > 0 && !valid);
+					if (valid) {
+						if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+							map[cell] = Terrain.GRASS;
+							losBlocking[cell] = false;
+						}
+						drop(new SugarZongzi(), cell).type = Heap.Type.CHEST;
+						dropped.countDown(1);
+						if (dropped.count() <= 0)
+							dropped.detach();
+					}
+				}
+			}
+		}
+
+		try (Rng.Scope lv = Rng.nextSubstream()) {
+			if (!Dungeon.isSearch()) {
+				//guide pages
+				Collection<String> allPages = Document.ADVENTURERS_GUIDE.pageNames();
+				ArrayList<String> missingPages = new ArrayList<>();
+				for (String page : allPages) {
+					if (!Document.ADVENTURERS_GUIDE.isPageFound(page)) {
+						missingPages.add(page);
+					}
+				}
+
+				//a total of 6 pages drop randomly, the rest are specially dropped or are given at the start
+				missingPages.remove(Document.GUIDE_SEARCHING);
+
+				//chance to find a page is 0/25/50/75/100% for floors 1/2/3/4/5+
+				float dropChance = 0.25f * (Dungeon.depth() - 1);
+				if (!missingPages.isEmpty() && Random.Float() < dropChance) {
+					GuidePage p = new GuidePage();
+					p.page(missingPages.get(0));
+					int cell = randomDropCell();
+					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+						map[cell] = Terrain.GRASS;
+						losBlocking[cell] = false;
+					}
+					drop(p, cell);
+				}
+			}
+		}
+	}
+
+	private void ebonyMimic() {
+		if (Random.Float() < MimicTooth.ebonyMimicChance()) {
+			ArrayList<Integer> candidateCells = new ArrayList<>();
+			if (Random.Int(2) == 0) {
+				for (Heap h : heaps.valueList()) {
+					if (h.type == Heap.Type.HEAP
+							&& !(room(h.pos) instanceof SpecialRoom)
+							&& findMob(h.pos) == null) {
+						candidateCells.add(h.pos);
+					}
+				}
+			}
+
+			if (candidateCells.isEmpty()) {
+				if (Random.Int(5) == 0 && findMob(exit) == null) {
+					candidateCells.add(exit);
+				} else {
+					for (int i = 0; i < length(); i++) {
+						if (map[i] == Terrain.DOOR && findMob(i) == null) {
+							candidateCells.add(i);
+						}
+					}
+				}
+			}
+
+			int pos = Random.element(candidateCells);
+			mobs.add(Mimic.spawnAt(pos, new ArrayList<>(), EbonyMimic.class));
+		}
+
+	}
+
+	private void extraSpyglassLoot() {
+		for (int i = 0; i < CrackedSpyglass.extraLootChance(); i++) {
+			int cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
+			drop(Generator.randomUsingDefaults(), cell).setRoom(Heap.Room.Glass);
+		}
+	}
 	
 	public ArrayList<Room> rooms() {
 		return new ArrayList<>(rooms);

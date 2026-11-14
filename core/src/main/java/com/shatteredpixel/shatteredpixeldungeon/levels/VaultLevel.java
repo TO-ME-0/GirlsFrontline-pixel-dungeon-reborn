@@ -141,7 +141,7 @@ public class VaultLevel extends CityLevel {
 		for (int i = 0; i < 4; i++){
 			addItemToSpawn(createEquipment(0));
 		}
-		addItemToSpawn(new Dart());
+		addItemToSpawn(new Dart().quantity(2));
 		for (int i = 0; i < 5; i++){
 			addItemToSpawn(createConsumabe(0));
 		}

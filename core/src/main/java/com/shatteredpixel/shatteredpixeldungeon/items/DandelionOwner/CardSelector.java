@@ -96,9 +96,7 @@ public class CardSelector extends Item {
         return selector;
     }
     public void coolDown( int coolDown ){
-        //冷却减少只作用于当前间隔，不累计；冷却归 0 后不再减少
-        if (coolDownLeft > 0 && Dungeon.hero() != null)
-            coolDownLeft = Math.max(0, coolDownLeft - coolDown);
+        coolDownLeft -= coolDown;
     }
     public int upgradeTime(){
         return duration;
