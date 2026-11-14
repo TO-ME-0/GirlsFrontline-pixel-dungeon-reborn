@@ -54,8 +54,9 @@ import java.util.Collection;
 public class TrinketCatalyst extends Item {
 
 	{
-		image = ItemSpriteSheet.TRINKET_CATA;
+//		image = ItemSpriteSheet.TRINKET_CATA;
 
+		image = ItemSprite.itemSpriteNeedDraw;
 		unique = true;
 	}
 

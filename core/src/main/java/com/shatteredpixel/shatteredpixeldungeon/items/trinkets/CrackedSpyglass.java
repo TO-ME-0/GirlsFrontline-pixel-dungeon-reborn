@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
@@ -29,7 +30,8 @@ import com.watabou.utils.Random;
 public class CrackedSpyglass extends Trinket{
 
 	{
-		image = ItemSpriteSheet.SPYGLASS;
+//		image = ItemSpriteSheet.SPYGLASS;
+		image = ItemSprite.itemSpriteNeedDraw;
 	}
 
 	@Override
@@ -38,16 +40,15 @@ public class CrackedSpyglass extends Trinket{
 		return 6+2*level();
 	}
 
+	//额外生成物资的固定数量，等级不再改变它，只改变这些物资的初始清晰度
+	public static final int EXTRA_LOOT = 4;
+
 	@Override
 	public String statsDesc() {
 		if (isIdentified()){
-			if (buffedLvl() >= 2){
-				return Messages.get(this, "stats_desc_upgraded", Messages.decimalFormat("#.##", 100 * (extraLootChance(buffedLvl())-1f)));
-			} else {
-				return Messages.get(this, "stats_desc", Messages.decimalFormat("#.##", 100 * extraLootChance(buffedLvl())));
-			}
+			return Messages.get(this, "stats_desc", Messages.decimalFormat("#.##", 100 * maxOpacity(buffedLvl())));
 		} else {
-			return Messages.get(this, "typical_stats_desc", Messages.decimalFormat("#.##", 100 * extraLootChance(0)));
+			return Messages.get(this, "typical_stats_desc", Messages.decimalFormat("#.##", 100 * maxOpacity(0)));
 		}
 	}
 
@@ -59,8 +60,15 @@ public class CrackedSpyglass extends Trinket{
 		if (level <= -1){
 			return 0;
 		} else {
-			return 4;
+			return EXTRA_LOOT;
 		}
+	}
+
+	//物资的初始清晰度上限（0/1/2/3 级 → 30%/50%/70%/90%），opacity() 会在 0~该上限之间随机取值
+	public static float maxOpacity( int level ){
+		if (level <= -1)
+			return 1F;
+		return Math.min(1F, 0.3F + level * 0.2F);
 	}
 
 	public static float opacity() {
