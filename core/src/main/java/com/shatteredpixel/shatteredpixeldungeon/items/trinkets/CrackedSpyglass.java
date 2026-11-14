@@ -66,8 +66,6 @@ public class CrackedSpyglass extends Trinket{
 
 	//物资的初始清晰度上限（0/1/2/3 级 → 30%/50%/70%/90%），opacity() 会在 0~该上限之间随机取值
 	public static float maxOpacity( int level ){
-		if (level <= -1)
-			return 1F;
 		return Math.min(1F, 0.3F + level * 0.2F);
 	}
 
@@ -79,7 +77,7 @@ public class CrackedSpyglass extends Trinket{
 		float opacity = Random.NormalFloat(2);
 		if (level <= -1)
 			return 1F;
-		return opacity * (0.3F + level * 0.2F);
+		return opacity * maxOpacity(level);
 	}
 
 }

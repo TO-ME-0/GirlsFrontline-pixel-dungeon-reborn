@@ -589,7 +589,7 @@ public abstract class RegularLevel extends Level {
 				map[cell] = Terrain.GRASS;
 				losBlocking[cell] = false;
 			}
-			drop(Generator.randomUsingDefaults(), cell).setRoom(Heap.Room.Glass);
+			drop(Generator.randomUsingDefaults(), cell).setRoom(Heap.Room.Glass).opacityReroll();
 		}
 	}
 	

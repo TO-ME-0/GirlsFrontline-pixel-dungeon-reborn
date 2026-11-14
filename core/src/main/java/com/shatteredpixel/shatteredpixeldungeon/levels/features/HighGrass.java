@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -113,7 +114,7 @@ public class HighGrass {
 
 				}
 			}
-			
+			Dewdrop dew = null;
 			if (naturalismLevel >= 0) {
 				// Seed, scales from 1/25 to 1/5
 				//石化种子饰品：提高草的种子掉率并可能将种子变为石块（实现见 PetrifiedSeed）
@@ -129,20 +130,25 @@ public class HighGrass {
 				
 				// Dew, scales from 1/6 to 1/3
 				if (Random.Int(24 - naturalismLevel*3) <= 3) {
+					dew = new Dewdrop();
+					if (Challenges.isItemBlocked(dew))
+						dew = null;
 					//移植自明日方舟地牢ARK_PD：英雄踩草产出露水时，若携带未满的水袋则直接装入，
 					//不掉落到地面也不额外消耗回合；无水袋/水袋已满/非英雄踩踏时仍掉落在地
-					Waterskin flask = (ch instanceof Hero) ? ((Hero) ch).belongings.getItem(Waterskin.class) : null;
-					if (ch instanceof Hero && pos == ch.pos && flask != null && !flask.isFull()){
-						new Dewdrop().doPickUpAuto((Hero) ch, pos);
-					} else {
-						level.drop(new Dewdrop(), pos).sprite.drop();
-					}
+//					Waterskin flask = ((Hero) ch).belongings.getItem(Waterskin.class);
+//					if (pos == ch.pos && flask != null && !flask.isFull()){
+//						new Dewdrop().doPickUpAuto((Hero) ch, pos);
+//					} else {
+//						level.drop(new Dewdrop(), pos).sprite.drop();
+//					}
 				}
 			}
 
 			//Camouflage
 			if (ch instanceof Hero) {
 				Hero hero = (Hero) ch;
+				if (dew != null && dew.doPickUpAuto(hero, pos))
+					dew = null;
                 float time = 0;
 
 				if (hero.belongings.armor() != null ) {
@@ -156,18 +162,22 @@ public class HighGrass {
                     Sample.INSTANCE.play(Assets.Sounds.MELD);
                     Buff.prolong(hero, Invisibility.class, time);
                 }
-			} else if (ch instanceof DriedRose.GhostHero){
+			}
+			else if (ch instanceof DriedRose.GhostHero){
 				DriedRose.GhostHero ghost = (DriedRose.GhostHero) ch;
 				if (ghost.armor() != null && ghost.armor().hasGlyph(Camouflage.class, ghost)){
 					Camouflage.activate(ghost, ghost.armor().buffedLvl());
 				}
-			} else if (ch instanceof ArmoredStatue){
+			}
+			else if (ch instanceof ArmoredStatue){
 				ArmoredStatue statue = (ArmoredStatue) ch;
 				if (statue.armor() != null && statue.armor().hasGlyph(Camouflage.class, statue)){
 					Camouflage.activate(statue, statue.armor().buffedLvl());
 				}
 			}
-			
+
+			if (dew != null)
+				level.drop(dew, pos).sprite.drop();
 		}
 		
 		freezeTrample = false;

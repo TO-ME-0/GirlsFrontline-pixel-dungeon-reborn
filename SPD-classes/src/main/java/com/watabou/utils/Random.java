@@ -149,7 +149,7 @@ public class Random {
 
 	//returns a triangularly distributed float in the range [min, max)
 	public static float NormalFloat( float min, float max ) {
-		return min + ((Float(max - min) + Float(max - min))/2f);
+		return min + NormalFloat(2) * (max - min);
 	}
 	public static float NormalFloat( int times ){
 		if (times == 0)
