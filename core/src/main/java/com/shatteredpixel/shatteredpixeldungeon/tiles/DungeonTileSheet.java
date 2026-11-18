@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CavesLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.watabou.utils.Random;
@@ -315,11 +317,16 @@ public class DungeonTileSheet {
 	public static final int WALLS_INTERNAL              =                   xy(1, 12);  //32 slots
 	private static final int WALL_INTERNAL              = WALLS_INTERNAL+0;
 	private static final int WALL_INTERNAL_WOODEN       = WALLS_INTERNAL+16;
+	//矿洞金矿墙面（3.3.8 移植）：图集扩展行提供金矿内壁贴图
+	private static final int WALLS_INTERNAL_DECO        =                   xy(1, 17);  //16 slots
+	public static final int WALL_INTERNAL_DECO          = WALLS_INTERNAL_DECO+0;
 
 	public static int stitchInternalWallTile(int tile, int right, int rightBelow, int below, int leftBelow, int left){
 		int result;
 
 		if (tile == Terrain.BOOKSHELF || below == Terrain.BOOKSHELF)  result = WALL_INTERNAL_WOODEN;
+		//洞窟金矿脉：与 3.3.8 一致，墙体正面也使用矿脉贴图
+		else if (Dungeon.level instanceof CavesLevel && tile == Terrain.WALL_DECO)  result = WALL_INTERNAL_DECO;
 		else                            result = WALL_INTERNAL;
 
 		if (!wallStitcheable(right))        result += 1;
@@ -337,6 +344,9 @@ public class DungeonTileSheet {
 	public static final int DOOR_SIDEWAYS_OVERHANG_LOCKED   = WALLS_OVERHANG+12;
 	public static final int DOOR_SIDEWAYS_OVERHANG_CRYSTAL  = WALLS_OVERHANG+16;
 	public static final int WALL_OVERHANG_WOODEN            = WALLS_OVERHANG+20;
+	//矿洞金矿墙面（3.3.8 移植）：图集扩展行提供金矿悬垂贴图
+	private static final int WALLS_OVERHANG_DECO            =                   xy(1, 18);  //4 slots
+	public static final int WALL_OVERHANG_DECO              = WALLS_OVERHANG_DECO+0;
 
 	public static int stitchWallOverhangTile(int tile, int rightBelow, int below, int leftBelow){
 		int visual;
@@ -344,6 +354,8 @@ public class DungeonTileSheet {
 		else if (tile == Terrain.OPEN_DOOR)                         visual = DOOR_SIDEWAYS_OVERHANG_OPEN;
 		else if (tile == Terrain.LOCKED_DOOR)                       visual = DOOR_SIDEWAYS_OVERHANG_LOCKED;
 		else if (tile == Terrain.CRYSTAL_DOOR)                      visual = DOOR_SIDEWAYS_OVERHANG_CRYSTAL;
+		//洞窟金矿脉：与 3.3.8 一致，墙下方地面格的悬垂也使用矿脉贴图
+		else if (Dungeon.level instanceof CavesLevel && below == Terrain.WALL_DECO) visual = WALL_OVERHANG_DECO;
 		else if (below == Terrain.BOOKSHELF)                        visual = WALL_OVERHANG_WOODEN;
 		else                                                        visual = WALL_OVERHANG;
 

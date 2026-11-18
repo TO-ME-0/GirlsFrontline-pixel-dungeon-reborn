@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -63,7 +64,20 @@ public class CrystalWisp extends Mob{
 		}
 	}
 
-	//mod 寻路体系没有 modifyPassable 钩子，幽光将绕开水晶移动（不影响编译与战斗逻辑）
+	//幽光可以穿过矿洞中的水晶簇
+	@Override
+	public void modifyPassable(boolean[] passable) {
+		for (int i = 0; i < passable.length && i < Dungeon.level.length(); i++) {
+			if (Dungeon.level.map[i] == Terrain.MINE_CRYSTAL) {
+				passable[i] = true;
+			}
+		}
+	}
+
+	@Override
+	protected boolean isExtraPassable(int cell) {
+		return Dungeon.level.map[cell] == Terrain.MINE_CRYSTAL;
+	}
 
 	@Override
 	public int damageRoll() {
@@ -112,7 +126,7 @@ public class CrystalWisp extends Mob{
 	}
 
 	//用于让抗性区分近战与魔法攻击
-	public static class LightBeam {}
+	public static class LightBeam implements MobDamage {}
 
 	private void zap() {
 		spend( 1f );

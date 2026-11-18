@@ -204,8 +204,20 @@ public class CrystalGuardian extends Mob{
 		}
 	}
 
-	//mod 寻路体系没有 modifyPassable 钩子：
-	//追击时穿越水晶的行为无法注入寻路，守卫将绕开水晶（踩碎水晶的 move 逻辑保留）
+	//守卫可以穿过矿洞中的水晶簇（穿过时会将水晶踩碎，见 move）
+	@Override
+	public void modifyPassable(boolean[] passable) {
+		for (int i = 0; i < passable.length && i < Dungeon.level.length(); i++) {
+			if (Dungeon.level.map[i] == Terrain.MINE_CRYSTAL) {
+				passable[i] = true;
+			}
+		}
+	}
+
+	@Override
+	protected boolean isExtraPassable(int cell) {
+		return Dungeon.level.map[cell] == Terrain.MINE_CRYSTAL;
+	}
 
 	@Override
 	public void beckon(int cell) {

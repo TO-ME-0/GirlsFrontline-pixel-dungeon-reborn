@@ -154,12 +154,13 @@ public class MineEntrance extends CaveRoom {
 			tileW = tileH = 3;
 		}
 
-		final int TEX_WIDTH = 128;
+		//caves_quest.png 实际宽 192px（12 格），上楼楼梯的 3x3 图块位于第 3~5 行（行索引 2~4）最左侧
+		final int TEX_WIDTH = 192;
 
 		@Override
 		public Tilemap create() {
 			Tilemap v = super.create();
-			v.map(mapSimpleImage(0, 1, TEX_WIDTH), 3);
+			v.map(mapSimpleImage(0, 2, TEX_WIDTH), 3);
 			return v;
 		}
 

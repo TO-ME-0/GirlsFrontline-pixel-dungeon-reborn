@@ -181,29 +181,34 @@ public class MiningLevel extends CavesLevel {
 			}
 		}
 
-		int cell = randomDropCell();
-		if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-			map[cell] = Terrain.GRASS;
-			losBlocking[cell] = false;
-		}
-		drop( Generator.randomUsingDefaults(Generator.Category.FOOD), cell );
-		if (Blacksmith.Quest.type() == Blacksmith.Quest.GNOLL){
-			//豺狼人类型需要挖更多矿，额外放一份口粮
-			cell = randomDropCell();
+		try (Rng.Scope s = Rng.nextSubstream()) {
+			int cell = randomDropCell();
 			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 				map[cell] = Terrain.GRASS;
 				losBlocking[cell] = false;
 			}
 			drop( Generator.randomUsingDefaults(Generator.Category.FOOD), cell );
 		}
-
-		if (Dungeon.isChallenged(Challenges.DARKNESS)){
-			cell = randomDropCell();
-			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-				map[cell] = Terrain.GRASS;
-				losBlocking[cell] = false;
+		try (Rng.Scope s = Rng.nextSubstream()) {
+			if (Blacksmith.Quest.type() == Blacksmith.Quest.GNOLL){
+			//豺狼人分支额外放一份口粮
+				int cell = randomDropCell();
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
+				}
+				drop( Generator.randomUsingDefaults(Generator.Category.FOOD), cell );
 			}
-			drop( new Torch(), cell );
+		}
+		try (Rng.Scope s = Rng.nextSubstream()) {
+			if (Dungeon.isChallenged(Challenges.DARKNESS)){
+				int cell = randomDropCell();
+				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+					map[cell] = Terrain.GRASS;
+					losBlocking[cell] = false;
+				}
+				drop( new Torch(), cell );
+			}
 		}
 	}
 
