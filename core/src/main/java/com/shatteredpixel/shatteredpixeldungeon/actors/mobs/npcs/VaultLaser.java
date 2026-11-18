@@ -157,7 +157,7 @@ public class VaultLaser extends NPC {
 			}
 			if (visible){
 				for (int cell : nextBeam.subPath(1, nextBeam.dist - 1)) {
-					sprite.parent.add(new TargetedCell(cell, 0xFF0000));
+					sprite.parent.add(new TargetedCell(cell, 0xFF0000, Actor.now() + TICK));
 					if (Actor.findChar(cell) == Dungeon.hero()){
 						//主要防止英雄在被瞄准时自动拾取物品
 						Dungeon.hero().interrupt();

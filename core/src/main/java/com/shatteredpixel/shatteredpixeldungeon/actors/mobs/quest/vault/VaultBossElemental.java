@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.MobDamage;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
@@ -313,7 +314,7 @@ public class VaultBossElemental extends Mob {
 	public int defenseProc(Char enemy, int damage) {
 		if (form == ElementalForm.SHOCK && enemy == Dungeon.hero() && !(Dungeon.hero().belongings.weapon() instanceof MissileWeapon)){
 			enemy.sprite.parent.addToFront( new Lightning( sprite.center(), enemy.sprite.center(), null ) );
-			enemy.damage( Random.IntRange(5, 10), new Shocking() );
+			enemy.damage( Random.IntRange(5, 10), new ShockStrike() );
 			Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 			Camera.main.shake( 2, 0.3f );
 			enemy.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
@@ -530,6 +531,11 @@ public class VaultBossElemental extends Mob {
 	}
 
 	//用于在 PinCushion 附加后强制移除它
+	//Boss 技能造成的伤害：经验结算时不视为玩家参与
+	public static class ShockStrike extends Shocking implements MobDamage {}
+	public static class FrostStrike extends Frost implements MobDamage {}
+	public static class ShockField extends Electricity implements MobDamage {}
+
 	public static class PinCushionRemover extends Buff{
 
 		{
@@ -604,6 +610,10 @@ public class VaultBossElemental extends Mob {
 	 **************************/
 
 	public void setupFireBall( Char enemy ){
+
+		//预警持续到本次特殊攻击结算（下一次行动）为止
+		float warnUntil = Actor.now() + GameMath.gate(attackDelay(), (int)Math.ceil(Dungeon.hero().cooldown()), 3*attackDelay());
+
 		//瞄准敌人移动的方向
 		if (Dungeon.level.adjacent(enemy.pos, lastEnemyPos)){
 			spTargetCell = enemy.pos + (enemy.pos - lastEnemyPos);
@@ -634,8 +644,8 @@ public class VaultBossElemental extends Mob {
 
 		for (int i : PathFinder.NEIGHBOURS9()){
 			if (!Dungeon.level.solid[spTargetCell+i]) {
-				//reborn 的 GameScene 无 targetedCell，直接添加预警格高亮（丢弃冷却时长参数）
-				sprite.parent.add(new TargetedCell(spTargetCell + i, 0xFF0000));
+				//reborn 的 GameScene 无 targetedCell，直接添加预警格高亮
+				sprite.parent.add(new TargetedCell(spTargetCell + i, 0xFF0000, warnUntil));
 			}
 		}
 	}
@@ -863,6 +873,9 @@ public class VaultBossElemental extends Mob {
 
 	public void setupFrostCone( Char enemy ){
 
+		//预警持续到本次特殊攻击结算（下一次行动）为止
+		float warnUntil = Actor.now() + GameMath.gate(attackDelay(), (int)Math.ceil(Dungeon.hero().cooldown()), 3*attackDelay());
+
 		spTargetCell = enemy.pos;
 		Ballistica core = new Ballistica(pos, enemy.pos, Ballistica.WONT_STOP);
 
@@ -870,7 +883,7 @@ public class VaultBossElemental extends Mob {
 		for (int cell : cone.cells){
 			if (Dungeon.level.trueDistance(cell, pos) <= 2){
 				//reborn 的 GameScene 无 targetedCell，直接添加预警格高亮
-				sprite.parent.add(new TargetedCell(cell, 0xFF0000));
+				sprite.parent.add(new TargetedCell(cell, 0xFF0000, warnUntil));
 			}
 		}
 
@@ -921,7 +934,7 @@ public class VaultBossElemental extends Mob {
 					CellEmitter.get(cell).burst(MagicMissile.WhiteParticle.FACTORY, 10);
 					Char ch = Actor.findChar(cell);
 					if (ch != null && !(ch instanceof VaultBossElemental) && ch.buff(FrostResist.class) == null){
-						ch.damage(Random.NormalIntRange(10, 15), new Frost());
+						ch.damage(Random.NormalIntRange(10, 15), new FrostStrike());
 						Buff.affect(ch, Frost.class, 5f);
 						Buff.affect(ch, FrostResist.class);
 						if (ch == Dungeon.hero()){
@@ -949,7 +962,7 @@ public class VaultBossElemental extends Mob {
 					if (Dungeon.level.trueDistance(cell, startPos) <= distance
 						&& Dungeon.level.trueDistance(cell, startPos) > distance-2){
 						//reborn 的 GameScene 无 targetedCell，直接添加预警格高亮（静态内部类中用 target.sprite）
-						target.sprite.parent.add(new TargetedCell(cell, 0xFF0000));
+						target.sprite.parent.add(new TargetedCell(cell, 0xFF0000, Actor.now() + TICK));
 					}
 				}
 			}
@@ -1205,6 +1218,9 @@ public class VaultBossElemental extends Mob {
 
 	public void setupLightningBolt(Char enemy){
 
+		//预警持续到本次特殊攻击结算（下一次行动）为止
+		float warnUntil = Actor.now() + GameMath.gate(attackDelay(), (int)Math.ceil(Dungeon.hero().cooldown()), 3*attackDelay());
+
 		spTargetCell = enemy.pos;
 		lightningOfs = Random.Int(2);
 
@@ -1212,11 +1228,11 @@ public class VaultBossElemental extends Mob {
 		//reborn 的 subPath 末端为闭区间，与 SPD4.0 的开区间语义相差 1
 		for (int cell : bolt.subPath(0, bolt.dist - 1)){
 			//reborn 的 GameScene 无 targetedCell，直接添加预警格高亮
-			sprite.parent.add(new TargetedCell(cell, 0xFF0000));
+			sprite.parent.add(new TargetedCell(cell, 0xFF0000, warnUntil));
 		}
 
 		for (int i = lightningOfs % 2; i < PathFinder.CIRCLE8().length; i+=2){
-			sprite.parent.add(new TargetedCell(spTargetCell + PathFinder.CIRCLE8()[i], 0xFF0000));
+			sprite.parent.add(new TargetedCell(spTargetCell + PathFinder.CIRCLE8()[i], 0xFF0000, warnUntil));
 		}
 
 	}
@@ -1240,7 +1256,7 @@ public class VaultBossElemental extends Mob {
 		for (int c : affectedCells){
 			Char ch = Actor.findChar(c);
 			if (ch != null && !(ch instanceof VaultBossElemental) && ch.buff(ShockResist.class) == null){
-				ch.damage(Random.NormalIntRange(20, 30), new Electricity());
+				ch.damage(Random.NormalIntRange(20, 30), new ShockField());
 				Buff.prolong(ch, Paralysis.class, 1f);
 				Buff.affect(ch, ShockResist.class);
 				ch.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
@@ -1419,7 +1435,7 @@ public class VaultBossElemental extends Mob {
 		}
 
 		private void shockChar(Char ch){
-			ch.damage(Random.NormalIntRange(10, 15), new Electricity());
+			ch.damage(Random.NormalIntRange(10, 15), new ShockField());
 			Buff.prolong(ch, Paralysis.class, 1f);
 			Buff.affect(ch, ShockResist.class);
 			ch.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);

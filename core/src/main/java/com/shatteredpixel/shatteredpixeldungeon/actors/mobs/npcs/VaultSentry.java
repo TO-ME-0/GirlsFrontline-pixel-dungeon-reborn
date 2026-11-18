@@ -153,7 +153,7 @@ public class VaultSentry extends NPC {
 									}
 								}
 							}
-							sprite.parent.add(new TargetedCell(cell, 0xFFFF00));
+							sprite.parent.add(new TargetedCell(cell, 0xFFFF00, Actor.now() + TICK));
 						}
 					}
 				}
@@ -207,7 +207,7 @@ public class VaultSentry extends NPC {
 						if (fieldOfView[cell]) {
 							//主要防止英雄在被瞄准时自动拾取物品
 							Dungeon.hero().interrupt();
-							sprite.parent.add(new TargetedCell(cell, 0xFF0000));
+							sprite.parent.add(new TargetedCell(cell, 0xFF0000, Actor.now() + TICK));
 						}
 					}
 				}

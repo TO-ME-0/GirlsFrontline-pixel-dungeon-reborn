@@ -32,7 +32,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MedicalKit;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.RedBook;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Gun561Old;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.M4A1;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -80,8 +85,20 @@ public class VaultMirror extends NPC {
 					//reborn 的 CloakOfShadows 无 directCharge 方法，删去充能调用，仅保留升级
 					break;
 				case HUNTRESS:
-					reward = new SpiritBow().identify(false);
-					((SpiritBow)reward).enchant();
+					reward = new SpiritBow().enchant().identify(false);
+					break;
+				case Dandelion:
+					reward = new M4A1().enchant().random().identify(false);
+					break;
+				case TYPE561:
+					reward = new RedBook().upgrade(8).identify(false);
+					break;
+				case GSH18:
+					reward = new MedicalKit().upgrade(8).identify(false);
+					break;
+				case TYPE561_OLD:
+					reward = new Gun561Old().upgrade(3).identify(false);
+					((Weapon) reward).enchant();
 					break;
 					//reborn 无 DUELIST/CLERIC 职业，也无 Greatsword/HolyTome 物品，对应奖励分支已删除
 			}

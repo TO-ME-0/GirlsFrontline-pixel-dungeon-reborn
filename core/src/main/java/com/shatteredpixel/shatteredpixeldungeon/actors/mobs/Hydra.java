@@ -56,7 +56,7 @@ public class Hydra extends Mob {
         properties.add(Property.ARMO);
     }
 
-    public static class Beam{}
+    public static class Beam implements MobDamage{}
 
     public int DamageReducer() { return 1; }
 

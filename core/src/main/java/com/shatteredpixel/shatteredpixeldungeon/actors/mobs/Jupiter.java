@@ -123,7 +123,7 @@ public class Jupiter extends Mob {
             ((JupiterSprite)sprite).charge( enemy.pos );
             Ballistica b = new Ballistica(pos, enemy.pos, Ballistica.STOP_SOLID);
             for (int p : b.path) {
-                sprite.parent.add(new TargetedCell(p, 0xFF0000));
+                sprite.parent.add(new TargetedCell(p, 0xFF0000, Actor.now() + attackDelay()*6f));
                 if (p == b.collisionPos)
                     break;
             }

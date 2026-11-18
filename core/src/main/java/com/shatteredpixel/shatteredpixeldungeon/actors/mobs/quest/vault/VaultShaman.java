@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.MobDamage;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DwarfToken;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -132,7 +133,7 @@ public class VaultShaman extends Mob implements Callback {
 	}
 
 	//用于让抗性判定区分近战与魔法攻击
-	public static class EarthenBolt{}
+	public static class EarthenBolt implements MobDamage{}
 
 	private void zap() {
 		spend( 1f );

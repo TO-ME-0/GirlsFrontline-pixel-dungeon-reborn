@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Honeypot;
@@ -416,6 +417,9 @@ public class GameScene extends PixelScene {
 
 		//允许关卡在墙体/家具层之上添加常驻视觉（如0层可交互物块的提示文字）
 		Dungeon.level.addAboveWallVisuals( effects );
+
+		//恢复存档中尚未到期的目标标记
+		TargetedCell.restoreToScene( effects );
 
 		gases = new Group();
 		add( gases );

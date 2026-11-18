@@ -95,7 +95,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public abstract class Mob extends Char {
+public abstract class Mob extends Char implements MobDamage {
 
 	{
 		actPriority = MOB_PRIO;
@@ -448,7 +448,7 @@ public abstract class Mob extends Char {
 			path = null;
 
 			if (Actor.findChar( target ) == null
-					&& (Dungeon.level.passable[target] || (flying && Dungeon.level.avoid[target]))
+					&& (Dungeon.level.passable[target] || (flying && Dungeon.level.avoid[target]) || isExtraPassable(target))
 					&& (!Char.hasProp(this, Char.Property.LARGE) || Dungeon.level.openSpace[target])
 					&& Dungeon.level.canStep( pos, target )) {
 				step = target;
@@ -512,7 +512,7 @@ public abstract class Mob extends Char {
 			//checks if the next cell along the current path can be stepped into
 			if (!newPath) {
 				int nextCell = path.removeFirst();
-				if (!Dungeon.level.passable[nextCell]
+				if ((!Dungeon.level.passable[nextCell] && !isExtraPassable(nextCell))
 						|| (!flying && Dungeon.level.avoid[nextCell])
 						|| (Char.hasProp(this, Char.Property.LARGE) && !Dungeon.level.openSpace[nextCell])
 						|| Actor.findChar(nextCell) != null
@@ -523,7 +523,7 @@ public abstract class Mob extends Char {
 					if (!path.isEmpty()) {
 						for (int i : PathFinder.NEIGHBOURS8()) {
 							if (Dungeon.level.adjacent(pos, nextCell + i) && Dungeon.level.adjacent(nextCell + i, path.getFirst())) {
-								if (Dungeon.level.passable[nextCell+i]
+								if ((Dungeon.level.passable[nextCell+i] || isExtraPassable(nextCell+i))
 										&& (flying || !Dungeon.level.avoid[nextCell+i])
 										&& (!Char.hasProp(this, Char.Property.LARGE) || Dungeon.level.openSpace[nextCell+i])
 										&& Actor.findChar(nextCell+i) == null
@@ -554,7 +554,7 @@ public abstract class Mob extends Char {
 					if (ignoreChars != null && (full == null || full.size() > 2*ignoreChars.size())){
 						//check if first cell of shorter path is valid. If it is, use new shorter path. Otherwise do nothing and wait.
 						path = ignoreChars;
-						if (!Dungeon.level.passable[ignoreChars.getFirst()]
+						if ((!Dungeon.level.passable[ignoreChars.getFirst()] && !isExtraPassable(ignoreChars.getFirst()))
 								|| (!flying && Dungeon.level.avoid[ignoreChars.getFirst()])
 								|| (Char.hasProp(this, Char.Property.LARGE) && !Dungeon.level.openSpace[ignoreChars.getFirst()])
 								|| Actor.findChar(ignoreChars.getFirst()) != null) {
@@ -592,6 +592,15 @@ public abstract class Mob extends Char {
 		} else {
 			return false;
 		}
+	}
+
+	//特殊怪物可覆写：在寻路时把额外地形视为可通行（如矿洞水晶簇）
+	public void modifyPassable( boolean[] passable ) {
+	}
+
+	//特殊怪物可覆写：直接移动判定时该格是否可进入（与 modifyPassable 保持一致）
+	protected boolean isExtraPassable( int cell ) {
+		return false;
 	}
 
 	@Override
@@ -724,14 +733,11 @@ public abstract class Mob extends Char {
 	@Override
 	public void damage( int dmg, Object src ) {
 
-		//记录玩家方参与：英雄直接攻击、盟友（召唤物/镜像等）、法杖、职业技能、物品道具（炸弹/卷轴/魂弓箭矢等）
+		//记录玩家方参与：除怪物(MobDamage)造成的伤害外，其余来源（环境、陷阱、物品、Buff、友方等）都算玩家方参与
 		if (dmg > 0 && !heroDamaged) {
-			if (src instanceof Char && (((Char) src).alignment == Alignment.ALLY || ((Char) src).alignment == Alignment.NEUTRAL)
-					|| src instanceof Wand
-					|| src instanceof ArmorAbility
-					|| src instanceof Item
-					|| src instanceof Buff
-					|| src instanceof Trap) {
+			if (src instanceof Char && (((Char) src).alignment == Alignment.ALLY || ((Char) src).alignment == Alignment.NEUTRAL)) {
+				heroDamaged = true;
+			} else if (!(src instanceof MobDamage)) {
 				heroDamaged = true;
 			}
 		}
@@ -1020,6 +1026,11 @@ public abstract class Mob extends Char {
 			for (Buff b : buffs()){
 				if (b.type == Buff.buffType.NEGATIVE){
 					awaken(enemyInFOV);
+					//若因目标不可达等原因无法醒来，仍需推进时间，
+					//否则该 actor 会以 0 时间被反复调度，导致回合永久卡死
+					if (state == SLEEPING){
+						spend( TICK );
+					}
 					return true;
 				}
 			}
@@ -1035,6 +1046,10 @@ public abstract class Mob extends Char {
 
 				if (Random.Float( distance( enemy ) + enemyStealth ) < 1) {
 					awaken(enemyInFOV);
+					//同上：未成功醒来时必须消耗时间
+					if (state == SLEEPING){
+						spend( TICK );
+					}
 					return true;
 				}
 

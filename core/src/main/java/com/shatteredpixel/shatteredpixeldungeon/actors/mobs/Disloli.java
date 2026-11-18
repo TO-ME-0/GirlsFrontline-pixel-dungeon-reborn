@@ -696,7 +696,7 @@ public class Disloli extends Mob {
 		}
 	}
 
-	public static class KingDamager extends Buff {
+	public static class KingDamager extends Buff implements MobDamage {
 
 		@Override
 		public boolean act() {

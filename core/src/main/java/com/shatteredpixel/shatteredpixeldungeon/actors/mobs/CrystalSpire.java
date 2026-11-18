@@ -167,7 +167,7 @@ public class CrystalSpire extends Mob {
 
 			if (!targetedCells.isEmpty()){
 				for (int i : targetedCells.get(0)){
-					sprite.parent.add(new TargetedCell(i, 0xFF0000));
+					sprite.parent.add(new TargetedCell(i, 0xFF0000, Actor.now() + TICK));
 				}
 			}
 
@@ -187,7 +187,7 @@ public class CrystalSpire extends Mob {
 				}
 
 				for (int i : targetedCells.get(0)){
-					sprite.parent.add(new TargetedCell(i, 0xFF0000));
+					sprite.parent.add(new TargetedCell(i, 0xFF0000, Actor.now() + TICK));
 				}
 
 				abilityCooldown += ABILITY_CD;
@@ -205,7 +205,7 @@ public class CrystalSpire extends Mob {
 		return true;
 	}
 
-	public static class SpireSpike{}
+	public static class SpireSpike implements MobDamage{}
 
 	private void diamondAOEAttack(){
 		targetedCells.clear();

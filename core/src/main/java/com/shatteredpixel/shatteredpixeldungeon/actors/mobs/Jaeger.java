@@ -104,7 +104,7 @@ public abstract class Jaeger extends Mob {
 	}
 	
 	//used so resistances can differentiate between melee and magical attacks
-	public static class EarthenBolt{}
+	public static class EarthenBolt implements MobDamage{}
 	
 	private void zap() {
 		spendAttack( 1f );

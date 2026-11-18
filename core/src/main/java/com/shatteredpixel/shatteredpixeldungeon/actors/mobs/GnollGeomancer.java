@@ -604,7 +604,7 @@ public class GnollGeomancer extends Mob {
 
 							Ballistica warnPath = new Ballistica(aim.sourcePos, aim.collisionPos, Ballistica.STOP_SOLID);
 							for (int j : warnPath.subPath(0, warnPath.dist)){
-								sprite.parent.add(new TargetedCell(j, 0xFF0000));
+								sprite.parent.add(new TargetedCell(j, 0xFF0000, Actor.now() + TICK));
 							}
 
 							aim = GnollGeomancer.prepRockThrowAttack(enemy, GnollGeomancer.this);
@@ -739,7 +739,7 @@ public class GnollGeomancer extends Mob {
 		rocksInFlight++;
 	}
 
-	public static class Boulder extends Item {
+	public static class Boulder extends Item implements MobDamage {
 		{
 			image = ItemSpriteSheet.GEO_BOULDER;
 		}
@@ -792,7 +792,7 @@ public class GnollGeomancer extends Mob {
 			}
 		}
 		for (int i : rockCells){
-			source.sprite.parent.add(new TargetedCell(i, 0xFF0000));
+			source.sprite.parent.add(new TargetedCell(i, 0xFF0000, Actor.now() + TICK));
 		}
 		//mod Char 无 cooldown()，延迟固定 1 回合
 		Buff.append(source, GnollRockFall.class, TICK).setRockPositions(rockCells);
@@ -808,7 +808,7 @@ public class GnollGeomancer extends Mob {
 		return true;
 	}
 
-	public static class GnollRockFall extends DelayedRockFall{
+	public static class GnollRockFall extends DelayedRockFall implements MobDamage{
 
 		@Override
 		public void affectChar(Char ch) {

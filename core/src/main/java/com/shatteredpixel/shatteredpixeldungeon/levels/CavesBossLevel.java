@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gager;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.MobDamage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -774,6 +775,9 @@ public class CavesBossLevel extends Level {
 
 	public static class PylonEnergy extends Blob {
 
+		//电能水晶造成的电击伤害：经验结算时不视为玩家参与
+		public static class PylonEnergyShock implements MobDamage {}
+
 		@Override
 		protected void evolve() {
 			for (int cell = 0; cell < Dungeon.level.length(); cell++) {
@@ -792,7 +796,7 @@ public class CavesBossLevel extends Level {
 						Char ch = Actor.findChar(cell);
 						if (ch != null && !(ch instanceof Gager)) {
 							Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
-							ch.damage( Random.NormalIntRange(6, 12), Electricity.class);
+							ch.damage( Random.NormalIntRange(6, 12), new PylonEnergy.PylonEnergyShock());
 							ch.sprite.flash();
 
 							if (ch == Dungeon.hero() && !ch.isAlive()) {

@@ -99,7 +99,7 @@ public class JaegerLock extends Mob implements Callback {
 	}
 	
 	//used so resistances can differentiate between melee and magical attacks
-	public static class DarkBolt{}
+	public static class DarkBolt implements MobDamage{}
 	
 	private void zap() {
 		spendAttack( TIME_TO_ZAP );

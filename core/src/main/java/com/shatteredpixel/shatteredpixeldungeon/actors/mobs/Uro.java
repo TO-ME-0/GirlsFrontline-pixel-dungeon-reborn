@@ -51,7 +51,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
-import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -584,6 +583,10 @@ public class Uro extends Mob {
 		return true;
 	}
 	
+	//怪物技能造成的伤害：经验结算时不视为玩家参与
+	public static class BombBlast implements MobDamage {}
+	public static class ShockerStrike extends Electricity implements MobDamage {}
+
 	public static class BombAbility extends Buff {
 		
 		public int bombPos = -1;
@@ -616,7 +619,7 @@ public class Uro extends Mob {
 							dmg -= ch.drRoll();
 
 							if (dmg > 0) {
-								ch.damage(dmg, Bomb.class);
+								ch.damage(dmg, new BombBlast());
 							}
 
 							if (ch == Dungeon.hero() && !ch.isAlive()) {
@@ -1026,7 +1029,7 @@ public class Uro extends Mob {
 							
 							Char ch = Actor.findChar(cell);
 							if (ch != null && !(ch instanceof Uro)){
-								ch.damage(2 + Dungeon.depth(), new Electricity());
+								ch.damage(2 + Dungeon.depth(), new ShockerStrike());
 								
 								if (ch == Dungeon.hero() && !ch.isAlive()) {
 									Dungeon.fail(Uro.class);

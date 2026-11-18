@@ -465,7 +465,7 @@ public abstract class YogFist extends Mob {
 		}
 
 		//used so resistances can differentiate between melee and magical attacks
-		public static class LightBeam{}
+		public static class LightBeam implements MobDamage{}
 
 		@Override
 		protected void zap() {
@@ -528,7 +528,7 @@ public abstract class YogFist extends Mob {
 		}
 
 		//used so resistances can differentiate between melee and magical attacks
-		public static class DarkBolt{}
+		public static class DarkBolt implements MobDamage{}
 
 		@Override
 		protected void zap() {

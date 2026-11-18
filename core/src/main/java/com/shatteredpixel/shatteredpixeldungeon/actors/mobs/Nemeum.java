@@ -103,7 +103,7 @@ public class Nemeum extends Mob {
             ((NemeumSprite)sprite).charge( enemy.pos );
             Ballistica b = new Ballistica(pos, enemy.pos, Ballistica.STOP_SOLID);
             for (int p : b.path) {
-                sprite.parent.add(new TargetedCell(p, 0xFF0000));
+                sprite.parent.add(new TargetedCell(p, 0xFF0000, Actor.now() + attackDelay()*4f));
                 if (p == b.collisionPos)
                     break;
             }

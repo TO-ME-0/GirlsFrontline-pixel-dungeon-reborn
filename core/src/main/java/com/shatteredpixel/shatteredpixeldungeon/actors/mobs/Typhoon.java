@@ -117,9 +117,9 @@ public class Typhoon extends Hydra {
             return true;
         }else if (!beamCharged){
             ((TyphoonSprite)sprite).charge( enemy.pos );
+            beamTime = attackDelay()*14f;
             TNTFindHero( enemy.pos );
             Dungeon.hero().interrupt();
-            beamTime = attackDelay()*14f;
             spendAttack( attackDelay() );
             beamCharged = true;
             return true;
@@ -185,10 +185,13 @@ public class Typhoon extends Hydra {
             color = 0xFFFF00;
         }
 
+        //瞄准每回合都会刷新，标记只存活一个刷新周期，旧弹道自然过期淡出，不会残留到发射
+        float warnUntil = Actor.now() + TICK;
+
         if (containHero){
             //对目标地点的弹道包括玩家时，直接显示对目标地点的弹道
             for (int p : b.path) {
-                sprite.parent.add(new TargetedCell(p, 0xFF0000));
+                sprite.parent.add(new TargetedCell(p, 0xFF0000, warnUntil));
                 if (p == b.collisionPos)
                     break;
             }
@@ -196,11 +199,11 @@ public class Typhoon extends Hydra {
             //不包括时，显示目标地点，显示对玩家的瞄准弹道
             Ballistica m = new Ballistica(pos, Dungeon.hero().pos, Ballistica.STOP_SOLID);
             for (int p : m.path) {
-                sprite.parent.add(new TargetedCell(p, color));
+                sprite.parent.add(new TargetedCell(p, color, warnUntil));
                 if (p == m.collisionPos)
                     break;
             }
-            sprite.parent.add(new TargetedCell(targetPos, 0xFF0000));
+            sprite.parent.add(new TargetedCell(targetPos, 0xFF0000, warnUntil));
             //对目标点标红
         }
 

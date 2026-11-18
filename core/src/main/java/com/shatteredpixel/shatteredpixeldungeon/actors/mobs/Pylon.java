@@ -117,10 +117,13 @@ public class Pylon extends Mob {
 		return true;
 	}
 
+	//怪物造成的电击伤害：经验结算时不视为玩家参与
+	public static class PylonShock extends Electricity implements MobDamage {}
+
 	private void shockChar( Char ch ){
 		if (ch != null && !(ch instanceof Gager)){
 			ch.sprite.flash();
-			ch.damage(Random.NormalIntRange(10, 20), new Electricity(), this);
+			ch.damage(Random.NormalIntRange(10, 20), new PylonShock(), this);
 
 			if (ch == Dungeon.hero() && !ch.isAlive()){
 				Dungeon.fail(Gager.class);

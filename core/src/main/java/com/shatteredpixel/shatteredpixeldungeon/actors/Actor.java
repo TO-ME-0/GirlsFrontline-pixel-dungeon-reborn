@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.SparseArray;
@@ -178,6 +179,9 @@ public abstract class Actor implements Bundlable {
 			a.time -= min;
 		}
 
+		//目标标记的到期时间与 Actor.now() 同一时间轴，需同步平移
+		TargetedCell.fixTime( min );
+
 		if (Dungeon.hero() != null && all.contains( Dungeon.hero() )) {
 			Statistics.duration += min;
 		}
@@ -221,6 +225,11 @@ public abstract class Actor implements Bundlable {
 
 	public static boolean processing(){
 		return current != null;
+	}
+
+	/** 当前正在执行的 actor，空闲时为 null */
+	public static Actor currentActor(){
+		return current;
 	}
 
 	public static int curActorPriority() {

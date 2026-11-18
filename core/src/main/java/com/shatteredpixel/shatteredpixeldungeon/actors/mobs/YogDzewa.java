@@ -264,16 +264,17 @@ public class YogDzewa extends Mob {
 				if (allAdjTargeted){
 					targetedCells.remove(targetedCells.size()-1);
 				}
+				//don't want to overly punish players with slow move or attack speed
+				float warnDelay = GameMath.gate(TICK, Dungeon.hero().cooldown(), 3*TICK);
 				for (int i : targetedCells){
 					Ballistica b = new Ballistica(pos, i, Ballistica.WONT_STOP);
 					for (int p : b.path){
-						sprite.parent.add(new TargetedCell(p, 0xFF0000));
+						sprite.parent.add(new TargetedCell(p, 0xFF0000, Actor.now() + warnDelay));
 						affectedCells.add(p);
 					}
 				}
 
-				//don't want to overly punish players with slow move or attack speed
-				spendAttack(GameMath.gate(TICK, Dungeon.hero().cooldown(), 3*TICK));
+				spendAttack(warnDelay);
 				Dungeon.hero().interrupt();
 
 				abilityCooldown += Random.NormalFloat(MIN_ABILITY_CD, MAX_ABILITY_CD);
