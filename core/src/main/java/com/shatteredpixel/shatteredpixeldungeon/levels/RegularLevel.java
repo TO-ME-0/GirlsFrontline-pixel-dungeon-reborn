@@ -349,12 +349,18 @@ public abstract class RegularLevel extends Level {
 					case 2:
 					case 3:
 					case 4:
+						//基础宝箱怪概率为 1/20（case 5），普通宝箱为 4/20
+						//所以每 +1 倍宝箱怪生成率，折算为此处 25% 的概率
+						//（拟态怪之牙饰品，实现见 MimicTooth）
+						if (Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f) / 4f
+								&& findMob(cell) == null) {
+							mobs.add(Mimic.spawnAt(cell, toDrop));
+							continue;
+						}
 						type = Heap.Type.CHEST;
 						break;
 					case 5:
-						//拟态怪之牙饰品：增加宝箱怪生成概率（实现见 MimicTooth）
-						if (Dungeon.depth() > 1 && findMob(cell) == null
-								&& Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f) / 4f) {
+						if (Dungeon.depth() > 1 && findMob(cell) == null) {
 							mobs.add(Mimic.spawnAt(cell, toDrop));
 							continue;
 						}
