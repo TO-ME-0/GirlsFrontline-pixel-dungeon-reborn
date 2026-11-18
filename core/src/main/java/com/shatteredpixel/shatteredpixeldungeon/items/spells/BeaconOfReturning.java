@@ -119,7 +119,7 @@ public class BeaconOfReturning extends Spell {
 	}
 	
 	private void returnBeacon( Hero hero ){
-		if (Dungeon.level.locked && returnLevelId != Dungeon.curFloorCode() || Dungeon.branch() == 0) {
+		if (!Dungeon.interFloorTeleportAllowed(returnLevelId%1000, returnLevelId/1000)) {
 			GLog.w( Messages.get(this, "preventing") );
 			return;
 		}

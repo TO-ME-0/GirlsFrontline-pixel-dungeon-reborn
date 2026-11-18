@@ -133,13 +133,7 @@ public class LloydsBeacon extends Artifact {
 		super.execute( hero, action );
 
 		if (action.equals(AC_SET) || action.equals(AC_RETURN)) {
-			
-			if (Dungeon.level.prevent || Dungeon.branch() == 0) {
-				hero.spend( LloydsBeacon.TIME_TO_USE );
-				GLog.w( Messages.get(this, "preventing") );
-				return;
-			}
-			
+
 			for (int i = 0; i < PathFinder.NEIGHBOURS8().length; i++) {
 				Char ch = Actor.findChar(hero.pos + PathFinder.NEIGHBOURS8()[i]);
 				if (ch != null && ch.alignment == Char.Alignment.ENEMY) {
@@ -212,6 +206,11 @@ public class LloydsBeacon extends Artifact {
 				GameScene.updateFog();
 			}
             else {
+                if (!Dungeon.interFloorTeleportAllowed(returnLevelId%1000, returnLevelId/1000)) {
+                    hero.spend( LloydsBeacon.TIME_TO_USE );
+                    GLog.w( Messages.get(this, "preventing") );
+                    return;
+                }
 
                 PathFinder.buildDistanceMap(Dungeon.level.entrance, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));
                 if (PathFinder.distance()[hero.pos] == Integer.MAX_VALUE){
@@ -324,8 +323,14 @@ public class LloydsBeacon extends Artifact {
 
 			if (target == null) return;
 
-            final Ballistica bolt = new Ballistica( curUser.pos, target, Ballistica.MAGIC_BOLT );
-            final Char ch = Actor.findChar(bolt.collisionPos);
+            //选择自身时直接以自身为目标，避免弹道计算在起点与终点重合时找不到角色
+            Char targetChar = Actor.findChar(target);
+            Ballistica bolt = null;
+            if (targetChar != curUser){
+                bolt = new Ballistica( curUser.pos, target, Ballistica.MAGIC_BOLT );
+                targetChar = Actor.findChar(bolt.collisionPos);
+            }
+            final Char ch = targetChar;
 
             if (ch == null) return;
             Sample.INSTANCE.play(Assets.Sounds.ZAP);

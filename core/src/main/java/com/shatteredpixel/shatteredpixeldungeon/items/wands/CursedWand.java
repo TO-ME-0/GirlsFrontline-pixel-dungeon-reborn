@@ -681,18 +681,19 @@ public class CursedWand {
 					depths[i-1] = i-start+1;
 				}
 				int depth = 1+Random.chances(depths);
+				if (Dungeon.interFloorTeleportAllowed(depth, 0)) {
 
-				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-				InterlevelScene.returnDepth = depth;
-				InterlevelScene.returnBranch = 0;
-				InterlevelScene.returnPos = -1;
-				Game.switchScene(InterlevelScene.class);
+					InterlevelScene.mode = InterlevelScene.Mode.RETURN;
+					InterlevelScene.returnDepth = depth;
+					InterlevelScene.returnBranch = 0;
+					InterlevelScene.returnPos = -1;
+					Game.switchScene(InterlevelScene.class);
+					return true;
+				}
 
 			//scroll of teleportation if positive only, or inter-floor teleport disallowed
-			} else {
-				ScrollOfTeleportation.teleportChar(user);
-
 			}
+			ScrollOfTeleportation.teleportChar(user);
 			return true;
 		}
 	}

@@ -29,7 +29,6 @@ import com.shatteredpixel.shatteredpixeldungeon.GirlsFrontlinePixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -959,21 +958,21 @@ public class WndJournal extends WndTabbed {
 
 		}
 
-		//是否携带升降器且当前未被锁层
+		//是否携带升降器
 		private static boolean teleporterAvailable() {
 			return Dungeon.hero() != null
-					&& Dungeon.hero().belongings.getItem(LevelTeleporter.class) != null
-					&& Dungeon.hero().buff(LockedFloor.class) == null;
+					&& Dungeon.hero().belongings.getItem(LevelTeleporter.class) != null;
 		}
 
-		//目标楼层必须存在存档文件，否则无法前往
+		//目标楼层必须允许跨层传送且存在存档文件，否则无法前往
 		private static boolean teleportable(int depth, int branch) {
-			return FileUtils.fileExists(GamesInProgress.depthFile(GamesInProgress.curSlot, depth, branch, false));
+			return Dungeon.interFloorTeleportAllowed(depth, branch)
+					&& FileUtils.fileExists(GamesInProgress.depthFile(GamesInProgress.curSlot, depth, branch, false));
 		}
 
 		//通过升降器跳层，与升降器自带的跨层传送窗口走同一逻辑
 		private static void teleportToFloor(int depth, int branch) {
-			if (Dungeon.hero().buff(LockedFloor.class) != null) {
+			if (!Dungeon.interFloorTeleportAllowed(depth, branch)) {
 				return;
 			}
 			Buff buff = Dungeon.hero().buff(TimekeepersHourglass.timeFreeze.class);

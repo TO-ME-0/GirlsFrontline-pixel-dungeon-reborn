@@ -41,8 +41,10 @@ public class ScrollOfPassage extends ExoticScroll {
 	public void doRead() {
 
 		identify();
+		int targetDepth = Dungeon.branch() == 0 ? Math.max(1, (Dungeon.depth() - 1 - (Dungeon.depth() - 2) % 5)) : Dungeon.depth();
+		int targetBranch = 0;
 		
-		if (Dungeon.level.locked) {
+		if (!Dungeon.interFloorTeleportAllowed(targetDepth, targetBranch)) {
 			
 			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 			return;
@@ -55,14 +57,9 @@ public class ScrollOfPassage extends ExoticScroll {
 		if (timeBubble != null) timeBubble.disarmPressedTraps();
 
 		InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-        if (Dungeon.branch() != 0) {
-            InterlevelScene.returnDepth = Dungeon.depth();
-            //子层读大传回主层
-        } else {
-            InterlevelScene.returnDepth = Math.max(1, (Dungeon.depth() - 1 - (Dungeon.depth() - 2) % 5));
-        }
+		InterlevelScene.returnDepth = targetDepth;
+		InterlevelScene.returnBranch = targetBranch;
         InterlevelScene.returnPos = -1;
-        InterlevelScene.returnBranch = 0;
 		Game.switchScene( InterlevelScene.class );
 	}
 }

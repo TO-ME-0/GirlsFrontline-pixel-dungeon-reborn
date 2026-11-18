@@ -187,13 +187,14 @@ public class TalismanOfForesight extends Artifact {
 					if (h != null){
 						Buff.append(curUser, HeapAwareness.class, 5 + 2*level()).pos = h.pos;
 
-						//望远镜之链探索到，直接设为完全可见
-						h.opacity = 1f;
-						if (h.sprite != null) h.sprite.alpha(1f);
-
-						if (!h.seen){
-							earnedExp += 10;
+						//望远镜之链探索到
+						if (h.seen) {
+							h.opacity = Math.min(1f, h.opacity + 0.1F);
+							if (h.sprite != null) h.sprite.alpha(h.opacity());
 						}
+						else
+							earnedExp += 10;
+						
 					}
 
 				}

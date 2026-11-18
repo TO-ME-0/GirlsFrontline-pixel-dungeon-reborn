@@ -27,7 +27,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.MageTalent;
@@ -169,7 +168,7 @@ public class WarpBeacon extends ArmorAbility {
 
 						} else {
 
-							if (hero.buff(LockedFloor.class) != null){
+							if (!Dungeon.interFloorTeleportAllowed(tracker.LevelId % 1000, tracker.LevelId / 1000)){
 								GLog.w( Messages.get(WarpBeacon.class, "locked_floor") );
 								return;
 							}

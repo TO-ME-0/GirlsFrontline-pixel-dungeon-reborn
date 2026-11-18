@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -67,6 +68,13 @@ public class ScrollOfMagicMapping extends Scroll {
 						noticed = true;
 					}
 				}
+			}
+			
+			//探查磁盘：已发现的物品提升不透明度
+			Heap h = Dungeon.level.heaps.get(i);
+			if (h != null && h.seen) {
+				h.opacity = Math.min(1f, h.opacity() + 0.25F);
+				if (h.sprite != null) h.sprite.alpha(h.opacity());
 			}
 		}
 		GameScene.updateFog();

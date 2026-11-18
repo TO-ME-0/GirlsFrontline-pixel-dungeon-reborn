@@ -52,7 +52,8 @@ public class Fadeleaf extends Plant {
 			
 			if (((Hero) ch).subClass == HeroSubClass.WARDEN){
 				
-				if (Dungeon.level.locked) {
+				int targetDepth = Dungeon.branch() != 0 ? Dungeon.depth() : Math.max(1, (Dungeon.depth() - 1));
+				if (!Dungeon.interFloorTeleportAllowed(targetDepth, 0)) {
 					GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 					return;
 				}
@@ -63,10 +64,7 @@ public class Fadeleaf extends Plant {
 				if (timeBubble != null) timeBubble.disarmPressedTraps();
 				
 				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                if (Dungeon.branch() != 0)
-                    InterlevelScene.returnDepth = Dungeon.depth();
-                else
-                    InterlevelScene.returnDepth = Math.max(1, (Dungeon.depth() - 1));
+				InterlevelScene.returnDepth = targetDepth;
 				InterlevelScene.returnPos = -2;
 				InterlevelScene.returnBranch = 0;
 				Game.switchScene( InterlevelScene.class );

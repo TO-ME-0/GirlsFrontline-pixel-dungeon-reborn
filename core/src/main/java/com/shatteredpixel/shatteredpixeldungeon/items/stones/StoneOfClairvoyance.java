@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.stones;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CheckedCell;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -73,6 +74,13 @@ public class StoneOfClairvoyance extends Runestone {
 						ScrollOfMagicMapping.discover(curr);
 						noticed = true;
 					}
+				}
+				
+				//明示模块：已发现的物品提升不透明度
+				Heap h = Dungeon.level.heaps.get(curr);
+				if (h != null && h.seen) {
+					h.opacity = Math.min(1f, h.opacity() + 0.15F);
+					if (h.sprite != null) h.sprite.alpha(h.opacity());
 				}
 				
 			}

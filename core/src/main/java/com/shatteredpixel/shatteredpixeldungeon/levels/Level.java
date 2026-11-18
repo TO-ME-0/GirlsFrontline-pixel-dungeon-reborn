@@ -46,7 +46,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Shadows;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SuperAiFlight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.HK416Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.HuntressTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.herotalent.Type561Talent;
@@ -66,6 +65,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Stylus;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
@@ -348,8 +348,15 @@ public abstract class Level implements Bundlable {
 			}
 			try (Rng.Scope lw = Rng.nextSubstream()) {
 				if (!Dungeon.isSearch())
-					for (Heap heap : heaps.values())
-						heap.opacity();
+					for (Heap heap : heaps.values()) {
+						float opacity = heap.opacity();
+						for (Item item : heap.items) {
+							if (item instanceof ScrollOfUpgrade || item instanceof PotionOfStrength)
+								heap.opacity = Math.max(opacity, 0.1f);
+							if (item instanceof Key)
+								heap.opacity = Math.max(opacity, 0.2f);
+						}
+					}
 			}
 		}
 		creating = false;
