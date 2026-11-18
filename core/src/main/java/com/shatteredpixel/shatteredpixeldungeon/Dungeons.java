@@ -16,6 +16,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 public class Dungeons {
 
@@ -122,8 +123,8 @@ public class Dungeons {
         Imp.Quest.cur().genReward();
     }
 
-    private Level createLevel(Level level, int levelDepth, int levelBranch){
-        this.level = level;
+    private Level createLevel(Class<? extends Level> levelCls, int levelDepth, int levelBranch){
+        level = Reflection.newInstance(levelCls);
         Actor.clear();
 
         depth = levelDepth;

@@ -53,10 +53,22 @@ import com.watabou.utils.Random;
 public class Chasm implements Hero.Doom {
 
 	public static boolean jumpConfirmed = false;
+	//记录确认跳下的目标格，避免上一次确认状态残留到其他格子/其他对局
+	private static int jumpTarget = -1;
 	private static int heroPos;
+
+	//新开一局时清空跳下确认状态，防止上一局残留导致本局直接跳下
+	public static void resetJumpConfirmed(){
+		jumpConfirmed = false;
+		jumpTarget = -1;
+		heroPos = -1;
+	}
 	
-	public static void heroJump( final Hero hero ) {
+	public static void heroJump( final Hero hero, int target ) {
 		heroPos = hero.pos;
+		jumpTarget = target;
+		//打开询问窗口时先复位，只有玩家点击确认后才置为true
+		jumpConfirmed = false;
 		Game.runOnRenderThread(new Callback() {
 			@Override
 			public void call() {
@@ -73,6 +85,9 @@ public class Chasm implements Hero.Doom {
 										jumpConfirmed = true;
 										hero.resume();
 									}
+								} else {
+									jumpConfirmed = false;
+									jumpTarget = -1;
 								}
 							}
 						}
@@ -80,10 +95,15 @@ public class Chasm implements Hero.Doom {
 			}
 		});
 	}
+
+	public static boolean isJumpConfirmed( int target ) {
+		return jumpConfirmed && jumpTarget == target;
+	}
 	
 	public static void heroFall( int pos ) {
 		
 		jumpConfirmed = false;
+		jumpTarget = -1;
 				
 		Sample.INSTANCE.play(Assets.Sounds.FALLING);
 

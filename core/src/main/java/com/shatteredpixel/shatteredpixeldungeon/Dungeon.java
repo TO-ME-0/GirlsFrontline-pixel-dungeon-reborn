@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.Rng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
@@ -44,6 +45,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.DandelionOwner.Card;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -326,6 +328,9 @@ public class Dungeon {
 		Game.GameMode = GameMode;
 		Actor.resetNextID();
 
+		//清空上一局残留的跳下确认状态，避免新局点虚空时未经询问直接跳下
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.resetJumpConfirmed();
+
 		// 快捷栏必须在 hero 生成前清空：initHero 内部会 setSlot 写入初始物品
 		// （各职业的石弹/法杖/斗篷等），若清空发生在其后会把刚写入的槽位全部抹掉
 		quickslot.reset();
@@ -364,7 +369,7 @@ public class Dungeon {
 		return (challenges & mask) != 0;
 	}
 	
-	private static Level createLevel(Level level,int levelDepth,int levelBranch){
+	private static Level createLevel(Class<? extends Level> levelCls, int levelDepth, int levelBranch){
 		Dungeon.level = null;
 		Actor.clear();
 
@@ -381,6 +386,9 @@ public class Dungeon {
 		}
 		if (levelBranch > Statistics.deepestSub)
 			Statistics.deepestSub = levelBranch;
+		Level level = Reflection.newInstance(levelCls);
+		assert level != null;
+
 		//建关期专用：主线程建完后立即清空，运行期一律读静态 Dungeon.level
 		cur().level = level;
 		level.create(levelDepth,levelBranch);
@@ -389,53 +397,51 @@ public class Dungeon {
 			Statistics.qualifiedForNoKilling = !bossLevel();
 		return level;
 	}
-    private static Level newZeroLevel(int branch){
-        Level level;
+    private static Class<? extends Level> newZeroLevel(int branch){
         switch (branch){
-            default:level = new DeadEndLevel();break;
-            case 0:level = new ZeroLevel();break;
-            case 1:level = new ZeroLevelSub();break;
-            case 2:level = new Room404();break;
-            case 3:level = new CoffeeRoom();break;
-            case 4:level = new Workshop();break;
+            default: return DeadEndLevel.class;
+            case 0: return ZeroLevel.class;
+            case 1: return ZeroLevelSub.class;
+            case 2: return Room404.class;
+            case 3: return CoffeeRoom.class;
+            case 4: return Workshop.class;
         }
-        return level;
     }
-    private static Level newSubLevel(int depth, int branch){
+    private static Class<? extends Level> newSubLevel(int depth, int branch){
 		if (branch != 1)
-			return new DeadEndLevel();
+			return DeadEndLevel.class;
 
         switch(depth){
-            default:return new DeadEndLevel();
-            case 10:return new RabbitBossLevel();
+            default:return DeadEndLevel.class;
+            case 10:return RabbitBossLevel.class;
             //铁匠任务矿洞子层：对应洞窟主层 12~14
-            case 12: case 13: case 14:return new MiningLevel();
+            case 12: case 13: case 14:return MiningLevel.class;
             //小恶魔任务金库子层：对应城市主层 17~19
-            case 17: case 18: case 19:return new VaultLevel();
-            case 25:return new LastShopLevel();
+            case 17: case 18: case 19:return VaultLevel.class;
+            case 25:return LastShopLevel.class;
         }
     }
-	public static Level getNewLevel (int depth, int branch) {
+	public static Class<? extends Level> getNewLevel (int depth, int branch) {
 		if (depth == 0)
 			return newZeroLevel(branch);
 		if (branch > 0)
 			return newSubLevel(depth, branch);
 
         switch (depth) {
-            case 1: case 2: case 3: case 4:return new SewerLevel();
-            case 6: case 7: case 8: case 9:return new PrisonLevel();
-            case 11: case 12: case 13: case 14:return new CavesLevel();
-            case 16: case 17: case 18: case 19:return new CityLevel();
-            case 21: case 22: case 23: case 24:return new DeepCaveLevel();
-            case 26: case 27: case 28: case 29:return new HallsLevel();
-            case 5:return new SewerBossLevel();
-            case 10:return new PrisonBossLevel();
-            case 15:return new CavesBossLevel();
-            case 20:return new CityBossLevel();
-            case 25:return new DeepCaveBossLevel();
-            case 30:return new HallsBossLevel();
-            case 31:return new LastLevel();
-            default:return new DeadEndLevel();
+            case 1: case 2: case 3: case 4: return SewerLevel.class;
+            case 6: case 7: case 8: case 9: return PrisonLevel.class;
+            case 11: case 12: case 13: case 14: return CavesLevel.class;
+            case 16: case 17: case 18: case 19: return CityLevel.class;
+            case 21: case 22: case 23: case 24: return DeepCaveLevel.class;
+            case 26: case 27: case 28: case 29: return HallsLevel.class;
+            case 5: return SewerBossLevel.class;
+            case 10: return PrisonBossLevel.class;
+            case 15: return CavesBossLevel.class;
+            case 20: return CityBossLevel.class;
+            case 25: return DeepCaveBossLevel.class;
+            case 30: return HallsBossLevel.class;
+            case 31: return LastLevel.class;
+            default: return DeadEndLevel.class;
         }
 	}
 	public static Level newLevel(int depth, int branch){
@@ -510,7 +516,10 @@ public class Dungeon {
 	}
 	
 	public static void switchLevel( final Level level, int pos ) {
-		
+
+		//切层时清理旧场景的目标标记，避免随新楼层一起被保存/显示
+		TargetedCell.clear();
+
 		if (pos == -2){
 			pos = level.exit;
 		} else if (pos < 0 || pos >= level.length() || (!level.passable[pos] && !level.avoid[pos])){
@@ -606,6 +615,22 @@ public class Dungeon {
 		return Random.Int(5 - floorThisSet) < asLeftThisSet;
 	}
 
+	public static boolean interFloorTeleportAllowed(int targetDepth, int targetBranch){
+		if (Dungeon.level.locked)
+			return false;
+		if (targetDepth != Dungeon.level.levelDepth || targetBranch != Dungeon.level.branch) {
+			//矿洞不允许非正常途径出去
+			if (Dungeon.level instanceof MiningLevel)
+				return false;
+			//宝库同理
+			if (Dungeon.level instanceof VaultLevel)
+				return false;
+			//宝库不准再进去。
+			if (getNewLevel(targetDepth, targetBranch) == VaultLevel.class)
+				return false;
+		}
+		return true;
+    }
     private static final String LEVEL_ID        = "level_id";
 	private static final String VERSION		    = "version";
 	private static final String SEED		    = "seed";
@@ -694,6 +719,9 @@ public class Dungeon {
 			Ring.save( bundle );
 
 			Actor.storeNextID( bundle );
+
+			//持久化活动目标标记（位置、颜色与到期时间）
+			TargetedCell.store( bundle );
 			
 			Bundle badges = new Bundle();
 			Badges.saveLocal( badges );
@@ -754,6 +782,9 @@ public class Dungeon {
 
 		Actor.clear();
 		Actor.restoreNextID( bundle );
+
+		//恢复目标标记，待场景重建后重新创建显示对象
+		TargetedCell.restore( bundle );
 
 		quickslot.reset();
 		QuickSlotButton.reset();
@@ -1077,6 +1108,10 @@ public class Dungeon {
         if (!(ch instanceof Hero)){
             BArray.or( passable, Dungeon.level.special, passable );
         }
+        if (ch instanceof Mob){
+            //特殊怪物可把额外地形视为可通行（如矿洞幽光/守卫穿过水晶簇）
+            ((Mob) ch).modifyPassable( passable );
+        }
 		if (chars && Char.hasProp(ch, Char.Property.LARGE)){
 			BArray.and( passable, Dungeon.level.openSpace, passable );
 		}
@@ -1111,6 +1146,10 @@ public class Dungeon {
         if (!(ch instanceof Hero)){
             BArray.or( passable, Dungeon.level.special, passable );
         }
+        if (ch instanceof Mob){
+            //特殊怪物可把额外地形视为可通行（如矿洞幽光/守卫穿过水晶簇）
+            ((Mob) ch).modifyPassable( passable );
+        }
 
 		if (Char.hasProp(ch, Char.Property.LARGE)){
 			BArray.and( passable, Dungeon.level.openSpace, passable );
@@ -1138,6 +1177,10 @@ public class Dungeon {
 		}
         if (!(ch instanceof Hero)){
             BArray.or( pass, Dungeon.level.special, passable );
+        }
+        if (ch instanceof Mob){
+            //特殊怪物可把额外地形视为可通行（如矿洞幽光/守卫穿过水晶簇）
+            ((Mob) ch).modifyPassable( passable );
         }
 		if (Char.hasProp(ch, Char.Property.LARGE)){
 			BArray.and( passable, Dungeon.level.openSpace, passable );

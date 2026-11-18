@@ -1860,8 +1860,8 @@ public class Hero extends Char {
 
 			if (Actor.findChar( target ) == null) {
 				if (Dungeon.level.pit[target] && !flying && !Dungeon.level.solid[target]) {
-					if (!Chasm.jumpConfirmed){
-						Chasm.heroJump(this);
+					if (!Chasm.isJumpConfirmed(target)){
+						Chasm.heroJump(this, target);
 						interrupt();
 					} else {
 						Chasm.heroFall(target);
@@ -2620,11 +2620,11 @@ public class Hero extends Char {
 			left = Math.max(0, left);
 			for (curr = left + y * Dungeon.level.width(); curr <= right + y * Dungeon.level.width(); curr++){
 
-				if ((foresight || fieldOfView[curr]) && curr != pos) {
+				if (foresight || fieldOfView[curr] || curr == pos) {
 
-					if ((foresight && (!Dungeon.level.mapped[curr] || foresightScan))){
+					if (curr != pos && (foresight && (!Dungeon.level.mapped[curr] || foresightScan))){
 						GameScene.effectOverFog(new CheckedCell(curr, foresightScan ? pos : curr));
-					} else if (intentional) {
+					} else if (curr != pos && intentional) {
 						GameScene.effectOverFog(new CheckedCell(curr, pos));
 					}
 
@@ -2636,6 +2636,12 @@ public class Hero extends Char {
 					Heap heap = Dungeon.level.heaps.get(curr);
 					if (intentional && heap != null && heap.opacity() < 1f) {
 						heap.opacity = Math.min(1f, heap.opacity() + Random.NormalFloat(0.05F, 0.1F));
+						if (heap.sprite != null) heap.sprite.alpha(heap.opacity());
+					}
+					
+					//先见协议：扫描到已发现的物品时，提升其不透明度
+					if (foresight && heap != null && heap.seen) {
+						heap.opacity = Math.min(1f, heap.opacity() + 0.15F);
 						if (heap.sprite != null) heap.sprite.alpha(heap.opacity());
 					}
 
@@ -2680,7 +2686,7 @@ public class Hero extends Char {
 
 							ScrollOfMagicMapping.discover( curr );
 
-							if (fieldOfView[curr]) smthFound = true;
+							if (fieldOfView[curr] || curr == pos) smthFound = true;
 
 							if (talisman != null){
 								if (oldValue == Terrain.SECRET_TRAP){
