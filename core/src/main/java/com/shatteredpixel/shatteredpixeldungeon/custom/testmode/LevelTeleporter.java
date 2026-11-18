@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.Constants;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -51,6 +52,7 @@ public class LevelTeleporter extends TestItem {
     private static final String AC_VIEW = "view";
     private static final String AC_TP = "teleport";
     private static final String AC_INTER_TP = "interlevel_tp";
+    private static final String AC_FLOOR_VIEW = "floor_view";
 
     @Override
     public ArrayList<String> actions(Hero hero ) {
@@ -60,12 +62,14 @@ public class LevelTeleporter extends TestItem {
         actions.add(AC_VIEW);
         actions.add(AC_TP);
         actions.add(AC_INTER_TP);
+        actions.add(AC_FLOOR_VIEW);
         return actions;
     }
 
     @Override
     protected boolean allowChange(String action){
-        return !action.equals(AC_VIEW) && !action.equals(AC_INTER_TP) && super.allowChange(action);
+        return !action.equals(AC_VIEW) && !action.equals(AC_INTER_TP)
+                && !action.equals(AC_FLOOR_VIEW) && super.allowChange(action);
     }
 
     @Override
@@ -107,6 +111,14 @@ public class LevelTeleporter extends TestItem {
                 return;
             }
             GameScene.show(new WndSelectLevel());
+        }else if(action.equals(AC_FLOOR_VIEW)){
+            //临时打开楼层视图：窗口构造期间展示房间名，打开后立即恢复
+            Heap.floorView = true;
+            try {
+                GameScene.show(new Heap.HeapList());
+            } finally {
+                Heap.floorView = false;
+            }
         }
     }
 

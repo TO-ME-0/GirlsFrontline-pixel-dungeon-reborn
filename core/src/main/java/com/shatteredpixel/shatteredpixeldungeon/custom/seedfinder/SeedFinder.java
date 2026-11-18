@@ -375,9 +375,18 @@ public abstract class SeedFinder implements Runnable {
                     } catch (Throwable t) {
                         t.printStackTrace();
                         workerErrors[workerId] = "异常 " + t + stackBrief(t.getStackTrace(), 6);
+                        SeedFinderErrorLog.record("查种线程 " + (workerId + 1) + "/" + threadCount, t);
                     } finally {
                         swapped.remove();
-                        Dungeon.exitSearchContext();
+                        try {
+                            Dungeon.exitSearchContext();
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                            workerErrors[workerId] = "退出查种上下文异常 " + t
+                                    + stackBrief(t.getStackTrace(), 6);
+                            SeedFinderErrorLog.record(
+                                    "查种线程 " + (workerId + 1) + "/" + threadCount + " 退出", t);
+                        }
                     }
                 }
             });
@@ -848,7 +857,6 @@ public abstract class SeedFinder implements Runnable {
 
             floorDataList.add(fd);
         }
-        SeedFinding = false;
 
         // Phase 2: 统一 identify 所有收集到的物品
         for (FloorData fd : floorDataList) {
@@ -901,9 +909,6 @@ public abstract class SeedFinder implements Runnable {
                 }
                 addTextQuest("[ " + Messages.get(SeedFinder.class, "wandmaker_reward") + " ]", fd.wandmakerRewards, builder);
             }
-            if (fd.impRewards != null) {
-                addTextQuest("[ " + Messages.get(SeedFinder.class, "imp_reward") + " ]", fd.impRewards, builder);
-            }
             if (fd.smithRewards != null) {
                 addTextQuest("[ " + Messages.get(SeedFinder.class, "blacksmith_smith_reward") + " ]", fd.smithRewards, builder);
             }
@@ -953,6 +958,7 @@ public abstract class SeedFinder implements Runnable {
             result.append(builder);
             fd.text = builder.toString();
         }
+        SeedFinding = false;
         return result.toString();
     }
 
@@ -967,15 +973,12 @@ public abstract class SeedFinder implements Runnable {
                     builder.append("- ").append(Messages.get(SeedFinder.class, "cursed")).append(i);
                 else
                     builder.append("- ").append(i);
-                if (h.type != Type.HEAP) {
-                    String heap = h.toString();
-                    if (h.type == Type.FOR_SALE)
-                        heap = Shopkeeper.sellPrice(h.peek()) + "钻石";
-                    builder.append("(").append(heap).append(")");
-                } else if (h.room != Heap.Room.NONE) {
-                    String room = Heap.RoomName(Type.NONE, h.room);
-                    builder.append("(").append(room).append(")");
-                }
+                if (h.type == Type.FOR_SALE)
+                    builder.append("(").append(Shopkeeper.sellPrice(h.peek())).append("钻石)");
+                else if (h.type != Type.HEAP)
+                    builder.append("(").append(h).append(")");
+                else if (h.room != Heap.Room.NONE)
+                    builder.append("(").append(Heap.RoomName(Type.NONE, h.room)).append(")");
                 builder.append("\n");
             }
             builder.append("\n");

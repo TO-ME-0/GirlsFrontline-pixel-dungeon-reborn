@@ -18,6 +18,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.Maccol;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.SaltyZongzi;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
@@ -55,12 +57,14 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.ui.Component;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class SeedFindScene extends PixelScene {
@@ -589,24 +593,29 @@ public class SeedFindScene extends PixelScene {
 
         //第一页设置
         private Component settingPage() {
-            Component root = new Component();
+            ScrollPane pane = new ScrollPane(new Component());
+            Component root = pane.content();
             float w = winW - 4;
+            final float GAP = 2;
 
             RenderedTextBlock title = PixelScene.renderTextBlock("当前设置", 9);
             title.hardlight(TITLE_COLOR);
             root.add(title);
             title.setPos(2, 1);
 
+            float pos = 13;
             page1Info = PixelScene.renderTextBlock("", 6);
             root.add(page1Info);
-            page1Info.setRect(2, 13, w, 40);
+            page1Info.setRect(2, pos, w, 40);
             refreshPage1Info();
+            pos = page1Info.bottom() + GAP;
 
             RenderedTextBlock hint = PixelScene.renderTextBlock(
                     "「设置」选择角色、最深楼层与挑战；「测试种子」以当前角色、最深楼层、挑战列出物品清单。", 6);
             root.add(hint);
             hint.maxWidth((int) w);
-            hint.setRect(2, 55, w, 32);
+            hint.setRect(2, pos, w, 32);
+            pos = hint.bottom() + GAP;
 
             RedButton settingsBtn = new RedButton("设置（角色 / 最深楼层 / 挑战）", 8) {
                 @Override
@@ -616,7 +625,8 @@ public class SeedFindScene extends PixelScene {
             };
             settingsBtn.icon(Icons.get(Icons.PREFS));
             root.add(settingsBtn);
-            settingsBtn.setRect(2, 89, w, 18);
+            settingsBtn.setRect(2, pos, w, 18);
+            pos = settingsBtn.bottom() + GAP;
 
             testBtn = new RedButton("测试种子（输入种子码直接生成）", 8) {
                 @Override
@@ -644,9 +654,38 @@ public class SeedFindScene extends PixelScene {
             };
             testBtn.icon(new ItemSprite(ItemSpriteSheet.SEED_SUNGRASS));
             root.add(testBtn);
-            testBtn.setRect(2, 110, w, 18);
+            testBtn.setRect(2, pos, w, 18);
+            pos = testBtn.bottom() + GAP;
 
-            return root;
+            // 有查种错误记录或debug状态下显示入口，避免正常游戏无记录时占用第一页空间
+            if (DeviceCompat.isDebug() || SeedFinderErrorLog.hasEntries()) {
+                RedButton errorBtn = new RedButton("查种错误记录", 7) {
+                    @Override
+                    protected void onClick() {
+                        GirlsFrontlinePixelDungeon.scene().addToFront(new WndSeedFinderErrors());
+                    }
+                };
+                errorBtn.icon(Icons.get(Icons.WARNING));
+                root.add(errorBtn);
+                errorBtn.setRect(2, pos, w, 18);
+                pos = errorBtn.bottom() + GAP;
+            }
+
+            RedButton notice = new RedButton("注意事项", 7) {
+                @Override
+                protected void onClick() {
+                    GirlsFrontlinePixelDungeon.scene().addToFront(new WndNotice());
+                }
+            };
+            root.add(notice);
+            notice.setRect(2, pos, w, 18);
+            pos = notice.bottom() + GAP;
+
+            // 内容尺寸必须显式设置，ScrollPane 依据 content 的高度判断能否滚动
+            root.setSize(winW, pos);
+
+            pane.scrollTo(0, 0);
+            return pane;
         }
 
         private void refreshPage1Info() {
@@ -1207,6 +1246,8 @@ public class SeedFindScene extends PixelScene {
             super.onClick();
             if (meleeT1.contains(cls) && hasImpReward())
                 return;
+            if (enableAdd.containsKey(cls) && !enableAdd.get(cls).getBooleanValue())
+                return;
             if (!direct) {
                 GirlsFrontlinePixelDungeon.scene().addToFront(new ItemConfigWindow(cls));
                 return;
@@ -1402,10 +1443,25 @@ public class SeedFindScene extends PixelScene {
             }
         }
     }
-
+    private interface BooleanSupplier{
+        boolean getBooleanValue();
+    }
     static final HashSet<Class<?>> meleeT1 = new HashSet<>(Arrays.asList(Generator.Category.WEP_T1.classes));
+    static final HashMap<Class<?>, BooleanSupplier> enableAdd = new HashMap<>();
     static {
         meleeT1.add(Holder.Tier1MeleeHolder.class);
+        enableAdd.put(Maccol.class, new BooleanSupplier() {
+            @Override
+            public boolean getBooleanValue() {
+                return currentFloor >= 6;
+            }
+        });
+        enableAdd.put(SaltyZongzi.class, new BooleanSupplier() {
+            @Override
+            public boolean getBooleanValue() {
+                return currentHero == HeroClass.Dandelion || currentHero == HeroClass.TYPE561 || currentHero == HeroClass.TYPE561_OLD;
+            }
+        });
     }
     static final Class<?>[][] enchant = {
             Weapon.Enchantment.common,
@@ -1609,6 +1665,7 @@ public class SeedFindScene extends PixelScene {
                 try {
                     finder.run();
                 } catch (Exception e) {
+                    SeedFinderErrorLog.record("查种主线程", e);
                     GirlsFrontlinePixelDungeon.saveCrashReport(e);
                     e.printStackTrace();
                     if (!stopThread) {

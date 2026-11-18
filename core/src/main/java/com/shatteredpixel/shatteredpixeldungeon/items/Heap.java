@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
@@ -50,9 +51,21 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.CrackedSpyglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.ui.canScrollButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndRanking;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndStartGame;
+import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.noosa.ui.Component;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -172,8 +185,7 @@ public class Heap implements Bundlable {
         return this;
     }
     public Heap setRoom(Room room){
-        if (SeedFinder.SeedFinding)
-            this.room = room;
+        this.room = room;
         return this;
     }
 	
@@ -436,9 +448,7 @@ public class Heap implements Bundlable {
 		}
 		else {
 			switch (type) {
-				default:
-					title = peek().toString();
-					break;
+				default: title = peek().toString();break;
 				case FOR_SALE:
 					Item i = this.peek();
 					if (this.size() == 1)
@@ -446,46 +456,30 @@ public class Heap implements Bundlable {
 					else
 						title = i.name();
 					break;
-				case CHEST:
-					title = Messages.get(this, "chest");
-					break;
-				case MIMIC:
-					title = Messages.get(Mimic.class, "name");
-					break;
-				case LOCKED_CHEST:
-					title = Messages.get(this, "locked_chest");
-					break;
-				case GOLDEN_MIMIC:
-					title = Messages.get(GoldenMimic.class, "name");
-					break;
-				case CRYSTAL_CHEST:
-					title = Messages.get(this, "crystal_chest");
-					break;
-				case CRYSTAL_MIMIC:
-					title = Messages.get(CrystalMimic.class, "name");
-					break;
-				case EBOLE_MIMIC:
-					title = Messages.get(EbonyMimic.class, "name");
-					break;
-				case MISSION_CHEST:
-					title = Messages.get(this, "mission");
-					break;
-				case TOMB:
-					title = Messages.get(this, "tomb");
-					break;
-				case SKELETON:
-					title = Messages.get(this, "skeleton");
-					break;
-				case REMAINS:
-					title = Messages.get(this, "remains");
-					break;
+				case CHEST: title = Messages.get(this, "chest");break;
+				case MIMIC: title = Messages.get(Mimic.class, "name");break;
+				case LOCKED_CHEST: title = Messages.get(this, "locked_chest");break;
+				case GOLDEN_MIMIC: title = Messages.get(GoldenMimic.class, "name");break;
+				case CRYSTAL_CHEST: title = Messages.get(this, "crystal_chest");break;
+				case CRYSTAL_MIMIC: title = Messages.get(CrystalMimic.class, "name");break;
+				case EBOLE_MIMIC: title = Messages.get(EbonyMimic.class, "name");break;
+				case MISSION_CHEST: title = Messages.get(this, "mission");break;
+				case TOMB: title = Messages.get(this, "tomb");break;
+				case SKELETON: title = Messages.get(this, "skeleton");break;
+				case REMAINS: title = Messages.get(this, "remains");break;
 			}
 		}
         title += RoomName(type, room);
         return title;
 	}
+	public static boolean floorView;
+	public static boolean roomsVisible(){
+		return SeedFinder.SeedFinding || floorView;
+	}
     public static String RoomName(Type type, Room room){
         String desc = "";
+        if (!roomsVisible())
+			return desc;
 
         if (type != Type.NONE && room != Room.NONE) {
             desc+="/";
@@ -521,28 +515,202 @@ public class Heap implements Bundlable {
     }
 
 	public String info(){
+		String info;
 		switch(type){
-			case CHEST:
-				return Messages.get(this, "chest_desc");
-			case LOCKED_CHEST:
-				return Messages.get(this, "locked_chest_desc");
+			case CHEST: info = Messages.get(this, "chest_desc");break;
+			case LOCKED_CHEST: info = Messages.get(this, "locked_chest_desc");break;
 			case CRYSTAL_CHEST:
 				if (peek() instanceof Artifact)
-					return Messages.get(this, "crystal_chest_desc", Messages.get(this, "artifact") );
+					info = Messages.get(this, "crystal_chest_desc", Messages.get(this, "artifact") );
 				else if (peek() instanceof Wand)
-					return Messages.get(this, "crystal_chest_desc", Messages.get(this, "wand") );
+					info = Messages.get(this, "crystal_chest_desc", Messages.get(this, "wand") );
 				else
-					return Messages.get(this, "crystal_chest_desc", Messages.get(this, "ring") );
-            case MISSION_CHEST:
-                return Messages.get(this, "mission_desc");
-			case TOMB:
-				return Messages.get(this, "tomb_desc");
-			case SKELETON:
-				return Messages.get(this, "skeleton_desc");
-			case REMAINS:
-				return Messages.get(this, "remains_desc");
+					info = Messages.get(this, "crystal_chest_desc", Messages.get(this, "ring") );
+				break;
+			case MISSION_CHEST: info = Messages.get(this, "mission_desc");break;
+			case TOMB: info = Messages.get(this, "tomb_desc");break;
+			case SKELETON: info = Messages.get(this, "skeleton_desc");break;
+			case REMAINS: info = Messages.get(this, "remains_desc");break;
+			default: info = peek().info();break;
+		}
+
+		if (Dungeon.isChallenged(Challenges.TEST_MODE) && opacity() != 1F) {
+			int permille = (int)(opacity() * 1000 + 0.001);
+			info += "\n" + Messages.get(this, "opacity", (permille / 10) + "." + (permille % 10) + "%");
+		}
+		return info;
+	}
+	private String heapDesc() {
+		switch (type) {
+			case FOR_SALE:
+			case HEAP:
+				if (Dungeon.isChallenged(Challenges.TEST_MODE) && opacity() != 1F) {
+					int permille = (int)(opacity() * 1000 + 0.001);
+					return Messages.get(this, "opacity", (permille / 10) + "." + (permille % 10) + "%");
+				}
+				else
+					return "";
 			default:
-				return peek().info();
+				return info();
+		}
+	}
+
+	/**
+	 * 以当前层所有 Heap 为目标的列表窗口。
+	 * 参照 WndRanking.ItemList：可滚动按钮列表，点击后打开对应 Heap 的详情子窗口。
+	 */
+	public static class HeapList extends Window {
+
+		private static final int WIDTH = 120;
+
+		public HeapList() {
+			//先创建ScrollPane（controller先注册），再创建按钮（hotArea后注册、优先接收事件，按钮可正常高亮）
+			ScrollPane pane = new ScrollPane(new Component());
+			add(pane);
+			Component content = pane.content();
+
+			float pos = 0;
+			for (Heap heap : Dungeon.level.heaps.values()) {
+				if (heap == null || heap.isEmpty()) {
+					continue;
+				}
+				HeapButton button = new HeapButton(heap);
+				button.setRect(0, pos, WIDTH, HeapButton.HEIGHT);
+				content.add(button);
+				pos += button.height() + 1;
+			}
+			content.setSize(WIDTH, Math.max(0, pos - 1));
+
+			int height = (int)Math.min(153, content.height());
+			resize(WIDTH, Math.max(HeapButton.HEIGHT, height));
+			pane.setRect(0, 0, WIDTH, this.height);
+			pane.scrollTo(0, 0);
+		}
+	}
+
+	/**
+	 * Heap 详情子窗口：上方固定显示该 Heap 的标题与描述（参照 WndInfoItem 的 Heap 部分），
+	 * 下方为该 Heap 内物品的可滚动列表。
+	 */
+	public static class HeapWindow extends Window {
+
+		private static final float GAP = 2;
+		private static final int WIDTH_MIN = 120;
+		private static final int WIDTH_MAX = 220;
+		private static final int LIST_MAX_HEIGHT = 100;
+
+		public HeapWindow(Heap heap) {
+			super();
+
+			int width = WIDTH_MIN;
+
+			IconTitle title = new IconTitle(heap);
+			title.color(TITLE_COLOR);
+			String desc = heap.size() > 1 ? heap.heapDesc() : heap.info();
+
+			RenderedTextBlock info = PixelScene.renderTextBlock(desc, 6);
+			info.maxWidth(width);
+
+			//window can go out of the screen on landscape, so widen it as appropriate
+			while (PixelScene.landscape() && info.height() > 100 && width < WIDTH_MAX) {
+				width += 20;
+				info.maxWidth(width);
+			}
+
+			//标题与描述固定在顶部，不随下方物品列表滚动
+			title.setRect(0, 0, width, 0);
+			add(title);
+
+			info.setPos(0, title.bottom() + GAP);
+			add(info);
+
+			ScrollPane pane = new ScrollPane(new Component());
+			add(pane);
+			Component content = pane.content();
+
+			float pos = 0;
+			if (heap.size() > 1 || (heap.type != Type.HEAP && heap.type != Type.FOR_SALE)) {
+				for (Item item : heap.items) {
+					WndRanking.canScrollItemButton button = new WndRanking.canScrollItemButton(item, false);
+					button.setRect(0, pos, width, WndRanking.ItemButton.HEIGHT);
+					content.add(button);
+					pos += button.height() + 1;
+				}
+			}
+			content.setSize(width, Math.max(0, pos - 1));
+
+			float listTop = info.bottom() + GAP;
+			int listHeight = (int)Math.min(LIST_MAX_HEIGHT, content.height());
+			pane.setRect(0, listTop, width, listHeight);
+			resize(width, (int)(listTop + listHeight + GAP));
+			pane.setRect(0, listTop, width, listHeight);
+			pane.scrollTo(0, 0);
+		}
+	}
+
+	private static class HeapButton extends Button implements canScrollButton {
+
+		public static final int HEIGHT = 23;
+
+		private final Heap heap;
+
+		private ColorBlock bg;
+		private final ItemSprite icon;
+		private final RenderedTextBlock name;
+
+		public HeapButton(Heap heap) {
+			super();
+			this.heap = heap;
+			icon = new ItemSprite();
+			icon.view(heap);
+			add(icon);
+
+			name = PixelScene.renderTextBlock(7 * size);
+			add(name);
+
+			//NEVER_BLOCK使从按钮上发起的拖拽也能滚动ScrollPane，同时保留按下高亮与点击
+			hotArea.blockLevel = PointerArea.NEVER_BLOCK;
+		}
+
+		@Override
+		protected void createChildren() {
+			bg = new ColorBlock(28 * size, HEIGHT * size, 0x9953564D);
+			add(bg);
+
+			super.createChildren();
+		}
+
+		@Override
+		protected void layout() {
+			bg.x = x;
+			bg.y = y;
+
+			icon.x = x + (28 - icon.width()) / 2f;
+			icon.y = y + (height - icon.height()) / 2f;
+			PixelScene.align(icon);
+
+			name.maxWidth((int)(width - 28 - 2));
+			name.text(Messages.titleCase(heap.toString()));
+			name.setPos(x + 28 + 2, y + (height - name.height()) / 2f);
+			PixelScene.align(name);
+
+			super.layout();
+		}
+
+		@Override
+		protected void onPointerDown() {
+			bg.brightness(1.5f);
+			Sample.INSTANCE.play(Assets.Sounds.CLICK, 0.7f, 0.7f, 1.2f);
+		}
+
+		@Override
+		protected void onPointerUp() {
+			bg.brightness(1.0f);
+		}
+
+		@Override
+		public void onClick() {
+			Game.scene().add(new HeapWindow(heap));
 		}
 	}
 

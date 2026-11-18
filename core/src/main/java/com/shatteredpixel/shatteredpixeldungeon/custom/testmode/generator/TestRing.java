@@ -61,6 +61,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.RectF;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
@@ -399,8 +400,14 @@ public class TestRing extends TestGenerator {
                     btn.icon(im);
                 } else if (category == WAND_CAT || category == TRINKET_CAT) {
                     Class<? extends Item> cls = category == WAND_CAT ? wandList.get(i) : trinketList.get(i);
+                    Item item = Reflection.newInstance(cls);
                     Image im = new Image(Assets.Sprites.ITEMS);
-                    im.frame(ItemSpriteSheet.film.get(Objects.requireNonNull(Reflection.newInstance(cls)).image));
+                    RectF frame = ItemSpriteSheet.film.get(item.image());
+                    //部分道具(如破碎的望远镜)没有标准贴图，film 中没有对应帧，回退到占位图
+                    if (frame == null) {
+                        frame = ItemSpriteSheet.film.get(ItemSpriteSheet.ARCANE_RESIN);
+                    }
+                    im.frame(frame);
                     im.scale.set(0.9f);
                     btn.icon(im);
                 }

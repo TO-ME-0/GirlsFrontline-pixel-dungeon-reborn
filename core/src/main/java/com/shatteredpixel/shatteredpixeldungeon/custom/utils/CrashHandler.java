@@ -4,6 +4,9 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
@@ -25,6 +28,10 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     public static final String CRASH_DIR = "crash_logs";
     /** 崩溃日志文件前缀*/
     private static final String CRASH_FILE_PREFIX = "crash_";
+    /** 卡死日志文件前缀*/
+    private static final String HANG_FILE_PREFIX = "hang_";
+    /** 记录卡死报告时 actor 线程名称*/
+    private static final String ACTOR_THREAD_NAME = "SHPD Actor Thread";
     /** 崩溃日志文件后缀*/
     public static final String CRASH_FILE_EXTENSION = ".log";
     /** 系统默认的UncaughtException处理类 */
@@ -102,6 +109,117 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             }
             System.exit(1);
         }
+    }
+
+    /**
+     * 保存一次卡死报告（忙碌转圈超过 120 秒）。
+     * 由 BusyIndicator 在确认卡死后调用，上层保证每次卡死只调用一次。
+     */
+    public void saveHangReport() {
+        try {
+            String report = generateHangReport();
+            if (Gdx.files == null) {
+                System.err.println("Gdx.files not available, printing hang report to console:");
+                System.err.println(report);
+                return;
+            }
+
+            ensureCrashDirExists();
+
+            String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(new Date());
+            String fileName = HANG_FILE_PREFIX + timestamp + CRASH_FILE_EXTENSION;
+            FileHandle hangFile = Gdx.files.local(CRASH_DIR).child(fileName);
+            hangFile.writeString(report, false);
+
+            if (DEBUG) {
+                System.out.println("Hang report saved to: " + hangFile.path());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to save hang report: " + e.getMessage());
+        }
+    }
+
+    public String generateHangReport() {
+        StringBuilder sb = new StringBuilder();
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        sb.append("=== HANG REPORT ===\n");
+        sb.append("Time: ").append(timestamp).append("\n");
+        sb.append("Reason: Busy indicator kept spinning for over 120s\n");
+        sb.append("Game Version: ").append(Game.version).append("\n");
+        sb.append("GameSeed: ").append(Dungeon.seed()).append("\n");
+        sb.append("Depth: ").append(Dungeon.depth()).append("\n");
+        sb.append("Challenges: ").append(Dungeon.challenges).append("\n\n");
+
+        Hero hero = Dungeon.hero();
+        if (hero != null) {
+            sb.append("Hero: ").append(hero.heroClass).append("\n");
+            sb.append("Hero ready: ").append(hero.ready).append("\n");
+            sb.append("Hero resting: ").append(hero.resting).append("\n");
+            sb.append("Hero HP: ").append(hero.HP).append("/").append(hero.HT).append("\n");
+            sb.append("Hero pos: ").append(hero.pos).append("\n");
+            sb.append("Hero buffs: ").append(getBuffNames(hero)).append("\n\n");
+        } else {
+            sb.append("Hero: null\n\n");
+        }
+
+        sb.append("Actor processing: ").append(Actor.processing()).append("\n");
+        sb.append("Actor now: ").append(Actor.now()).append("\n");
+        Actor currentActor = Actor.currentActor();
+        if (currentActor != null) {
+            sb.append("Current actor: ").append(currentActor.getClass().getName()).append("\n");
+            sb.append("Current actor time: ").append(currentActor.curTime()).append("\n");
+            sb.append("Current actor cooldown: ").append(currentActor.cooldown()).append("\n");
+        } else {
+            sb.append("Current actor: null\n");
+        }
+        sb.append("\n");
+
+        sb.append("Actor Thread Stack:\n");
+        sb.append(getThreadStack(ACTOR_THREAD_NAME));
+        sb.append("\nRender Thread Stack:\n");
+        sb.append(getCurrentThreadStack());
+
+        sb.append("\n=== END REPORT ===\n");
+
+        return sb.toString();
+    }
+
+    private static String getBuffNames(Hero hero) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (Buff b : hero.buffs()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(b.getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            return "failed to read: " + e.getClass().getSimpleName();
+        }
+        return sb.length() == 0 ? "none" : sb.toString();
+    }
+
+    private static String getThreadStack(String threadName) {
+        for (Thread t : Thread.getAllStackTraces().keySet()) {
+            if (threadName.equals(t.getName())) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(t.getName()).append(" [").append(t.getState()).append("]\n");
+                for (StackTraceElement element : t.getStackTrace()) {
+                    sb.append("\tat ").append(element).append("\n");
+                }
+                return sb.toString();
+            }
+        }
+        return "Thread '" + threadName + "' not found\n";
+    }
+
+    private static String getCurrentThreadStack() {
+        Thread t = Thread.currentThread();
+        StringBuilder sb = new StringBuilder();
+        sb.append(t.getName()).append(" [").append(t.getState()).append("]\n");
+        for (StackTraceElement element : t.getStackTrace()) {
+            sb.append("\tat ").append(element).append("\n");
+        }
+        return sb.toString();
     }
 
     public void saveCrashReport(String crashReport) {
