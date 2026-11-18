@@ -462,14 +462,13 @@ public class Imp extends NPC {
 		//其结果依赖运行时牌堆状态，故不纳入 init 预生成
 		private void genArtifact() {
 			Item artif = Generator.randomArtifact();
-			if (artif != null){
+			if (artif instanceof Artifact){
 				artif.identify(false);
 				((Artifact)artif).transferUpgrade(5);
 			} else {
 				//神器牌堆耗尽则改出一枚戒指
-				artif = Generator.random(Generator.Category.RING);
-				//戒指延迟到击败 BOSS 后才鉴定
 				artif.level(Random.IntRange(2, 4));
+				//戒指延迟到击败 BOSS 后才鉴定
 			}
 			artif.cursed = false;
 			rewardOptions.set(0, artif);

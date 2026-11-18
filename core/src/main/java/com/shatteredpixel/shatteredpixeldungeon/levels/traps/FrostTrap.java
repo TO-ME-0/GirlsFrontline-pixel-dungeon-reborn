@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MagicalFireRoom;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.BArray;
 import com.watabou.noosa.audio.Sample;
@@ -46,7 +47,18 @@ public class FrostTrap extends Trap {
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 		}
 		
-		PathFinder.buildDistanceMap( pos, BArray.not( Dungeon.level.solid, null ), 2 );
+		//火墙（永恒之火）会挡住霜冻扩散：避免大冰霜陷阱的冰越过火墙，冻碎火焰房内的药水
+		boolean[] passable = BArray.not( Dungeon.level.solid, null );
+		MagicalFireRoom.EternalFire eternalFire = (MagicalFireRoom.EternalFire)Dungeon.level.blobs.get( MagicalFireRoom.EternalFire.class );
+		if (eternalFire != null && eternalFire.volume > 0){
+			for (int i = 0; i < passable.length; i++){
+				if (eternalFire.cur[i] > 0){
+					passable[i] = false;
+				}
+			}
+		}
+
+		PathFinder.buildDistanceMap( pos, passable, 2 );
 		for (int i = 0; i < PathFinder.distance().length; i++) {
 			if (PathFinder.distance()[i] < Integer.MAX_VALUE) {
 				GameScene.add(Blob.seed(i, 20, Freezing.class));

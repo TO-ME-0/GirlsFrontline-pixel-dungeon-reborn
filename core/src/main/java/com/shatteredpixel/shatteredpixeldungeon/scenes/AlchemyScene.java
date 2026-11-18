@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.LiquidMetal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.AlchemistsToolkit;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
@@ -373,7 +374,9 @@ public class AlchemyScene extends PixelScene {
 				if (item != null && inputs[0] != null) {
 					for (int i = 0; i < inputs.length; i++) {
 						if (inputs[i].item() == null) {
-							if (item instanceof LiquidMetal){
+							if (item instanceof LiquidMetal
+									|| (item instanceof MissileWeapon && ((MissileWeapon) item).setID != 0)){
+								//液金、非量产型投武（分组且有堆叠上限）需要整组投入
 								inputs[i].item(item.detachAll(Dungeon.hero().belongings.backpack));
 							} else {
 								inputs[i].item(item.detach(Dungeon.hero().belongings.backpack));
@@ -509,39 +512,7 @@ public class AlchemyScene extends PixelScene {
 		}
 
 		if (result != null){
-			bubbleEmitter.start(Speck.factory( Speck.BUBBLE ), 0.01f, 100 );
-			smokeEmitter.burst(Speck.factory( Speck.WOOL ), 10 );
-			Sample.INSTANCE.play( Assets.Sounds.PUFF );
-
-			int resultQuantity = result.quantity();
-			if (!result.collect()){
-				Dungeon.level.drop(result, Dungeon.hero().pos);
-			}
-
-			Statistics.itemsCrafted++;
-			Badges.validateItemsCrafted();
-
-			lastRecipe = recipe;
-
-			saveAll();
-
-			synchronized (inputs) {
-                for (InputButton input : inputs) {
-                    if (input != null && input.item() != null) {
-                        Item item = input.item();
-                        if (item.quantity() <= 0) {
-                            input.item(null);
-                        } else {
-                            input.slot.updateText();
-                        }
-                    }
-                }
-			}
-
-			updateState();
-			//we reset the quantity in case the result was merged into another stack in the backpack
-			result.quantity(resultQuantity);
-			outputs[0].item(result);
+			craftItem(ingredients, result);
 		}
 
 		boolean foundItems = true;
@@ -565,6 +536,42 @@ public class AlchemyScene extends PixelScene {
 		}
 	}
 
+	//handles the result of a recipe, also used when a trinket is chosen from the catalyst window
+	public void craftItem( ArrayList<Item> ingredients, Item result ){
+		bubbleEmitter.start(Speck.factory( Speck.BUBBLE ), 0.01f, 100 );
+		smokeEmitter.burst(Speck.factory( Speck.WOOL ), 10 );
+		Sample.INSTANCE.play( Assets.Sounds.PUFF );
+
+		int resultQuantity = result.quantity();
+		if (!result.collect()){
+			Dungeon.level.drop(result, Dungeon.hero().pos);
+		}
+
+		Statistics.itemsCrafted++;
+		Badges.validateItemsCrafted();
+
+		saveAll();
+
+		//clear out consumed inputs, including recipes which produce their item later (e.g. trinket catalyst)
+		synchronized (inputs) {
+            for (InputButton input : inputs) {
+                if (input != null && input.item() != null) {
+                    Item item = input.item();
+                    if (item.quantity() <= 0) {
+                        input.item(null);
+                    } else {
+                        input.slot.updateText();
+                    }
+                }
+            }
+		}
+
+		updateState();
+		//we reset the quantity in case the result was merged into another stack in the backpack
+		result.quantity(resultQuantity);
+		outputs[0].item(result);
+	}
+
 	public void populate(ArrayList<Item> toFind, Belongings inventory){
 		clearSlots();
 
@@ -574,7 +581,8 @@ public class AlchemyScene extends PixelScene {
 			ArrayList<Item> found = inventory.getAllSimilar(finding);
 			while (!found.isEmpty() && needed > 0){
 				Item detached;
-				if (finding instanceof LiquidMetal)
+				if (finding instanceof LiquidMetal
+						|| (finding instanceof MissileWeapon && ((MissileWeapon) finding).setID != 0))
 					detached = found.get(0).detachAll(inventory.backpack);
 				else
 					detached = found.get(0).detach(inventory.backpack);

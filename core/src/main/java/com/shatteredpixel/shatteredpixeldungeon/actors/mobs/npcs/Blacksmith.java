@@ -509,8 +509,7 @@ public class Blacksmith extends NPC {
 
 		public void beatBoss(){
 			bossBeaten = true;
-			//击败 Boss：抽卡冷却 -2000 回合（仅当前间隔生效）
-			CardSelector.INSTANCE().coolDown(2000);
+			//击败 Boss 的抽卡冷却奖励由 Mob.die() 统一结算（-2000），此处不再重复扣减
 		}
 
 		public boolean bossBeaten(){

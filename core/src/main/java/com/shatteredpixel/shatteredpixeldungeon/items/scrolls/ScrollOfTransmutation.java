@@ -215,7 +215,9 @@ public class ScrollOfTransmutation extends InventoryScroll {
 	}
 	
 	private static Artifact changeArtifact( Artifact a ) {
-		Artifact n = Generator.randomArtifact();
+		Item item = Generator.randomArtifact();
+		//目前正在考虑神器生成完毕后嬗变的影响，倘若打算补ring则直接返回ring，目前暂且返回null收回神器。
+		Artifact n = item instanceof Artifact ? (Artifact)item : null;
 		
 		if (n != null && !Challenges.isItemBlocked(n)){
 			n.cursedKnown = a.cursedKnown;

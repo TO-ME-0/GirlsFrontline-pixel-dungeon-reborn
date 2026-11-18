@@ -320,11 +320,11 @@ public class Generator {
 		//牌堆系统（deck system）：每个使用牌堆的类别持有一个固定种子与已掉落次数，
 		//使掉落结果与发生时机无关（无论是关卡生成还是随机掉落）。
 		//与 probs 一样按每局上下文路由，避免查种线程污染主世界状态
-		public Long seed(){
+		public long seed(){
 			return Generator.cur().catSeeds[ordinal()];
 		}
 
-		public void setSeed(Long s){
+		public void setSeed(long s){
 			Generator.cur().catSeeds[ordinal()] = s;
 		}
 
@@ -701,7 +701,7 @@ public class Generator {
 		//类别权重的默认值（两套牌堆之和），不受当前牌堆消耗情况影响
 		LinkedHashMap<Category, Float> defaultCatProbs;
 		float[][] catProbs;
-		Long[] catSeeds;
+		long[] catSeeds;
 		int[] catDropped;
 		boolean[] catUsing2ndProbs;
 
@@ -711,7 +711,7 @@ public class Generator {
 			defaultCatProbs = new LinkedHashMap<>();
 			Category[] cats = Category.values();
 			catProbs = new float[cats.length][];
-			catSeeds = new Long[cats.length];
+			catSeeds = new long[cats.length];
 			catDropped = new int[cats.length];
 			catUsing2ndProbs = new boolean[cats.length];
 			for (Category cat : cats) {
@@ -741,11 +741,11 @@ public class Generator {
 			catUsing2ndProbs[cat.ordinal()] = b;
 		}
 
-		private Long seed(Category cat) {
+		private long seed(Category cat) {
 			return catSeeds[cat.ordinal()];
 		}
 
-		private void setSeed(Category cat, Long s) {
+		private void setSeed(Category cat, long s) {
 			catSeeds[cat.ordinal()] = s;
 		}
 
@@ -838,12 +838,10 @@ public class Generator {
 				case MISSILE:
 					return randomMissile(floorSet);
 				case ARTIFACT:
-					Item item = randomArtifact();
-					//if we're out of artifacts, return a ring instead.
-					return item != null ? item : random(Category.RING, floorSet);
+					return randomArtifact();
 				default:
 					//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
-					boolean decked = cat.defaultProbs != null && seed(cat) != null;
+					boolean decked = cat.defaultProbs != null;
 					int i;
 					try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
 						i = Random.chances(probs(cat));
@@ -935,34 +933,38 @@ public class Generator {
 			w.random();
 			return w;
 		}
-
-		//enforces uniqueness of artifacts throughout a run.
-		public Artifact randomArtifact() {
+		
+		public Item randomArtifact() {
 			Category cat = Category.ARTIFACT;
-			//牌堆系统：以固定种子重放已掉落次数，使掉落结果与发生时机无关
-			boolean decked = cat.defaultProbs != null && seed(cat) != null;
+			float[] p = probs(cat);
 			int i, j;
-			try (Rng.Scope s = decked ? Rng.substream(seed(cat), dropped(cat)) : null) {
-				i = Random.chances(probs(cat));
-				j = Random.chances(probs(cat));
+			try (Rng.Scope s = Rng.substream(seed(cat), dropped(cat))) {
+				i = Random.chances(p);
+				j = Random.chances(p);
 			}
-			if (decked) setDropped(cat, dropped(cat) + 1);
+			Item item;
 
-			//if no artifacts are left, return null
-			if (i == -1) {
-				return null;
-			}
-			Artifact item = Reflection.newInstance((Class<? extends Artifact>) cat.classes[i]);
-			if (item == null)
-				return null;
+			//if no artifacts are left, fall back to a random ring (never returns null)
+			if (i != -1) {
+				//抽中 LloydsBeacon 视为重抽：落点改用 j，且 LB 权重保留（仅连续抽中或垫底时才会真正产出）
+				int pick = (cat.classes[i] == LloydsBeacon.class) ? j : i;
+				item = (Item) Reflection.newInstance(cat.classes[pick]);
+				p[pick] = 0;
 
-			if (item.getClass() == LloydsBeacon.class) {
-				item = Reflection.newInstance((Class<? extends Artifact>) cat.classes[j]);
-				probs(cat)[j] = 0;
+				item.random(); //契约：Artifact.random() 恰好从父流消耗 1 次 Float（见 Artifact#random 处注释）
 			} else {
-				probs(cat)[i] = 0;
+				//等效令artifact侧与ring侧使用同一随机数生成。
+				try (Rng.Scope s = Rng.substream(seed(cat), dropped(cat))) {
+					Category ringCat = Category.RING;
+					Class<?> ringCls = ringCat.classes[Random.chances(probs(ringCat))];
+					item = (Item) Reflection.newInstance(ringCls);
+					item.random();
+					//artifact消耗1次，ring消耗两次，所以将ring的消耗停留在子随机流。
+				}
+				Random.Float(); //补上artifact侧的item.random()消耗的那 1 次
 			}
-			return (Artifact) item.random();
+			setDropped(cat, dropped(cat) + 1);
+			return item;
 		}
 
 		public boolean removeArtifact(Class<? extends Artifact> artifact) {
@@ -1013,7 +1015,7 @@ public class Generator {
 				}
 
 				//牌堆系统的固定种子与已掉落次数
-				if (seed(cat) != null){
+				if (cat.defaultProbs != null){
 					bundle.put(cat.name().toLowerCase() + CATEGORY_SEED, seed(cat));
 					bundle.put(cat.name().toLowerCase() + CATEGORY_DROPPED, dropped(cat));
 				}
@@ -1047,9 +1049,15 @@ public class Generator {
 					catUsing2ndProbs[cat.ordinal()] = using2nd;
 				}
 				//牌堆系统的固定种子与已掉落次数（独立判断，概率数组不一定与其同时入档）
-				if (bundle.contains(catName + CATEGORY_SEED)){
-					catSeeds[cat.ordinal()] = bundle.getLong(catName + CATEGORY_SEED);
-					catDropped[cat.ordinal()] = bundle.getInt(catName + CATEGORY_DROPPED);
+				if (cat.defaultProbs != null){
+					if (bundle.contains(catName + CATEGORY_SEED)){
+						catSeeds[cat.ordinal()] = bundle.getLong(catName + CATEGORY_SEED);
+						catDropped[cat.ordinal()] = bundle.getInt(catName + CATEGORY_DROPPED);
+					} else {
+						//旧存档没有牌堆种子：与 fullReset 一致，补一枚种子并清零已掉落次数
+						setSeed(cat, Random.Long());
+						setDropped(cat, 0);
+					}
 				}
 			}
 		}
@@ -1181,7 +1189,7 @@ public class Generator {
 	}
 
 	//enforces uniqueness of artifacts throughout a run.
-	public static Artifact randomArtifact() {
+	public static Item randomArtifact() {
 		return cur().randomArtifact();
 	}
 

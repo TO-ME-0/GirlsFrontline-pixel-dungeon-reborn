@@ -334,7 +334,6 @@ public class VaultLevel extends CityLevel {
 					loot = Generator.randomUsingDefaults(Generator.Category.WEP_T4);
 					break;
 			}
-		//T2 武器允许重复，因为生成量很大
 		} while (!generatedClasses.add(loot.getClass()));
 
 		//2-4阶至少+2

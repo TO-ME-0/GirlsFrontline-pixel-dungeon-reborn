@@ -80,7 +80,7 @@ public class WndBlacksmith extends Window {
 		ArrayList<RedButton> buttons = new ArrayList<RedButton>();
 
 		final int pickaxeCost = Blacksmith.Quest.cur().freePickaxe ? 0 : 250;
-		RedButton pickaxe = new RedButton(Messages.get(this, "pickaxe", pickaxeCost), 6){
+		RedButton pickaxe = new RedButton(Messages.get(this, "pickaxe", pickaxeCost), 7){
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -115,7 +115,7 @@ public class WndBlacksmith extends Window {
 		buttons.add(pickaxe);
 
 		final int reforgecost = 500 + 1000*Blacksmith.Quest.cur().reforges;
-		RedButton reforge = new RedButton(Messages.get(this, "reforge", reforgecost), 6){
+		RedButton reforge = new RedButton(Messages.get(this, "reforge", reforgecost), 7){
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndReforge(troll, WndBlacksmith.this));
@@ -125,7 +125,7 @@ public class WndBlacksmith extends Window {
 		buttons.add(reforge);
 
 		final int hardenCost = 500 + 1000*Blacksmith.Quest.cur().hardens;
-		RedButton harden = new RedButton(Messages.get(this, "harden", hardenCost), 6){
+		RedButton harden = new RedButton(Messages.get(this, "harden", hardenCost), 7){
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new HardenSelector());
@@ -135,7 +135,7 @@ public class WndBlacksmith extends Window {
 		buttons.add(harden);
 
 		final int upgradeCost = 1000 + 1000*Blacksmith.Quest.cur().upgrades;
-		RedButton upgrade = new RedButton(Messages.get(this, "upgrade", upgradeCost), 6){
+		RedButton upgrade = new RedButton(Messages.get(this, "upgrade", upgradeCost), 7){
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new UpgradeSelector());
@@ -144,7 +144,7 @@ public class WndBlacksmith extends Window {
 		upgrade.enable(Blacksmith.Quest.cur().favor >= upgradeCost);
 		buttons.add(upgrade);
 
-		RedButton smith = new RedButton(Messages.get(this, "smith", 2000), 6){
+		RedButton smith = new RedButton(Messages.get(this, "smith", 2000), 7){
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -169,7 +169,7 @@ public class WndBlacksmith extends Window {
 		smith.enable(Blacksmith.Quest.cur().favor >= 2000);
 		buttons.add(smith);
 
-		RedButton cashOut = new RedButton(Messages.get(this, "cashout"), 6){
+		RedButton cashOut = new RedButton(Messages.get(this, "cashout"), 7){
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(

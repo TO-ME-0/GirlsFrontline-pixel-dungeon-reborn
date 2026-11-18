@@ -77,26 +77,17 @@ public class Dewdrop extends Item {
 	}
 
 	//自动拾取（移植自明日方舟地牢ARK_PD）：踩踏草丛产出露水时直接装入水袋，
-	//不生成地面掉落物，也不消耗回合
+	//不生成地面掉落物，也不消耗回合。水袋不存在或已满时不自动拾取，交由调用方掉落到地面
 	public boolean doPickUpAuto( Hero hero, int pos ) {
 
 		Waterskin flask = hero.belongings.getItem( Waterskin.class );
 		Catalog.setSeen(getClass());
-		if (flask != null && !flask.isFull()){
-
-			flask.collectDew( this );
-			GameScene.pickUp( this, pos );
-
-		} else {
-
-			int terr = Dungeon.level.map[pos];
-			if (!consumeDew(1, hero, terr == Terrain.ENTRANCE|| terr == Terrain.EXIT || terr == Terrain.UNLOCKED_EXIT)){
-				return false;
-			} else {
-				Catalog.countUse(getClass());
-			}
-
+		if (flask == null || flask.isFull()){
+			return false;
 		}
+
+		flask.collectDew( this );
+		GameScene.pickUp( this, pos );
 
 		Sample.INSTANCE.play( Assets.Sounds.DEWDROP );
 

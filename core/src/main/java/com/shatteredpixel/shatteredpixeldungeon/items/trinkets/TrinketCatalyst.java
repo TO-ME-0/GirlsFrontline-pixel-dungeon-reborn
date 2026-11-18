@@ -220,20 +220,7 @@ public class TrinketCatalyst extends Item {
 							Catalog.countUse(cata.getClass());
 							result.identify();
 							if (GirlsFrontlinePixelDungeon.scene() instanceof AlchemyScene) {
-								//target AlchemyScene doesn't have craftItem, use regular pickup instead
-								Sample.INSTANCE.play( Assets.Sounds.PUFF );
-								if (result.doPickUp(Dungeon.hero())){
-									GLog.p( Messages.capitalize(Messages.get(Hero.class, "you_now_have", item.name())) );
-								} else {
-									Dungeon.level.drop(result, Dungeon.hero().pos);
-								}
-								Statistics.itemsCrafted++;
-								Badges.validateItemsCrafted();
-								try {
-									Dungeon.saveAll();
-								} catch (IOException e) {
-									GirlsFrontlinePixelDungeon.reportException(e);
-								}
+								((AlchemyScene) GirlsFrontlinePixelDungeon.scene()).craftItem(null, result);
 							} else {
 								Sample.INSTANCE.play( Assets.Sounds.PUFF );
 

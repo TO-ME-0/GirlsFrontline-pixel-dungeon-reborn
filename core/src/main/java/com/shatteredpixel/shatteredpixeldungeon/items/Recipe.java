@@ -259,7 +259,10 @@ public abstract class Recipe {
 	public static boolean usableInRecipe(Item item){
 		if (item instanceof EquipableItem){
 			//only thrown weapons and wands allowed among equipment items
-			return item.isIdentified() && !item.cursed && item instanceof MissileWeapon;
+			//蓝底投武（cursedKnown且非cursed）即使等级未知也应可投入炼金
+			if (item instanceof MissileWeapon)
+				return item.cursedKnown && !item.cursed;
+			return item.isIdentified() && !item.cursed;
 		} else if (item instanceof Wand) {
 			return item.isIdentified() && !item.cursed;
 		} else {

@@ -116,9 +116,11 @@ public class SuperNovaTracker extends Buff {
 			GameScene.updateMap();
 
 		} else {
+			//视野每回合都会重新标记，标记只存活一个刷新周期，避免旧格子（已离开视野的）堆积到爆炸
+			float warnUntil = Actor.now() + TICK;
 			for (int i = 0; i < Dungeon.level.length(); i++){
 				if (fieldOfView[i]){
-					target.sprite.parent.add(new TargetedCell(i, 0xFF0000));
+					target.sprite.parent.add(new TargetedCell(i, 0xFF0000, warnUntil));
 				}
 			}
 		}

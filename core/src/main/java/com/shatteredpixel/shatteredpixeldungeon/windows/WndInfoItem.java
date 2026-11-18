@@ -64,10 +64,7 @@ public class WndInfoItem extends Window {
         item = null;
         this.heap = heap;
 
-		if (heap.type == Heap.Type.HEAP && heap.room == Heap.Room.NONE)
-			fillFields( heap.peek() );
-        else
-			fillFields( heap );
+		fillFields( heap );
 	}
 	
 	public WndInfoItem( Item item ) {
@@ -95,11 +92,22 @@ public class WndInfoItem extends Window {
 	private void fillFields(Heap heap ) {
 		
 		IconTitle titlebar = new IconTitle( heap );
-		titlebar.color( TITLE_COLOR );
+		//普通物品堆与商店商品按物品侧规则变色，其余类型使用标题色
+		int color = TITLE_COLOR;
+		if (heap.type == Heap.Type.HEAP || heap.type == Heap.Type.FOR_SALE) {
+			Item top = heap.peek();
+			if (top.levelKnown && top.level() > 0) {
+				color = ItemSlot.UPGRADED;
+			} else if (top.levelKnown && top.level() < 0) {
+				color = ItemSlot.DEGRADED;
+			}
+		}
+		titlebar.color( color );
 		
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( heap.info(), 6 );
 
-        if(heap.type == Heap.Type.FOR_SALE) {
+        //仅普通物品堆与商店商品可对 peek() 操作备注
+        if(heap.type == Heap.Type.HEAP || heap.type == Heap.Type.FOR_SALE) {
             noteButton = new ItemNote(heap.peek(), this);
             noteButton.enable(heap.peek().canNote);
             noteButton.visible = heap.peek().canNote;
@@ -110,6 +118,36 @@ public class WndInfoItem extends Window {
 	}
 
 	//统一布局：右上角依次排开 0~2 个按钮（每个 16px）
+	private void fillFields( Item item ) {
+        this.item = item;
+
+		int color = TITLE_COLOR;
+		if (item.levelKnown && item.level() > 0) {
+			color = ItemSlot.UPGRADED;
+		} else if (item.levelKnown && item.level() < 0) {
+			color = ItemSlot.DEGRADED;
+		}
+
+		IconTitle titlebar = new IconTitle( item );
+		titlebar.color( color );
+
+		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
+        noteButton = new ItemNote(item, this);
+        noteButton.enable(item.canNote);
+        noteButton.visible=item.canNote;
+
+		//猜测按钮：仅“未鉴定 + 可推断 + 在背包内”时显示
+		IconButton guessButton = null;
+		if (!item.isIdentified()
+				&& AutoIdentify.canGuess(item)
+				&& Dungeon.hero() != null
+				&& Dungeon.hero().belongings.contains(item)) {
+			guessButton = new GuessButton(item);
+		}
+
+		layoutFields(titlebar, txtInfo, noteButton, guessButton);
+	}
+
 	private void layoutFields(IconTitle title, RenderedTextBlock info, IconButton... buttons){
 		int width = WIDTH_MIN;
 
@@ -144,36 +182,6 @@ public class WndInfoItem extends Window {
 
 		resize( width, (int)(info.bottom() + 2) );
 	}
-	private void fillFields( Item item ) {
-        this.item = item;
-
-		int color = TITLE_COLOR;
-		if (item.levelKnown && item.level() > 0) {
-			color = ItemSlot.UPGRADED;
-		} else if (item.levelKnown && item.level() < 0) {
-			color = ItemSlot.DEGRADED;
-		}
-
-		IconTitle titlebar = new IconTitle( item );
-		titlebar.color( color );
-
-		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
-        noteButton = new ItemNote(item, this);
-        noteButton.enable(item.canNote);
-        noteButton.visible=item.canNote;
-
-		//猜测按钮：仅“未鉴定 + 可推断 + 在背包内”时显示
-		IconButton guessButton = null;
-		if (!item.isIdentified()
-				&& AutoIdentify.canGuess(item)
-				&& Dungeon.hero() != null
-				&& Dungeon.hero().belongings.contains(item)) {
-			guessButton = new GuessButton(item);
-		}
-
-		layoutFields(titlebar, txtInfo, noteButton, guessButton);
-	}
-
 	//猜测按钮：点击后对该物品的标签做约束求解
 	public class GuessButton extends IconButton {
 		private final Item item;
