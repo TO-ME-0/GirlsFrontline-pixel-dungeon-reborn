@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.canScrollRedButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndCardTree;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndWithCanScrollButton;
 import com.watabou.noosa.Image;
@@ -53,9 +54,7 @@ public class CardSelector extends Item {
         public void doAction( CardSelector selector ){
             switch (this) {
                 case SELECT_CARD:
-                    if (selector.curCards.isEmpty())
-                        Card.random(selector);
-                    selector.selectCards();
+                    GameScene.show(new WndCardTree(selector));
                     return;
                 case CHECK_CARD:
                     selector.checkCards();
@@ -81,7 +80,7 @@ public class CardSelector extends Item {
             }
         }
     }
-    private int cardCD() {
+    public int cardCD() {
         if (duration < 33333)
             return 2000 + curCardNum * 500;
         else
@@ -97,6 +96,41 @@ public class CardSelector extends Item {
     }
     public void coolDown( int coolDown ){
         coolDownLeft -= coolDown;
+    }
+    //选定一张卡：加入卡组、推进阶段、结算冷却，并触发卡牌效果。
+    //新旧两个界面共用这段逻辑，保证抽卡规则完全一致。
+    public void choose( Card c ){
+        if (c == null)
+            return;
+        if (c instanceof FirstCard)
+            FirstCards.add((FirstCard) c);
+        else if (c instanceof CommonCard)
+            CommonCards.add((CommonCard) c);
+        else if (c instanceof RareCard)
+            RareCards.add((RareCard) c);
+        else if (c instanceof FinalCard)
+            FinalCards.add((FinalCard) c);
+
+        curCardNum++;
+        if (duration >= 33333)
+            coolDownLeft += 4500;
+        else if (curCardNum < 8)
+            coolDownLeft += 1500 + 500 * curCardNum;
+
+        curCards.clear();
+
+        if (INSTANCE != null) {
+            INSTANCE.hide();
+            INSTANCE = null;
+        }
+        if (selecting != null) {
+            WndOptions wnd = selecting;
+            selecting = null;
+            wnd.hide();
+        }
+
+        c.onSelect();
+        updateQuickslot();
     }
     public int upgradeTime(){
         return duration;
@@ -186,27 +220,7 @@ public class CardSelector extends Item {
                                 @Override
                                 protected void onSelect( int index ) {
                                     if (index == 0){
-                                        if (c instanceof FirstCard)
-                                            FirstCards.add((FirstCard) c);
-                                        else if (c instanceof CommonCard)
-                                            CommonCards.add((CommonCard) c);
-                                        else if (c instanceof RareCard)
-                                            RareCards.add((RareCard) c);
-                                        else if (c instanceof FinalCard)
-                                            FinalCards.add((FinalCard) c);
-                                        curCardNum++;
-                                        if (duration >= 33333)
-                                            coolDownLeft += 4500;
-                                        else if (curCardNum < 8)
-                                            coolDownLeft += 1500 + 500 * curCardNum;
-                                        curCards.clear();
-                                        if (INSTANCE != null) {
-                                            INSTANCE.hide();
-                                            INSTANCE = null;
-                                        }
-                                        c.onSelect();
-                                        hide();
-                                        updateQuickslot();
+                                        choose(c);
                                     }
                                     else if (index == 1)
                                         hide();
